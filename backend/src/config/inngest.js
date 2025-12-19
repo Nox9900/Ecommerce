@@ -2,7 +2,7 @@ import { Inngest } from "inngest";
 import { connectDB } from "./db.js";
 import { User } from "../models/user.model.js";
 
-export const inngest = new Inngest({ id: "dfs-ecommerce" });
+export const inngest = new Inngest({ id: "ecommerce-app" });
 
 const syncUser = inngest.createFunction(
   { id: "sync-user" },
@@ -29,7 +29,6 @@ const deleteUserFromDB = inngest.createFunction(
   { event: "clerk/user.deleted" },
   async ({ event }) => {
     await connectDB();
-
     const { id } = event.data;
     await User.deleteOne({ clerkId: id });
   }
