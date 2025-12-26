@@ -148,7 +148,7 @@ const CartScreen = () => {
         itemCount: cartItems.length,
       });
 
-      Alert.alert("Error", "Failed to process payment");
+      Alert.alert("Error", "Failed to process payment!!!!");
     } finally {
       setPaymentLoading(false);
     }
@@ -160,7 +160,7 @@ const CartScreen = () => {
 
   return (
     <SafeScreen>
-      <Text className="px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">Cart</Text>
+      <Text className="pt-4 px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">Cart</Text>
 
       <ScrollView
         className="flex-1"

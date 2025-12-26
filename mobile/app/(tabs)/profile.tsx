@@ -1,6 +1,5 @@
 import SafeScreen from "@/components/SafeScreen";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,7 +29,7 @@ const ProfileScreen = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* HEADER */}
-        <View className="px-6 pb-8">
+        <View className="px-6 pb-8 pt-4">
           <View className="bg-surface rounded-3xl p-6">
             <View className="flex-row items-center">
               <View className="relative">

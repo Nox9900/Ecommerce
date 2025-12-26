@@ -48,10 +48,10 @@ const ShopScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER */}
-        <View className="px-6 pb-4 pt-6">
+        <View className="px-3 pb-4 pt-6">
           <View className="flex-row items-center justify-between mb-6">
             <View>
-              <Text className="text-text-primary text-3xl font-bold tracking-tight">Shop</Text>
+              <Text className="text-text-primary text-3xl font-bold tracking-tight">SHOP NAME</Text>
               <Text className="text-text-secondary text-sm mt-1">Browse all products</Text>
             </View>
 
@@ -61,7 +61,7 @@ const ShopScreen = () => {
           </View>
 
           {/* SEARCH BAR */}
-          <View className="bg-surface flex-row items-center px-5 py-4 rounded-2xl">
+          <View className="bg-surface flex-row items-center px-4 py-2 rounded-2xl">
             <Ionicons color={"#666"} size={22} name="search" />
             <TextInput
               placeholder="Search for products"
@@ -74,11 +74,12 @@ const ShopScreen = () => {
         </View>
 
         {/* CATEGORY FILTER */}
-        <View className="mb-6">
+        <View className="mb-6 px-3">
+          <Text className="text-text-primary text-lg font-bold mb-2">Categories</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20 }}
+            // contentContainerStyle={{ paddingHorizontal: 20 }}
           >
             {CATEGORIES.map((category) => {
               const isSelected = selectedCategory === category.name;
@@ -86,7 +87,7 @@ const ShopScreen = () => {
                 <TouchableOpacity
                   key={category.name}
                   onPress={() => setSelectedCategory(category.name)}
-                  className={`mr-3 rounded-2xl size-20 overflow-hidden items-center justify-center ${isSelected ? "bg-primary" : "bg-surface"}`}
+                  className={`mr-3 rounded size-20 overflow-hidden items-center justify-center ${isSelected ? "bg-primary" : "bg-surface"}`}
                 >
                   {category.icon ? (
                     <Ionicons
@@ -98,12 +99,13 @@ const ShopScreen = () => {
                     <Image source={category.image} className="size-12" resizeMode="contain" />
                   )}
                 </TouchableOpacity>
+                
               );
             })}
           </ScrollView>
         </View>
 
-        <View className="px-6 mb-6">
+        <View className="px-3 mb-6">
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-text-primary text-lg font-bold">Products</Text>
             <Text className="text-text-secondary text-sm">{filteredProducts.length} items</Text>

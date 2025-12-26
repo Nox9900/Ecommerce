@@ -21,11 +21,11 @@ const TabsLayout = () => {
           position: "absolute",
           backgroundColor: "transparent",
           borderTopWidth: 0,
-          height: 32 + insets.bottom,
+          height: 45 + insets.bottom,
           paddingTop: 4,
-          marginHorizontal: 100,
+          marginHorizontal: 50,
           marginBottom: insets.bottom,
-          borderRadius: 24,
+          borderRadius: 20,
           overflow: "hidden",
         },
         tabBarBackground: () => (
@@ -58,6 +58,7 @@ const TabsLayout = () => {
           tabBarIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />,
         }}
       />
+
       <Tabs.Screen
         name="profile"
         options={{
