@@ -15,8 +15,8 @@ const TabsLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#1DB954",
-        tabBarInactiveTintColor: "#B3B3B3",
+        tabBarActiveTintColor: "#6366F1", // Updated to primary indigo
+        tabBarInactiveTintColor: "#94A3B8", // Updated to match theme
         tabBarStyle: {
           position: "absolute",
           backgroundColor: "transparent",
@@ -33,8 +33,8 @@ const TabsLayout = () => {
             intensity={80}
             tint="dark"
             style={StyleSheet.absoluteFill}
-            // StyleSheet.absoluteFill is equal to this 👇
-            // { position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }
+          // StyleSheet.absoluteFill is equal to this 👇
+          // { position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }
           />
         ),
         tabBarLabelStyle: {
@@ -56,6 +56,14 @@ const TabsLayout = () => {
         options={{
           title: "Cart",
           tabBarIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: "Chat",
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
         }}
       />
 
