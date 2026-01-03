@@ -17,7 +17,8 @@ function Sidebar() {
 
   const pendingCount = statsData?.pendingVendors || 0;
 
-  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === process.env.ADMIN_EMAIL;
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
   const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
 
   return (
