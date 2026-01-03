@@ -1,153 +1,122 @@
 import SafeScreen from "@/components/SafeScreen";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router } from "expo-router";
+import { Text, TouchableOpacity, View, ScrollView, Alert } from "react-native";
 
 const MENU_ITEMS = [
-  { id: 1, icon: "person-outline", title: "Edit Profile", color: "#3B82F6", action: "/profile" },
-  { id: 2, icon: "list-outline", title: "Orders", color: "#10B981", action: "/orders" },
-  { id: 3, icon: "location-outline", title: "Addresses", color: "#F59E0B", action: "/addresses" },
-  { id: 4, icon: "heart-outline", title: "Wishlist", color: "#EF4444", action: "/wishlist" },
+  {
+    icon: "person-outline",
+    label: "My Addresses",
+    route: "/(profile)/addresses",
+  },
+  {
+    icon: "bag-handle-outline",
+    label: "My Orders",
+    route: "/(profile)/orders",
+  },
+  {
+    icon: "heart-outline",
+    label: "Wishlist",
+    route: "/(profile)/wishlist",
+  },
+  {
+    icon: "shield-checkmark-outline",
+    label: "Privacy & Security",
+    route: "/(profile)/privacy-security",
+  },
 ] as const;
 
-const ProfileScreen = () => {
-  const { signOut } = useAuth();
+export default function ProfileScreen() {
   const { user } = useUser();
+  const { signOut } = useAuth();
 
-  const handleMenuPress = (action: (typeof MENU_ITEMS)[number]["action"]) => {
-    if (action === "/profile") return;
-    router.push(action);
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.replace("/(auth)/sign-in");
+    } catch (error) {
+      console.error("Logout error:", error);
+      Alert.alert("Error", "Failed to sign out");
+    }
   };
 
   return (
     <SafeScreen>
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
-        {/* HEADER */}
-        <View className="px-6 pb-8 pt-4">
-          <View className="bg-surface rounded-3xl p-6">
-            <View className="flex-row items-center">
-              <View className="relative">
-                <Image
-                  source={user?.imageUrl}
-                  style={{ width: 80, height: 80, borderRadius: 40 }}
-                  transition={200}
-                />
-                <View className="absolute -bottom-1 -right-1 bg-primary rounded-full size-7 items-center justify-center border-2 border-surface">
-                  <Ionicons name="checkmark" size={16} color="#121212" />
-                </View>
+      <View className="flex-1 bg-background">
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+          {/* Header Profile Section */}
+          <View className="px-6 pt-8 pb-8 justify-center items-center">
+            <View className="relative shadow-2xl shadow-primary/20">
+              <Image
+                source={user?.imageUrl}
+                className="w-28 h-28 rounded-full border-4 border-surface-light"
+                contentFit="cover"
+                transition={500}
+              />
+              <View className="absolute bottom-0 right-0 bg-primary w-8 h-8 rounded-full items-center justify-center border-4 border-background">
+                <Ionicons name="camera" size={12} color="white" />
               </View>
+            </View>
 
-              <View className="flex-1 ml-4">
-                <Text className="text-text-primary text-2xl font-bold mb-1">
-                  {user?.firstName} {user?.lastName}
-                </Text>
-                <Text className="text-text-secondary text-sm">
-                  {user?.emailAddresses?.[0]?.emailAddress || "No email"}
-                </Text>
+            <Text className="text-2xl font-bold text-text-primary mt-4 mb-1">
+              {user?.fullName || "User"}
+            </Text>
+            <Text className="text-text-secondary text-base mb-6">
+              {user?.primaryEmailAddress?.emailAddress}
+            </Text>
+
+            <View className="flex-row gap-4 w-full px-4">
+              <View className="flex-1 bg-surface-light p-4 rounded-2xl items-center border border-white/5">
+                <Text className="text-primary font-bold text-xl">12</Text>
+                <Text className="text-text-tertiary text-xs uppercase tracking-wider mt-1">Orders</Text>
+              </View>
+              <View className="flex-1 bg-surface-light p-4 rounded-2xl items-center border border-white/5">
+                <Text className="text-primary font-bold text-xl">5</Text>
+                <Text className="text-text-tertiary text-xs uppercase tracking-wider mt-1">Reviews</Text>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* MENU ITEMS */}
-        <View className="flex-row flex-wrap gap-2 mx-6 mb-3">
-          {MENU_ITEMS.map((item) => (
+          {/* Menu Items */}
+          <View className="px-6 mt-4">
+            <Text className="text-text-primary font-bold text-lg mb-4 ml-1">Account</Text>
+            <View className="bg-surface-light rounded-3xl overflow-hidden border border-white/5">
+              {MENU_ITEMS.map((item, index) => (
+                <TouchableOpacity
+                  key={item.label}
+                  className={`flex-row items-center justify-between p-5 ${index !== MENU_ITEMS.length - 1 ? "border-b border-white/5" : ""
+                    }`}
+                  onPress={() => router.push(item.route as any)}
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center gap-4">
+                    <View className="w-10 h-10 rounded-full bg-background items-center justify-center">
+                      <Ionicons name={item.icon as any} size={20} color="#94A3B8" />
+                    </View>
+                    <Text className="text-text-primary text-base font-medium">{item.label}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#64748B" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Logout Button */}
+          <View className="px-6 mt-8">
             <TouchableOpacity
-              key={item.id}
-              className="bg-surface rounded-2xl p-6 items-center justify-center"
-              style={{ width: "48%" }}
-              activeOpacity={0.7}
-              onPress={() => handleMenuPress(item.action)}
+              className="flex-row items-center justify-center bg-surface-light/50 border border-red-500/20 p-4 rounded-2xl active:bg-red-500/10"
+              onPress={handleLogout}
             >
-              <View
-                className="rounded-full w-16 h-16 items-center justify-center mb-4"
-                style={{ backgroundColor: item.color + "20" }}
-              >
-                <Ionicons name={item.icon} size={28} color={item.color} />
-              </View>
-              <Text className="text-text-primary font-bold text-base">{item.title}</Text>
+              <Ionicons name="log-out-outline" size={20} color="#EF4444" style={{ marginRight: 8 }} />
+              <Text className="text-red-500 font-bold text-base">Sign Out</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+            <Text className="text-center text-text-tertiary text-xs mt-6">Version 1.0.0</Text>
+          </View>
 
-        {/* NOTIFICATONS BTN */}
-        <View className="mb-3 mx-6 bg-surface rounded-2xl p-4">
-          <TouchableOpacity
-            className="flex-row items-center justify-between py-2"
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center">
-              <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-              <Text className="text-text-primary font-semibold ml-3">Notifications</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* PRIVACY AND SECURTIY LINK */}
-        <View className="mb-3 mx-6 bg-surface rounded-2xl p-4">
-          <TouchableOpacity
-            className="flex-row items-center justify-between py-2"
-            activeOpacity={0.7}
-            onPress={() => router.push("/privacy-security")}
-          >
-            <View className="flex-row items-center">
-              <Ionicons name="shield-checkmark-outline" size={22} color="#FFFFFF" />
-              <Text className="text-text-primary font-semibold ml-3">Privacy & Security</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* SIGNOUT BTN */}
-        <TouchableOpacity
-          className="mx-6 mb-3 bg-surface rounded-2xl py-5 flex-row items-center justify-center border-2 border-red-500/20"
-          activeOpacity={0.8}
-          onPress={() => signOut()}
-        >
-          <Ionicons name="log-out-outline" size={22} color="#EF4444" />
-          <Text className="text-red-500 font-bold text-base ml-2">Sign Out</Text>
-        </TouchableOpacity>
-
-        <Text className="mx-6 mb-3 text-center text-text-secondary text-xs">Version 1.0.0</Text>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeScreen>
   );
-};
-
-export default ProfileScreen;
-
-// REACT NATIVE IMAGE VS EXPO IMAGE:
-
-// React Native Image (what we have used so far):
-// import { Image } from "react-native";
-//
-// <Image source={{ uri: url }} />
-
-// Basic image component
-// No built-in caching optimization
-// Requires source={{ uri: string }}
-
-// Expo Image (from expo-image):
-// import { Image } from "expo-image";
-
-// <Image source={url} />
-
-// Caching - automatic disk/memory caching
-// Placeholder - blur hash, thumbnail while loading
-// Transitions - crossfade, fade animations
-// Better performance - optimized native rendering
-// Simpler syntax: source={url} or source={{ uri: url }}
-// Supports contentFit instead of resizeMode
-
-// Example with expo-image:
-// <Image   source={user?.imageUrl}  placeholder={blurhash}  transition={200}  contentFit="cover"  className="size-20 rounded-full"/>
-
-// Recommendation: For production apps, expo-image is better — faster, cached, smoother UX.
-// React Native's Image works fine for simple cases though.
+}

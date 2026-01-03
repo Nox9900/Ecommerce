@@ -6,12 +6,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Image } from "react-native";
 
+import { Hero } from "@/components/Hero";
+// ... imports
+
 const CATEGORIES = [
-  { name: "All", icon: "grid-outline" as const },
-  { name: "Electronics", image: require("@/assets/images/electronics.png") },
-  { name: "Fashion", image: require("@/assets/images/fashion.png") },
-  { name: "Sports", image: require("@/assets/images/sports.png") },
-  { name: "Books", image: require("@/assets/images/books.png") },
+  { name: "All", icon: "apps-outline" as const },
+  { name: "Electronics", icon: "laptop-outline" as const },
+  { name: "Accessories", icon: "laptop" as const },
+  { name: "Fashion", icon: "shirt-outline" as const },
+  { name: "Sports", icon: "basketball-outline" as const },
+  { name: "Books", icon: "book-outline" as const },
 ];
 
 const ShopScreen = () => {
@@ -43,29 +47,29 @@ const ShopScreen = () => {
   return (
     <SafeScreen>
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-background"
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER */}
-        <View className="px-3 pb-4 pt-6">
+        <View className="px-5 pt-4 pb-6">
           <View className="flex-row items-center justify-between mb-6">
             <View>
-              <Text className="text-text-primary text-3xl font-bold tracking-tight">SHOP NAME</Text>
-              <Text className="text-text-secondary text-sm mt-1">Browse all products</Text>
+              <Text className="text-text-primary text-2xl font-bold tracking-tight">Discover</Text>
+              <Text className="text-text-secondary text-sm">Find your perfect item</Text>
             </View>
 
-            <TouchableOpacity className="bg-surface/50 p-3 rounded-full" activeOpacity={0.7}>
-              <Ionicons name="options-outline" size={22} color={"#fff"} />
+            <TouchableOpacity className="bg-surface-light p-2.5 rounded-full border border-white/10" activeOpacity={0.7}>
+              <Ionicons name="notifications-outline" size={20} color={"#fff"} />
             </TouchableOpacity>
           </View>
 
           {/* SEARCH BAR */}
-          <View className="bg-surface flex-row items-center px-4 py-2 rounded-2xl">
-            <Ionicons color={"#666"} size={22} name="search" />
+          <View className="bg-surface-light flex-row items-center px-4 py-3.5 rounded-2xl border border-white/5">
+            <Ionicons color={"#94A3B8"} size={20} name="search-outline" />
             <TextInput
-              placeholder="Search for products"
-              placeholderTextColor={"#666"}
+              placeholder="Search products..."
+              placeholderTextColor={"#64748B"}
               className="flex-1 ml-3 text-base text-text-primary"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -73,13 +77,18 @@ const ShopScreen = () => {
           </View>
         </View>
 
+        {/* HERO SECTION */}
+        <View className="px-5 mb-8">
+          <Hero />
+        </View>
+
         {/* CATEGORY FILTER */}
-        <View className="mb-6 px-3">
-          <Text className="text-text-primary text-lg font-bold mb-2">Categories</Text>
+        <View className="mb-8 pl-5">
+          <Text className="text-text-primary text-lg font-bold mb-4">Categories</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            // contentContainerStyle={{ paddingHorizontal: 20 }}
+            contentContainerStyle={{ paddingRight: 20 }}
           >
             {CATEGORIES.map((category) => {
               const isSelected = selectedCategory === category.name;
@@ -87,28 +96,29 @@ const ShopScreen = () => {
                 <TouchableOpacity
                   key={category.name}
                   onPress={() => setSelectedCategory(category.name)}
-                  className={`mr-3 rounded size-20 overflow-hidden items-center justify-center ${isSelected ? "bg-primary" : "bg-surface"}`}
+                  className={`mr-3 px-5 py-2.5 rounded-full flex-row items-center border ${isSelected ? "bg-primary border-primary" : "bg-surface-light border-white/5"}`}
                 >
-                  {category.icon ? (
+                  {category.icon && (
                     <Ionicons
                       name={category.icon}
-                      size={36}
-                      color={isSelected ? "#121212" : "#fff"}
+                      size={16}
+                      color={isSelected ? "#fff" : "#94A3B8"}
+                      style={{ marginRight: 8 }}
                     />
-                  ) : (
-                    <Image source={category.image} className="size-12" resizeMode="contain" />
                   )}
+                  <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-text-secondary"}`}>
+                    {category.name}
+                  </Text>
                 </TouchableOpacity>
-                
               );
             })}
           </ScrollView>
         </View>
 
-        <View className="px-3 mb-6">
+        <View className="px-5 mb-6">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-text-primary text-lg font-bold">Products</Text>
-            <Text className="text-text-secondary text-sm">{filteredProducts.length} items</Text>
+            <Text className="text-text-primary text-lg font-bold">Featured</Text>
+            <Text className="text-primary text-sm font-medium">See All</Text>
           </View>
 
           {/* PRODUCTS GRID */}
