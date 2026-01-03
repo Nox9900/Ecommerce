@@ -8,6 +8,9 @@ import {
   ShoppingBagIcon,
   SmartphoneIcon,
   UsersIcon,
+  StoreIcon,
+  SettingsIcon,
+  LayoutDashboardIcon,
 } from "lucide-react";
 
 // eslint-disable-next-line
@@ -16,7 +19,24 @@ export const NAVIGATION = [
   { name: "Products", path: "/products", icon: <ShoppingBagIcon className="size-5" /> },
   { name: "Orders", path: "/orders", icon: <ClipboardListIcon className="size-5" /> },
   { name: "Customers", path: "/customers", icon: <UsersIcon className="size-5" /> },
+  { name: "Vendors", path: "/vendors", icon: <StoreIcon className="size-5" /> },
+  { name: "Settings", path: "/global-settings", icon: <SettingsIcon className="size-5" /> },
   { name: "Mobile App", path: "/mobile-app", icon: <SmartphoneIcon className="size-5" /> },
+  {
+    name: "Vendor Application",
+    path: "/vendor-onboarding",
+    icon: <StoreIcon className="size-5" />,
+  },
+  {
+    name: "Vendor Portal",
+    path: "/vendor-dashboard",
+    icon: <LayoutDashboardIcon className="size-5" />,
+  },
+  {
+    name: "My Products",
+    path: "/vendor-products",
+    icon: <ShoppingBagIcon className="size-5" />,
+  },
 ];
 
 function Navbar() {

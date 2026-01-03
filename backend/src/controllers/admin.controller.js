@@ -1,7 +1,10 @@
+import { clerkClient } from "@clerk/express";
 import cloudinary from "../config/cloudinary.js";
 import { Product } from "../models/product.model.js";
 import { Order } from "../models/order.model.js";
 import { User } from "../models/user.model.js";
+import { Vendor } from "../models/vendor.model.js";
+import { Settings } from "../models/settings.model.js";
 
 export async function createProduct(req, res) {
   try {
@@ -207,5 +210,86 @@ export const deleteProduct = async (req, res) => {
   } catch (error) {
     console.error("Error deleting product:", error);
     res.status(500).json({ message: "Failed to delete product" });
+  }
+};
+
+export const getAllVendors = async (req, res) => {
+  try {
+    const vendors = await Vendor.find().populate("owner", "name email").sort({ createdAt: -1 });
+    res.status(200).json(vendors);
+  } catch (error) {
+    console.error("Error fetching vendors:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateVendorStatus = async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    const { status } = req.body;
+
+    if (!["approved", "rejected", "pending"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+    vendor.status = status;
+    await vendor.save();
+
+    // If approved, update user role
+    if (status === "approved") {
+      await User.findByIdAndUpdate(vendor.owner, { role: "vendor" });
+      const user = await User.findById(vendor.owner);
+      await clerkClient.users.updateUserMetadata(user.clerkId, {
+        publicMetadata: { role: "vendor" },
+      });
+    } else if (status === "rejected" || status === "pending") {
+      await User.findByIdAndUpdate(vendor.owner, { role: "customer" });
+      const user = await User.findById(vendor.owner);
+      await clerkClient.users.updateUserMetadata(user.clerkId, {
+        publicMetadata: { role: "customer" },
+      });
+    }
+
+    res.status(200).json(vendor);
+  } catch (error) {
+    console.error("Error updating vendor status:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getSettings = async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+    res.status(200).json(settings);
+  } catch (error) {
+    console.error("Error fetching settings:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateSettings = async (req, res) => {
+  try {
+    const { globalCommissionRate, platformName, contactEmail } = req.body;
+
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings();
+    }
+
+    if (globalCommissionRate !== undefined) settings.globalCommissionRate = globalCommissionRate;
+    if (platformName) settings.platformName = platformName;
+    if (contactEmail) settings.contactEmail = contactEmail;
+
+    await settings.save();
+    res.status(200).json(settings);
+  } catch (error) {
+    console.error("Error updating settings:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

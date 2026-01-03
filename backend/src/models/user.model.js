@@ -60,6 +60,15 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
     addresses: [addressSchema],
+    role: {
+      type: String,
+      enum: ["customer", "vendor", "admin"],
+      default: "customer",
+    },
+    vendorProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor",
+    },
     wishlist: [
       {
         type: mongoose.Schema.Types.ObjectId,

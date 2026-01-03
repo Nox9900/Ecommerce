@@ -18,6 +18,7 @@ import cartRoutes from "./routes/cart.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import heroRoutes from "./routes/hero.route.js";
 import categoryRoutes from "./routes/category.route.js";
+import vendorRoutes from "./routes/vendor.route.js";
 
 const app = express();
 const __dirname = path.resolve();
@@ -50,6 +51,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/hero", heroRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/vendors", vendorRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success inside the server nnow!!!! wooohhhhh" });

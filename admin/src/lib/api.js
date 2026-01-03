@@ -81,3 +81,26 @@ export const mobileApi = {
     return data;
   },
 };
+
+export const vendorApi = {
+  register: async (vendorData) => {
+    const { data } = await axiosInstance.post("/vendors/register", vendorData);
+    return data;
+  },
+  getProfile: async () => {
+    const { data } = await axiosInstance.get("/vendors/profile");
+    return data;
+  },
+  getStats: async () => {
+    const { data } = await axiosInstance.get("/vendors/stats");
+    return data;
+  },
+  getProducts: async () => {
+    const { data } = await axiosInstance.get("/vendors/products");
+    return data;
+  },
+  createProduct: async (formData) => {
+    const { data } = await axiosInstance.post("/vendors/products", formData);
+    return data;
+  },
+};

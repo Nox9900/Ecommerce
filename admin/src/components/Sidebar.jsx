@@ -22,7 +22,27 @@ function Sidebar() {
         </div>
 
         <ul className="menu w-full grow flex flex-col gap-2">
-          {NAVIGATION.map((item) => {
+          {NAVIGATION.filter((item) => {
+            const isAdmin = user?.emailAddresses?.[0]?.emailAddress === "yhandy31@gmail.com";
+            const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
+
+            // Define which pages each role can see
+            const adminPages = [
+              "/dashboard",
+              "/products",
+              "/orders",
+              "/customers",
+              "/vendors",
+              "/global-settings",
+              "/mobile-app",
+            ];
+            const vendorPages = ["/dashboard", "/vendor-dashboard", "/vendor-products"];
+            const customerPages = ["/dashboard", "/vendor-onboarding"];
+
+            if (role === "admin") return adminPages.includes(item.path);
+            if (role === "vendor") return vendorPages.includes(item.path);
+            return customerPages.includes(item.path);
+          }).map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <li key={item.path}>

@@ -27,8 +27,20 @@ export const adminOnly = (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized - user not found" });
   }
 
-  if (req.user.email !== ENV.ADMIN_EMAIL) {
+  if (req.user.role !== "admin" && req.user.email !== ENV.ADMIN_EMAIL) {
     return res.status(403).json({ message: "Forbidden - admin access only" });
+  }
+
+  next();
+};
+
+export const vendorOnly = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized - user not found" });
+  }
+
+  if (req.user.role !== "vendor" && req.user.role !== "admin") {
+    return res.status(403).json({ message: "Forbidden - vendor access only" });
   }
 
   next();
