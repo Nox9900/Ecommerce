@@ -19,7 +19,8 @@ function Sidebar() {
 
   const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
   const isAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
-  const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
+  // If they are an admin by email, they are ALWAYS admin. Otherwise, check metadata.
+  const role = isAdmin ? "admin" : (user?.publicMetadata?.role || "customer");
 
   return (
     <div className="drawer-side is-drawer-close:overflow-visible">
@@ -48,6 +49,8 @@ function Sidebar() {
               "/vendors",
               "/global-settings",
               "/mobile-app",
+              "/vendor-dashboard",
+              "/vendor-products",
             ];
             const vendorPages = ["/vendor-dashboard", "/vendor-products"];
             const customerPages = ["/vendor-onboarding"];
