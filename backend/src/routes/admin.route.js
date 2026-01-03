@@ -8,6 +8,10 @@ import {
   updateOrderStatus,
   updateProduct,
   deleteProduct,
+  getAllVendors,
+  updateVendorStatus,
+  getSettings,
+  updateSettings,
 } from "../controllers/admin.controller.js";
 import { adminOnly, protectRoute } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -26,6 +30,12 @@ router.get("/orders", getAllOrders);
 router.patch("/orders/:orderId/status", updateOrderStatus);
 
 router.get("/customers", getAllCustomers);
+
+router.get("/vendors", getAllVendors);
+router.patch("/vendors/:vendorId/status", updateVendorStatus);
+
+router.get("/settings", getSettings);
+router.put("/settings", updateSettings);
 
 router.get("/stats", getDashboardStats);
 

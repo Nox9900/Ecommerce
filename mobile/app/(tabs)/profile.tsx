@@ -22,11 +22,12 @@ const MENU_ITEMS = [
     route: "/(profile)/wishlist",
   },
   {
-    icon: "shield-checkmark-outline",
     label: "Privacy & Security",
     route: "/(profile)/privacy-security",
   },
 ] as const;
+
+const VENDOR_PORTAL_URL = "https://ecommerce-production-aa.up.railway.app/vendor-onboarding"; // Replace with actual URL
 
 export default function ProfileScreen() {
   const { user } = useUser();
@@ -117,6 +118,39 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Vendor Portal Section */}
+            {user?.publicMetadata?.role !== "vendor" && user?.publicMetadata?.role !== "admin" && (
+              <TouchableOpacity
+                className="mt-6 bg-primary/10 border border-primary/20 p-5 rounded-3xl flex-row items-center justify-between"
+                onPress={() => {
+                  Alert.alert(
+                    "Become a Vendor",
+                    "Do you want to start selling on our platform? You will be redirected to our vendor portal.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Continue", onPress: () => {
+                          // In a real app, use Linking.openURL or a WebView
+                          Alert.alert("Redirecting", "Redirecting to vendor portal...");
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <View className="flex-row items-center gap-4">
+                  <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center">
+                    <Ionicons name="storefront-outline" size={20} color="#6366F1" />
+                  </View>
+                  <View>
+                    <Text className="text-text-primary text-base font-bold">Become a Vendor</Text>
+                    <Text className="text-text-secondary text-xs">Start your own business today</Text>
+                  </View>
+                </View>
+                <Ionicons name="arrow-forward" size={18} color="#6366F1" />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Logout Button */}
