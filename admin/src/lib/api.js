@@ -47,3 +47,37 @@ export const customerApi = {
     return data;
   },
 };
+
+export const mobileApi = {
+  // Hero
+  getHero: async () => {
+    const { data } = await axiosInstance.get("/hero");
+    return data;
+  },
+  updateHero: async (id, heroData) => {
+    const { data } = await axiosInstance.put(`/hero/${id}`, heroData);
+    return data;
+  },
+  createHero: async (heroData) => {
+    const { data } = await axiosInstance.post("/hero", heroData);
+    return data;
+  },
+
+  // Categories
+  getCategories: async () => {
+    const { data } = await axiosInstance.get("/categories/all");
+    return data;
+  },
+  createCategory: async (categoryData) => {
+    const { data } = await axiosInstance.post("/categories", categoryData);
+    return data;
+  },
+  updateCategory: async (id, categoryData) => {
+    const { data } = await axiosInstance.put(`/categories/${id}`, categoryData);
+    return data;
+  },
+  deleteCategory: async (id) => {
+    const { data } = await axiosInstance.delete(`/categories/${id}`);
+    return data;
+  },
+};

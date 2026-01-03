@@ -1,11 +1,13 @@
 import SafeScreen from "@/components/SafeScreen";
+import { ProductCard } from "@/components/ProductCard";
 import useCart from "@/hooks/useCart";
 import { useProduct } from "@/hooks/useProduct";
+import useProducts from "@/hooks/useProducts";
 import useWishlist from "@/hooks/useWishlist";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,6 +17,7 @@ import {
   ScrollView,
   Dimensions,
   Share,
+  FlatList,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -22,6 +25,7 @@ const { width } = Dimensions.get("window");
 const ProductDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: product, isError, isLoading } = useProduct(id);
+  const { data: allProducts } = useProducts();
   const { addToCart, isAddingToCart } = useCart();
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
@@ -54,6 +58,14 @@ const ProductDetailScreen = () => {
       console.error("Share error:", error);
     }
   };
+
+  // Filter related products by category
+  const relatedProducts = useMemo(() => {
+    if (!product || !allProducts) return [];
+    return allProducts
+      .filter((p) => p.category === product.category && p._id !== product._id)
+      .slice(0, 6); // Limit to 6 related products
+  }, [product, allProducts]);
 
   if (isLoading) return <LoadingUI />;
   if (isError || !product) return <ErrorUI />;
@@ -254,12 +266,37 @@ const ProductDetailScreen = () => {
               </View>
             )}
 
+            {/* Related Products Section */}
+            {relatedProducts.length > 0 && (
+              <View className="mt-8 mb-4">
+                <View className="flex-row items-center justify-between px-6 mb-4">
+                  <Text className="text-text-primary text-xl font-bold">You May Also Like</Text>
+                  <TouchableOpacity onPress={() => router.push("/(tabs)/")}>
+                    <Text className="text-primary font-semibold text-sm">See All</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <FlatList
+                  data={relatedProducts}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 12 }}
+                  keyExtractor={(item) => item._id}
+                  renderItem={({ item, index }) => (
+                    <View style={{ width: width * 0.45 }}>
+                      <ProductCard product={item} index={index} />
+                    </View>
+                  )}
+                />
+              </View>
+            )}
+
           </View>
         </ScrollView>
 
         {/* Bottom Action Bar */}
         <View className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-white/5 px-4 pt-4 pb-8">
-          <View className="flex-row gap-2">
+          <View className="flex-row items-center gap-2">
             {/* Chat Button */}
             <TouchableOpacity
               className="bg-surface-light rounded-full p-4 items-center justify-center border border-white/10"
@@ -269,9 +306,12 @@ const ProductDetailScreen = () => {
               <Ionicons name="chatbubble-ellipses" size={22} color="#6366F1" />
             </TouchableOpacity>
 
-            {/* Buy Now Button */}
+            {/* Spacer */}
+            <View className="flex-1" />
+
+            {/* Buy Now Button - Smaller */}
             <TouchableOpacity
-              className={`flex-1 rounded-full py-4 flex-row items-center justify-center border-2 ${!inStock ? "bg-surface-light border-white/10" : "bg-transparent border-primary"
+              className={`rounded-full px-5 py-3 flex-row items-center justify-center border-2 ${!inStock ? "bg-surface-light border-white/10" : "bg-transparent border-primary"
                 }`}
               activeOpacity={0.85}
               onPress={() => {
@@ -281,27 +321,27 @@ const ProductDetailScreen = () => {
               }}
               disabled={!inStock}
             >
-              <Ionicons name="flash" size={18} color={!inStock ? "#94A3B8" : "#6366F1"} style={{ marginRight: 6 }} />
-              <Text className={`font-bold text-sm ${!inStock ? "text-text-secondary" : "text-primary"}`}>
-                {!inStock ? "Sold Out" : "Buy Now"}
+              <Ionicons name="flash" size={16} color={!inStock ? "#94A3B8" : "#6366F1"} style={{ marginRight: 4 }} />
+              <Text className={`font-bold text-xs ${!inStock ? "text-text-secondary" : "text-primary"}`}>
+                {!inStock ? "Sold Out" : "Buy"}
               </Text>
             </TouchableOpacity>
 
-            {/* Add to Cart Button */}
+            {/* Add to Cart Button - Smaller */}
             <TouchableOpacity
-              className={`flex-1 rounded-full py-4 flex-row items-center justify-center shadow-lg ${!inStock ? "bg-surface-light" : "bg-primary shadow-primary/25"
+              className={`rounded-full px-5 py-3 flex-row items-center justify-center shadow-lg ${!inStock ? "bg-surface-light" : "bg-primary shadow-primary/25"
                 }`}
               activeOpacity={0.85}
               onPress={handleAddToCart}
               disabled={!inStock || isAddingToCart}
             >
               {isAddingToCart ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="white" size="small" />
               ) : (
                 <>
-                  <Ionicons name="cart" size={18} color={!inStock ? "#94A3B8" : "white"} style={{ marginRight: 6 }} />
-                  <Text className={`font-bold text-sm ${!inStock ? "text-text-secondary" : "text-white"}`}>
-                    Add to Cart
+                  <Ionicons name="cart" size={16} color={!inStock ? "#94A3B8" : "white"} style={{ marginRight: 4 }} />
+                  <Text className={`font-bold text-xs ${!inStock ? "text-text-secondary" : "text-white"}`}>
+                    Cart
                   </Text>
                 </>
               )}

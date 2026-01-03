@@ -5,7 +5,7 @@ import { serve } from "inngest/express";
 import cors from "cors";
 
 import { functions, inngest } from "./config/inngest.js";
- 
+
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
 
@@ -15,7 +15,9 @@ import orderRoutes from "./routes/order.route.js";
 import reviewRoutes from "./routes/review.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
-import paymentRoutes from "./routes/payment.route.js";  
+import paymentRoutes from "./routes/payment.route.js";
+import heroRoutes from "./routes/hero.route.js";
+import categoryRoutes from "./routes/category.route.js";
 
 const app = express();
 const __dirname = path.resolve();
@@ -46,6 +48,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/hero", heroRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success inside the server nnow!!!! wooohhhhh" });

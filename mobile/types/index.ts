@@ -93,3 +93,25 @@ export interface Cart {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Hero {
+  _id: string;
+  title: string;
+  subtitle: string;
+  label: string;
+  imageUrl: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Category {
+  _id: string;
+  name: string;
+  icon: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

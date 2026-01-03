@@ -47,37 +47,53 @@ export default function ProfileScreen() {
       <View className="flex-1 bg-background">
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
           {/* Header Profile Section */}
-          <View className="px-6 pt-8 pb-8 justify-center items-center">
-            <View className="relative shadow-2xl shadow-primary/20">
-              <Image
-                source={user?.imageUrl}
-                className="w-28 h-28 rounded-full border-4 border-surface-light"
-                contentFit="cover"
-                transition={500}
-              />
-              <View className="absolute bottom-0 right-0 bg-primary w-8 h-8 rounded-full items-center justify-center border-4 border-background">
-                <Ionicons name="camera" size={12} color="white" />
+          <View className="px-6 pt-8 pb-6 bg-surface-light rounded-3xl mx-6 mt-4">
+            <View className="flex-row items-center justify-between">
+              {/* Profile Image - Left Side */}
+              <View className="relative shadow-2xl shadow-primary/20 mr-4">
+                {user?.imageUrl ? (
+                  <Image
+                    source={user.imageUrl}
+                    className="w-24 h-24 rounded-full border-4 border-primary/30"
+                    contentFit="cover"
+                    transition={500}
+                  />
+                ) : (
+                  <View className="w-56  h-56 rounded-full border-4 border-primary/30 bg-surface items-center justify-center">
+                    <Ionicons name="person" size={40} color="#6366F1" />
+                  </View>
+                )}
+                {/* <View className="absolute bottom-0 right-0 bg-primary w-7 h-7 rounded-full items-center justify-center border-3 border-surface-light">
+                  <Ionicons name="camera" size={11} color="white" />
+                </View> */}
               </View>
-            </View>
 
-            <Text className="text-2xl font-bold text-text-primary mt-4 mb-1">
-              {user?.fullName || "User"}
-            </Text>
-            <Text className="text-text-secondary text-base mb-6">
-              {user?.primaryEmailAddress?.emailAddress}
-            </Text>
+              {/* Text Content - Right Side */}
+              <View className="flex-1">
+                <Text className="text-2xl font-bold text-text-primary mb-1">
+                  {user?.fullName || "User"}
+                </Text>
+                <Text className="text-text-secondary text-sm mb-4">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </Text>
 
-            <View className="flex-row gap-4 w-full px-4">
-              <View className="flex-1 bg-surface-light p-4 rounded-2xl items-center border border-white/5">
-                <Text className="text-primary font-bold text-xl">12</Text>
-                <Text className="text-text-tertiary text-xs uppercase tracking-wider mt-1">Orders</Text>
-              </View>
-              <View className="flex-1 bg-surface-light p-4 rounded-2xl items-center border border-white/5">
-                <Text className="text-primary font-bold text-xl">5</Text>
-                <Text className="text-text-tertiary text-xs uppercase tracking-wider mt-1">Reviews</Text>
+                {/* Stats */}
+                <View className="flex-row gap-3">
+                  <View className="bg-background/50 px-3 py-2 rounded-xl">
+                    <Text className="text-primary font-bold text-lg">12</Text>
+                    <Text className="text-text-tertiary text-xs">Orders</Text>
+                  </View>
+                  <View className="bg-background/50 px-3 py-2 rounded-xl">
+                    <Text className="text-primary font-bold text-lg">5</Text>
+                    <Text className="text-text-tertiary text-xs">Reviews</Text>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
+
+          {/* Spacer */}
+          <View className="h-6" />
 
           {/* Menu Items */}
           <View className="px-6 mt-4">
