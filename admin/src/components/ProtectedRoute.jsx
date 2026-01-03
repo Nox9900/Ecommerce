@@ -8,8 +8,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!isLoaded) return <PageLoader />;
 
     const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-    const isAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
-    const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
+    const isEmailAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
+    const role = isEmailAdmin ? "admin" : (user?.publicMetadata?.role || "customer");
 
     if (!allowedRoles.includes(role)) {
         // Redirect to the role's default entry point if they hit an unauthorized route

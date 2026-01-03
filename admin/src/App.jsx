@@ -24,8 +24,8 @@ function App() {
   if (!isLoaded) return <PageLoader />;
 
   const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
-  const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
+  const isEmailAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
+  const role = isEmailAdmin ? "admin" : (user?.publicMetadata?.role || "customer");
 
   const getHomeRoute = () => {
     if (role === "admin") return "dashboard";
