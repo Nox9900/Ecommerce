@@ -7,7 +7,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     if (!isLoaded) return <PageLoader />;
 
-    const isAdmin = user?.emailAddresses?.[0]?.emailAddress === "yhandesir01@gmail.com";
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+    const isAdmin = user?.emailAddresses?.[0]?.emailAddress === adminEmail;
     const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
 
     if (!allowedRoles.includes(role)) {
