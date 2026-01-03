@@ -2,10 +2,23 @@ import { useUser } from "@clerk/clerk-react";
 import { ShoppingBagIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { NAVIGATION } from "./Navbar";
+import { useQuery } from "@tanstack/react-query";
+import { statsApi } from "../lib/api";
 
 function Sidebar() {
   const location = useLocation();
   const { user } = useUser();
+
+  const { data: statsData } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: statsApi.getDashboard,
+    enabled: !!user, // Only fetch if user is logged in
+  });
+
+  const pendingCount = statsData?.pendingVendors || 0;
+
+  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === "yhandesir01@gmail.com";
+  const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
 
   return (
     <div className="drawer-side is-drawer-close:overflow-visible">
@@ -17,15 +30,14 @@ function Sidebar() {
             <div className="size-10 bg-primary rounded-xl flex items-center justify-center shrink-0">
               <ShoppingBagIcon className="w-6 h-6 text-primary-content" />
             </div>
-            <span className="text-xl font-bold is-drawer-close:hidden">Admin</span>
+            <span className="text-xl font-bold is-drawer-close:hidden capitalize">
+              {role === "admin" ? "Super Admin" : role === "vendor" ? "Vendor Portal" : "Customer"}
+            </span>
           </div>
         </div>
 
         <ul className="menu w-full grow flex flex-col gap-2">
           {NAVIGATION.filter((item) => {
-            const isAdmin = user?.emailAddresses?.[0]?.emailAddress === "yhandy31@gmail.com";
-            const role = user?.publicMetadata?.role || (isAdmin ? "admin" : "customer");
-
             // Define which pages each role can see
             const adminPages = [
               "/dashboard",
@@ -36,8 +48,8 @@ function Sidebar() {
               "/global-settings",
               "/mobile-app",
             ];
-            const vendorPages = ["/dashboard", "/vendor-dashboard", "/vendor-products"];
-            const customerPages = ["/dashboard", "/vendor-onboarding"];
+            const vendorPages = ["/vendor-dashboard", "/vendor-products"];
+            const customerPages = ["/vendor-onboarding"];
 
             if (role === "admin") return adminPages.includes(item.path);
             if (role === "vendor") return vendorPages.includes(item.path);
@@ -48,12 +60,20 @@ function Sidebar() {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`is-drawer-close:tooltip is-drawer-close:tooltip-right 
+                  className={`is-drawer-close:tooltip is-drawer-close:tooltip-right flex justify-between items-center
                     ${isActive ? "bg-primary text-primary-content" : ""}
                   `}
                 >
-                  {item.icon}
-                  <span className="is-drawer-close:hidden">{item.name}</span>
+                  <div className="flex items-center gap-3">
+                    {item.icon}
+                    <span className="is-drawer-close:hidden">{item.name}</span>
+                  </div>
+
+                  {item.path === "/vendors" && pendingCount > 0 && (
+                    <span className="badge badge-error badge-sm is-drawer-close:hidden">
+                      {pendingCount}
+                    </span>
+                  )}
                 </Link>
               </li>
             );
@@ -74,6 +94,7 @@ function Sidebar() {
               <p className="text-xs opacity-60 truncate">
                 {user?.emailAddresses?.[0]?.emailAddress}
               </p>
+              <div className="badge badge-outline badge-xs opacity-60 mt-1 capitalize">{role}</div>
             </div>
           </div>
         </div>

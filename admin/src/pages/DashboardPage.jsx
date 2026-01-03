@@ -39,6 +39,12 @@ function DashboardPage() {
       value: statsLoading ? "..." : statsData?.totalProducts || 0,
       icon: <PackageIcon className="size-8" />,
     },
+    {
+      name: "Pending Vendors",
+      value: statsLoading ? "..." : statsData?.pendingVendors || 0,
+      icon: <UsersIcon className="size-8 text-warning" />,
+      highlight: (statsData?.pendingVendors || 0) > 0,
+    },
   ];
 
   return (
@@ -46,9 +52,11 @@ function DashboardPage() {
       {/* STATS */}
       <div className="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100">
         {statsCards.map((stat) => (
-          <div key={stat.name} className="stat">
-            <div className="stat-figure text-primary">{stat.icon}</div>
-            <div className="stat-title">{stat.name}</div>
+          <div key={stat.name} className={`stat ${stat.highlight ? "bg-warning/10" : ""}`}>
+            <div className={`stat-figure ${stat.highlight ? "text-warning" : "text-primary"}`}>
+              {stat.icon}
+            </div>
+            <div className="stat-title font-semibold">{stat.name}</div>
             <div className="stat-value">{stat.value}</div>
           </div>
         ))}
