@@ -1,28 +1,20 @@
 import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
+import useCategories from "@/hooks/useCategories";
 
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Image } from "react-native";
+import { useMemo, useState, useEffect } from "react";
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
 
 import { Hero } from "@/components/Hero";
-// ... imports
-
-const CATEGORIES = [
-  { name: "All", icon: "apps-outline" as const },
-  { name: "Electronics", icon: "laptop-outline" as const },
-  { name: "Accessories", icon: "laptop" as const },
-  { name: "Fashion", icon: "shirt-outline" as const },
-  { name: "Sports", icon: "basketball-outline" as const },
-  { name: "Books", icon: "book-outline" as const },
-];
 
 const ShopScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const { data: products, isLoading, isError } = useProducts();
+  const { data: products, isLoading: productsLoading, isError: productsError } = useProducts();
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -85,34 +77,54 @@ const ShopScreen = () => {
         {/* CATEGORY FILTER */}
         <View className="mb-8 pl-5">
           <Text className="text-text-primary text-lg font-bold mb-4">Categories</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 20 }}
-          >
-            {CATEGORIES.map((category) => {
-              const isSelected = selectedCategory === category.name;
-              return (
-                <TouchableOpacity
-                  key={category.name}
-                  onPress={() => setSelectedCategory(category.name)}
-                  className={`mr-3 px-5 py-2.5 rounded-full flex-row items-center border ${isSelected ? "bg-primary border-primary" : "bg-surface-light border-white/5"}`}
-                >
-                  {category.icon && (
-                    <Ionicons
-                      name={category.icon}
-                      size={16}
-                      color={isSelected ? "#fff" : "#94A3B8"}
-                      style={{ marginRight: 8 }}
-                    />
-                  )}
-                  <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-text-secondary"}`}>
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          {categoriesLoading ? (
+            <ActivityIndicator color="#fff" style={{ alignSelf: "flex-start" }} />
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingRight: 20 }}
+            >
+              {/* All Category */}
+              <TouchableOpacity
+                onPress={() => setSelectedCategory("All")}
+                className={`mr-3 px-5 py-2.5 rounded-full flex-row items-center border ${selectedCategory === "All" ? "bg-primary border-primary" : "bg-surface-light border-white/5"}`}
+              >
+                <Ionicons
+                  name="apps-outline"
+                  size={16}
+                  color={selectedCategory === "All" ? "#fff" : "#94A3B8"}
+                  style={{ marginRight: 8 }}
+                />
+                <Text className={`text-sm font-semibold ${selectedCategory === "All" ? "text-white" : "text-text-secondary"}`}>
+                  All
+                </Text>
+              </TouchableOpacity>
+
+              {categories?.map((category) => {
+                const isSelected = selectedCategory === category.name;
+                return (
+                  <TouchableOpacity
+                    key={category._id}
+                    onPress={() => setSelectedCategory(category.name)}
+                    className={`mr-3 px-5 py-2.5 rounded-full flex-row items-center border ${isSelected ? "bg-primary border-primary" : "bg-surface-light border-white/5"}`}
+                  >
+                    {category.icon && (
+                      <Ionicons
+                        name={category.icon as any}
+                        size={16}
+                        color={isSelected ? "#fff" : "#94A3B8"}
+                        style={{ marginRight: 8 }}
+                      />
+                    )}
+                    <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-text-secondary"}`}>
+                      {category.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
         </View>
 
         <View className="px-5 mb-6">
@@ -122,7 +134,7 @@ const ShopScreen = () => {
           </View>
 
           {/* PRODUCTS GRID */}
-          <ProductsGrid products={filteredProducts} isLoading={isLoading} isError={isError} />
+          <ProductsGrid products={filteredProducts} isLoading={productsLoading} isError={productsError} />
         </View>
       </ScrollView>
     </SafeScreen>
