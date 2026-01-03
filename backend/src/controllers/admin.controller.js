@@ -173,12 +173,14 @@ export async function getDashboardStats(_, res) {
 
     const totalCustomers = await User.countDocuments();
     const totalProducts = await Product.countDocuments();
+    const pendingVendors = await Vendor.countDocuments({ status: "pending" });
 
     res.status(200).json({
       totalRevenue,
       totalOrders,
       totalCustomers,
       totalProducts,
+      pendingVendors,
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
