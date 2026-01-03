@@ -27,7 +27,7 @@ const MENU_ITEMS = [
   },
 ] as const;
 
-const VENDOR_PORTAL_URL = ""; // Replace with actual URL
+const VENDOR_PORTAL_URL = "https://ecommerce-production-aa.up.railway.app/vendor-onboarding"; // Replace with actual URL
 
 export default function ProfileScreen() {
   const { user } = useUser();
