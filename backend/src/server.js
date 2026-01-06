@@ -3,6 +3,8 @@ import path from "path";
 import { clerkMiddleware } from "@clerk/express";
 import { serve } from "inngest/express";
 import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
 
 import { functions, inngest } from "./config/inngest.js";
 
@@ -19,8 +21,32 @@ import paymentRoutes from "./routes/payment.route.js";
 import heroRoutes from "./routes/hero.route.js";
 import categoryRoutes from "./routes/category.route.js";
 import vendorRoutes from "./routes/vendor.route.js";
+import chatRoutes from "./routes/chat.route.js";
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ENV.CLIENT_URL, // Allow requests from client
+    methods: ["GET", "POST"],
+  },
+});
+
+app.set("io", io); // Make io available in routes
+
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("joinConversation", (conversationId) => {
+    socket.join(conversationId);
+    console.log(`User matched socket ${socket.id} joined conversation ${conversationId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
 const __dirname = path.resolve();
 // special handling: Stripe webhook needs raw body BEFORE any body parsing middleware
 // apply raw body parser conditionally only to webhook endpoint
@@ -52,6 +78,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/hero", heroRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/vendors", vendorRoutes);
+app.use("/api/chats", chatRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success inside the server nnow!!!! wooohhhhh" });
@@ -67,7 +94,7 @@ if (ENV.NODE_ENV === "production") {
 
 const startServer = async () => {
   await connectDB();
-  app.listen(ENV.PORT, () => {
+  server.listen(ENV.PORT, () => {
     console.log("Server is up and running");
   });
 };
