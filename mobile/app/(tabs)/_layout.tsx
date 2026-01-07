@@ -4,9 +4,11 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { StyleSheet } from "react-native";
+import { useTheme } from "@/lib/useTheme";
 
 const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
   if (!isLoaded) return null; // for a better ux
@@ -15,23 +17,23 @@ const TabsLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#6366F1", // Updated to primary indigo
-        tabBarInactiveTintColor: "#94A3B8", // Updated to match theme
+        tabBarActiveTintColor: theme === "dark" ? "#FFFFFF" : "#000000",
+        tabBarInactiveTintColor: theme === "dark" ? "#A1A1AA" : "#52525B",
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: "transparent",
+          backgroundColor: theme === "dark" ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.8)",
           borderTopWidth: 0,
           height: 45 + insets.bottom,
           paddingTop: 4,
-          marginHorizontal: 50,
-          marginBottom: insets.bottom,
-          borderRadius: 20,
+          // marginHorizontal: 50,
+          // marginBottom: insets.bottom,
+          // borderRadius: 20,
           overflow: "hidden",
         },
         tabBarBackground: () => (
           <BlurView
             intensity={80}
-            tint="dark"
+            tint={theme === "dark" ? "dark" : "light"}
             style={StyleSheet.absoluteFill}
           // StyleSheet.absoluteFill is equal to this 👇
           // { position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }

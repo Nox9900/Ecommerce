@@ -1,4 +1,6 @@
 import { Stack } from "expo-router";
+import { useTheme } from "@/lib/useTheme";
+import { SocketProvider } from "@/context/SocketContext";
 import "../global.css";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ClerkProvider } from "@clerk/clerk-expo";
@@ -56,11 +58,19 @@ const queryClient = new QueryClient({
 });
 
 export default Sentry.wrap(function RootLayout() {
+  const { isLoaded } = useTheme();
+
+  if (!isLoaded) {
+    return null; // Or a splash screen
+  }
+
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
         <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
-          <Stack screenOptions={{ headerShown: false }} />
+          <SocketProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </SocketProvider>
         </StripeProvider>
       </QueryClientProvider>
     </ClerkProvider>

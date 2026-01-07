@@ -7,42 +7,42 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#6366F1", // Indigo 500
-          light: "#818CF8",   // Indigo 400
-          dark: "#4F46E5",    // Indigo 600
-          foreground: "#FFFFFF",
+          DEFAULT: "var(--color-primary-DEFAULT)",
+          light: "var(--color-primary-light)",
+          dark: "var(--color-primary-dark)",
+          foreground: "var(--color-primary-foreground)",
         },
         secondary: {
-          DEFAULT: "#A855F7", // Purple 500
-          light: "#C084FC",   // Purple 400
-          dark: "#9333EA",    // Purple 600
-          foreground: "#FFFFFF",
+          DEFAULT: "var(--color-secondary-DEFAULT)",
+          light: "var(--color-secondary-light)",
+          dark: "var(--color-secondary-dark)",
+          foreground: "var(--color-secondary-foreground)",
         },
         background: {
-          DEFAULT: "#0F172A", // Slate 900 (Deep dark blue-ish)
-          light: "#1E293B",   // Slate 800
-          lighter: "#334155", // Slate 700
-          subtle: "#1E293B",  // Card background
+          DEFAULT: "var(--color-background-DEFAULT)",
+          light: "var(--color-background-light)",
+          lighter: "var(--color-background-lighter)",
+          subtle: "var(--color-background-subtle)",
         },
         surface: {
-          DEFAULT: "#1E293B", // Same as background light for cards
-          light: "#334155",
-          dark: "#020617",
+          DEFAULT: "var(--color-surface-DEFAULT)",
+          light: "var(--color-surface-light)",
+          dark: "var(--color-surface-dark)",
         },
         text: {
-          primary: "#F8FAFC",   // Slate 50
-          secondary: "#94A3B8", // Slate 400
-          tertiary: "#64748B",  // Slate 500
-          muted: "#475569",     // Slate 600
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          tertiary: "var(--color-text-tertiary)",
+          muted: "var(--color-text-muted)",
         },
         accent: {
-          DEFAULT: "#F43F5E",   // Rose 500
-          success: "#10B981",   // Emerald 500
-          warning: "#F59E0B",   // Amber 500
-          error: "#EF4444",     // Red 500
-          info: "#3B82F6",      // Blue 500
+          DEFAULT: "var(--color-accent-DEFAULT)",
+          success: "var(--color-accent-success)",
+          warning: "var(--color-accent-warning)",
+          error: "var(--color-accent-error)",
+          info: "var(--color-accent-info)",
         },
-        border: "#334155",      // Slate 700
+        border: "var(--color-border)",
       },
       borderRadius: {
         '4xl': '2rem',
