@@ -8,6 +8,7 @@ import CustomersPage from "./pages/CustomersPage";
 import SettingsPage from "./pages/SettingsPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import VendorManagement from "./pages/admin/VendorManagement";
+import WithdrawalManagement from "./pages/admin/WithdrawalManagement";
 import GlobalSettings from "./pages/admin/GlobalSettings";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import VendorOnboarding from "./pages/vendor/VendorOnboarding";
@@ -47,6 +48,7 @@ function App() {
         <Route path="orders" element={<ProtectedRoute allowedRoles={["admin"]}><OrdersPage /></ProtectedRoute>} />
         <Route path="customers" element={<ProtectedRoute allowedRoles={["admin"]}><CustomersPage /></ProtectedRoute>} />
         <Route path="vendors" element={<ProtectedRoute allowedRoles={["admin"]}><VendorManagement /></ProtectedRoute>} />
+        <Route path="withdrawals" element={<ProtectedRoute allowedRoles={["admin"]}><WithdrawalManagement /></ProtectedRoute>} />
         <Route path="global-settings" element={<ProtectedRoute allowedRoles={["admin"]}><GlobalSettings /></ProtectedRoute>} />
         <Route path="mobile-app" element={<ProtectedRoute allowedRoles={["admin"]}><SettingsPage /></ProtectedRoute>} />
         <Route path="chat" element={<ProtectedRoute allowedRoles={["admin", "vendor"]}><ChatPage /></ProtectedRoute>} />

@@ -11,7 +11,7 @@ import {
   StoreIcon,
   SettingsIcon,
   LayoutDashboardIcon,
-  MessageSquare,
+  BanknoteIcon,
 } from "lucide-react";
 
 // eslint-disable-next-line
@@ -21,6 +21,7 @@ export const NAVIGATION = [
   { name: "Orders", path: "/orders", icon: <ClipboardListIcon className="size-5" /> },
   { name: "Customers", path: "/customers", icon: <UsersIcon className="size-5" /> },
   { name: "Vendors", path: "/vendors", icon: <StoreIcon className="size-5" /> },
+  { name: "Payouts", path: "/withdrawals", icon: <BanknoteIcon className="size-5" /> },
   { name: "Settings", path: "/global-settings", icon: <SettingsIcon className="size-5" /> },
   { name: "Mobile App", path: "/mobile-app", icon: <SmartphoneIcon className="size-5" /> },
   {

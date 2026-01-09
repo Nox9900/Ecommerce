@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { Product } from "../models/product.model.js";
 import { Order } from "../models/order.model.js";
 import { Cart } from "../models/cart.model.js";
+import { Vendor } from "../models/vendor.model.js";
 
 const stripe = new Stripe(ENV.STRIPE_SECRET_KEY);
 
@@ -133,12 +134,24 @@ export async function handleWebhook(req, res) {
         totalPrice: parseFloat(totalPrice),
       });
 
-      // update product stock
+      // update product stock and vendor earnings
       const items = JSON.parse(orderItems);
       for (const item of items) {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: -item.quantity },
-        });
+        const product = await Product.findById(item.product);
+        if (product) {
+          // Update stock
+          product.stock -= item.quantity;
+          await product.save();
+
+          // Update vendor earnings
+          const vendor = await Vendor.findById(product.vendor);
+          if (vendor) {
+            const commissionRate = vendor.commissionRate ?? 0.1;
+            const vendorEarnings = item.price * item.quantity * (1 - commissionRate);
+            vendor.earnings += vendorEarnings;
+            await vendor.save();
+          }
+        }
       }
 
       console.log("Order created successfully:", order._id);

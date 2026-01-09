@@ -6,6 +6,10 @@ import {
     getVendorProducts,
     getVendorStats,
 } from "../controllers/vendor.controller.js";
+import {
+    requestWithdrawal,
+    getVendorWithdrawals
+} from "../controllers/withdrawal.controller.js";
 import { protectRoute, vendorOnly } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 
@@ -16,5 +20,7 @@ router.get("/profile", protectRoute, vendorOnly, getVendorProfile);
 router.get("/stats", protectRoute, vendorOnly, getVendorStats);
 router.get("/products", protectRoute, vendorOnly, getVendorProducts);
 router.post("/products", protectRoute, vendorOnly, upload.array("images", 3), createVendorProduct);
+router.post("/withdrawals", protectRoute, vendorOnly, requestWithdrawal);
+router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
 
 export default router;
