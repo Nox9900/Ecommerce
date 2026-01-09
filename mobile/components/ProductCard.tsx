@@ -12,6 +12,8 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, index }: ProductCardProps) => {
+    if (!product) return null;
+
     const scale = useSharedValue(1);
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
     const { isAddingToCart, addToCart } = useCart();

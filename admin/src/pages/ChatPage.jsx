@@ -175,13 +175,8 @@ const ChatPage = () => {
     };
 
     const getOtherParticipant = (participants) => {
-        // Find valid participant that is not me.
-        // Relying on backend filtering or just picking first valid.
-        // Ideally check vs user.id (clerkId) or db id.
-        // Participants have _id (mongo). user.id is Clerk.
-        // We need to match.
-        // Let's assume the other one.
-        return participants.find(p => true); // Temporary
+        if (!participants || participants.length === 0) return null;
+        return participants.find((p) => p.clerkId !== userId) || participants[0];
     };
 
     return (

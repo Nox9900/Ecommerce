@@ -34,7 +34,7 @@ const CartScreen = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [addressModalVisible, setAddressModalVisible] = useState(false);
 
-  const cartItems = cart?.items || [];
+  const cartItems = (cart?.items || []).filter((item) => item.product != null);
   const subtotal = cartTotal;
   const shipping = 10.0; // $10 shipping fee
   const tax = subtotal * 0.08; // 8% tax
@@ -137,7 +137,7 @@ const CartScreen = () => {
         });
 
         Alert.alert("Success", "Your payment was successful! Your order is being processed.", [
-          { text: "OK", onPress: () => {} },
+          { text: "OK", onPress: () => { } },
         ]);
         clearCart();
       }
