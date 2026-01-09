@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { CheckCircleIcon, XCircleIcon, StoreIcon } from "lucide-react";
+import { CheckCircleIcon, XCircleIcon, StoreIcon, TrashIcon } from "lucide-react";
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -40,6 +40,23 @@ function VendorManagement() {
         }
     };
 
+    const handleDeleteRequest = async (vendorId) => {
+        if (!window.confirm("Are you sure you want to delete this vendor request? This will remove it from the database and revert the user's vendor profile.")) {
+            return;
+        }
+
+        try {
+            await axios.delete(`${API_URL}/admin/vendors/${vendorId}`, {
+                withCredentials: true,
+            });
+            toast.success("Vendor request deleted successfully");
+            fetchVendors();
+        } catch (error) {
+            console.error("Error deleting vendor request:", error);
+            toast.error(error.response?.data?.message || "Failed to delete vendor request");
+        }
+    };
+
     if (loading) return <div className="flex justify-center p-10"><span className="loading loading-spinner loading-lg"></span></div>;
 
     return (
@@ -68,7 +85,7 @@ function VendorManagement() {
 
                                 <div className="flex items-center gap-2">
                                     <div className={`badge ${vendor.status === "approved" ? "badge-success" :
-                                            vendor.status === "rejected" ? "badge-error" : "badge-warning"
+                                        vendor.status === "rejected" ? "badge-error" : "badge-warning"
                                         }`}>
                                         {vendor.status}
                                     </div>
@@ -98,6 +115,14 @@ function VendorManagement() {
                                             Revoke
                                         </button>
                                     )}
+
+                                    <button
+                                        onClick={() => handleDeleteRequest(vendor._id)}
+                                        className="btn btn-sm btn-ghost text-error gap-2"
+                                        title="Delete Request"
+                                    >
+                                        <TrashIcon className="size-4" />
+                                    </button>
                                 </div>
                             </div>
                         </div>

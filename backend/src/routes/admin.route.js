@@ -12,6 +12,7 @@ import {
   updateVendorStatus,
   getSettings,
   updateSettings,
+  deleteVendorRequest,
 } from "../controllers/admin.controller.js";
 import { adminOnly, protectRoute } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -33,6 +34,7 @@ router.get("/customers", getAllCustomers);
 
 router.get("/vendors", getAllVendors);
 router.patch("/vendors/:vendorId/status", updateVendorStatus);
+router.delete("/vendors/:vendorId", deleteVendorRequest);
 
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);

@@ -282,6 +282,36 @@ export const updateVendorStatus = async (req, res) => {
   }
 };
 
+export const deleteVendorRequest = async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+    // Remove vendor reference from user profile
+    await User.findByIdAndUpdate(vendor.owner, {
+      vendorProfile: null,
+      role: "customer" // Reset role just in case it was approved
+    });
+
+    // Clear clerk metadata if it was set
+    const user = await User.findById(vendor.owner);
+    if (user && user.clerkId) {
+      await clerkClient.users.updateUserMetadata(user.clerkId, {
+        publicMetadata: { role: "customer" },
+      });
+    }
+
+    await Vendor.findByIdAndDelete(vendorId);
+
+    res.status(200).json({ message: "Vendor request deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting vendor request:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const getSettings = async (req, res) => {
   try {
     let settings = await Settings.findOne();
