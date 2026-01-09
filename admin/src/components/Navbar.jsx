@@ -39,6 +39,11 @@ export const NAVIGATION = [
     path: "/vendor-products",
     icon: <ShoppingBagIcon className="size-5" />,
   },
+  {
+    name: "Chat",
+    path: "/chat",
+    icon: <MessageSquare className="size-5" />,
+  },
 ];
 
 function Navbar() {

@@ -8,6 +8,7 @@ export interface Product {
   images: string[];
   averageRating: number;
   totalReviews: number;
+  vendor: string;
   createdAt: string;
   updatedAt: string;
 }

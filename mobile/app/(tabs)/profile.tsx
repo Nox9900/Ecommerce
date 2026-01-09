@@ -3,7 +3,8 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Text, TouchableOpacity, View, ScrollView, Alert } from "react-native";
+import { Text, TouchableOpacity, View, ScrollView, Alert, Switch } from "react-native";
+import { useTheme } from "@/lib/useTheme";
 
 const MENU_ITEMS = [
   {
@@ -22,6 +23,7 @@ const MENU_ITEMS = [
     route: "/(profile)/wishlist",
   },
   {
+    icon: "shield-checkmark-outline",
     label: "Privacy & Security",
     route: "/(profile)/privacy-security",
   },
@@ -32,11 +34,12 @@ const VENDOR_PORTAL_URL = "https://ecommerce-production-aa.up.railway.app/vendor
 export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     try {
       await signOut();
-      router.replace("/(auth)/sign-in");
+      router.replace("/(auth)/sign-in" as any);
     } catch (error) {
       console.error("Logout error:", error);
       Alert.alert("Error", "Failed to sign out");
@@ -93,8 +96,26 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Spacer */}
           <View className="h-6" />
+
+          {/* Theme Toggle */}
+          <View className="px-6 mt-2 mb-4">
+            <Text className="text-text-primary font-bold text-lg mb-4 ml-1">Appearance</Text>
+            <View className="bg-surface-light rounded-3xl overflow-hidden border border-white/5 p-5 flex-row items-center justify-between">
+              <View className="flex-row items-center gap-4">
+                <View className="w-10 h-10 rounded-full bg-background items-center justify-center">
+                  <Ionicons name="moon-outline" size={20} color="#94A3B8" />
+                </View>
+                <Text className="text-text-primary text-base font-medium">Dark Mode</Text>
+              </View>
+              <Switch
+                value={theme === 'dark'}
+                onValueChange={toggleTheme}
+                trackColor={{ false: '#334155', true: '#6366F1' }}
+                thumbColor={theme === 'dark' ? '#FFFFFF' : '#f4f3f4'}
+              />
+            </View>
+          </View>
 
           {/* Menu Items */}
           <View className="px-6 mt-4">

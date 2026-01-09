@@ -8,6 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useMemo } from "react";
+import axios from "axios";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   View,
   Text,
@@ -27,6 +29,8 @@ const ProductDetailScreen = () => {
   const { data: product, isError, isLoading } = useProduct(id);
   const { data: allProducts } = useProducts();
   const { addToCart, isAddingToCart } = useCart();
+  const { getToken } = useAuth();
+  const [startingChat, setStartingChat] = useState(false);
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
@@ -56,6 +60,36 @@ const ProductDetailScreen = () => {
       });
     } catch (error) {
       console.error("Share error:", error);
+    }
+  };
+
+  const handleChatWithVendor = async () => {
+    if (!product || startingChat) return;
+
+    // Check if vendor exists
+    if (!product.vendor) {
+      Alert.alert("Error", "Vendor information not available");
+      return;
+    }
+
+    try {
+      setStartingChat(true);
+      const token = await getToken();
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/api/chats`,
+        { participantId: product.vendor }, // Assuming product.vendor is the ID or contains _id
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const conversation = response.data;
+      router.push(`/chat/${conversation._id}` as any);
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      Alert.alert("Error", "Failed to start chat with vendor");
+    } finally {
+      setStartingChat(false);
     }
   };
 
@@ -271,7 +305,7 @@ const ProductDetailScreen = () => {
               <View className="mt-8 mb-4">
                 <View className="flex-row items-center justify-between px-6 mb-4">
                   <Text className="text-text-primary text-xl font-bold">You May Also Like</Text>
-                  <TouchableOpacity onPress={() => router.push("/(tabs)/")}>
+                  <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
                     <Text className="text-primary font-semibold text-sm">See All</Text>
                   </TouchableOpacity>
                 </View>
@@ -301,9 +335,14 @@ const ProductDetailScreen = () => {
             <TouchableOpacity
               className="bg-surface-light rounded-full p-4 items-center justify-center border border-white/10"
               activeOpacity={0.85}
-              onPress={() => router.push("/chat/seller" as any)}
+              onPress={handleChatWithVendor}
+              disabled={startingChat}
             >
-              <Ionicons name="chatbubble-ellipses" size={22} color="#6366F1" />
+              {startingChat ? (
+                <ActivityIndicator size="small" color="#6366F1" />
+              ) : (
+                <Ionicons name="chatbubble-ellipses" size={22} color="#6366F1" />
+              )}
             </TouchableOpacity>
 
             {/* Spacer */}
@@ -338,12 +377,12 @@ const ProductDetailScreen = () => {
               {isAddingToCart ? (
                 <ActivityIndicator color="white" size="small" />
               ) : (
-                <>
-                  <Ionicons name="cart" size={16} color={!inStock ? "#94A3B8" : "white"} style={{ marginRight: 4 }} />
-                  <Text className={`font-bold text-xs ${!inStock ? "text-text-secondary" : "text-white"}`}>
-                    Cart
-                  </Text>
-                </>
+                <Ionicons name="cart" size={16} color={!inStock ? "#94A3B8" : "white"} style={{ marginRight: 4 }} />
+              )}
+              {(isAddingToCart || !isAddingToCart) && (
+                <Text className={`font-bold text-xs ${!inStock ? "text-text-secondary" : "text-white"} ${isAddingToCart ? 'hidden' : ''}`}>
+                  Cart
+                </Text>
               )}
             </TouchableOpacity>
           </View>
