@@ -14,6 +14,10 @@ import {
   updateSettings,
   deleteVendorRequest,
 } from "../controllers/admin.controller.js";
+import {
+  getAllWithdrawals,
+  updateWithdrawalStatus
+} from "../controllers/withdrawal.controller.js";
 import { adminOnly, protectRoute } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 
@@ -38,6 +42,9 @@ router.delete("/vendors/:vendorId", deleteVendorRequest);
 
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);
+
+router.get("/withdrawals", getAllWithdrawals);
+router.patch("/withdrawals/:withdrawalId/status", updateWithdrawalStatus);
 
 router.get("/stats", getDashboardStats);
 

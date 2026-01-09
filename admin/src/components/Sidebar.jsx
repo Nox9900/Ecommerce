@@ -47,6 +47,7 @@ function Sidebar() {
               "/orders",
               "/customers",
               "/vendors",
+              "/withdrawals",
               "/global-settings",
               "/mobile-app",
               "/vendor-dashboard",
