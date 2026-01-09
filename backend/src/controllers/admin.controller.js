@@ -22,6 +22,25 @@ export async function createProduct(req, res) {
       return res.status(400).json({ message: "Maximum 3 images allowed" });
     }
 
+    // Ensure Admin has a Vendor Profile
+    let vendorId = req.user.vendorProfile;
+    if (!vendorId) {
+      // Check if vendor profile exists but maybe not linked in user obj (edge case) or create new
+      let vendor = await Vendor.findOne({ owner: req.user._id });
+      if (!vendor) {
+        vendor = await Vendor.create({
+          owner: req.user._id,
+          shopName: "Admin Store",
+          description: "Official Admin Store",
+          status: "approved",
+        });
+
+        // Link new vendor profile to admin user
+        await User.findByIdAndUpdate(req.user._id, { vendorProfile: vendor._id });
+      }
+      vendorId = vendor._id;
+    }
+
     const uploadPromises = req.files.map((file) => {
       return cloudinary.uploader.upload(file.path, {
         folder: "products",
@@ -39,6 +58,7 @@ export async function createProduct(req, res) {
       stock: parseInt(stock),
       category,
       images: imageUrls,
+      vendor: vendorId,
     });
 
     res.status(201).json(product);
