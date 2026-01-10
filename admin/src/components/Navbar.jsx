@@ -12,6 +12,8 @@ import {
   SettingsIcon,
   LayoutDashboardIcon,
   MessageSquare,
+  BanknoteIcon,
+  MessageSquare,
 } from "lucide-react";
 
 // eslint-disable-next-line
@@ -37,6 +39,11 @@ export const NAVIGATION = [
     name: "My Products",
     path: "/vendor-products",
     icon: <ShoppingBagIcon className="size-5" />,
+  },
+  {
+    name: "Chat",
+    path: "/chat",
+    icon: <MessageSquare className="size-5" />,
   },
   {
     name: "Chat",

@@ -10,6 +10,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState, useMemo } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-expo";
+import axios from "axios";
+import { useAuth } from "@clerk/clerk-expo";
 import {
   View,
   Text,
@@ -34,9 +36,11 @@ const ProductDetailScreen = () => {
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
+  const { getToken } = useAuth();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [startingChat, setStartingChat] = useState(false);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -306,6 +310,7 @@ const ProductDetailScreen = () => {
                 <View className="flex-row items-center justify-between px-6 mb-4">
                   <Text className="text-text-primary text-xl font-bold">You May Also Like</Text>
                   <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
+                  <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
                     <Text className="text-primary font-semibold text-sm">See All</Text>
                   </TouchableOpacity>
                 </View>
@@ -337,7 +342,14 @@ const ProductDetailScreen = () => {
               activeOpacity={0.85}
               onPress={handleChatWithVendor}
               disabled={startingChat}
+              onPress={handleChatWithVendor}
+              disabled={startingChat}
             >
+              {startingChat ? (
+                <ActivityIndicator size="small" color="#6366F1" />
+              ) : (
+                <Ionicons name="chatbubble-ellipses" size={22} color="#6366F1" />
+              )}
               {startingChat ? (
                 <ActivityIndicator size="small" color="#6366F1" />
               ) : (
