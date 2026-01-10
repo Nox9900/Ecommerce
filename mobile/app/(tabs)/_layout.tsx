@@ -28,6 +28,9 @@ const TabsLayout = () => {
           // marginHorizontal: 50,
           // marginBottom: insets.bottom,
           // borderRadius: 20,
+          // marginHorizontal: 50,
+          // marginBottom: insets.bottom,
+          // borderRadius: 20,
           overflow: "hidden",
         },
         tabBarBackground: () => (

@@ -1,4 +1,6 @@
 import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import path from "path";
 import { clerkMiddleware } from "@clerk/express";
 import { serve } from "inngest/express";
@@ -21,6 +23,7 @@ import paymentRoutes from "./routes/payment.route.js";
 import heroRoutes from "./routes/hero.route.js";
 import categoryRoutes from "./routes/category.route.js";
 import vendorRoutes from "./routes/vendor.route.js";
+import chatRoutes from "./routes/chat.route.js";
 import chatRoutes from "./routes/chat.route.js";
 
 const app = express();
@@ -78,6 +81,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/hero", heroRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/vendors", vendorRoutes);
+app.use("/api/chats", chatRoutes);
 app.use("/api/chats", chatRoutes);
 
 app.get("/api/health", (req, res) => {

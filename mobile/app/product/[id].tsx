@@ -29,14 +29,14 @@ const ProductDetailScreen = () => {
   const { data: product, isError, isLoading } = useProduct(id);
   const { data: allProducts } = useProducts();
   const { addToCart, isAddingToCart } = useCart();
-  const { getToken } = useAuth();
-  const [startingChat, setStartingChat] = useState(false);
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
+  const { getToken } = useAuth();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [startingChat, setStartingChat] = useState(false);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -338,6 +338,11 @@ const ProductDetailScreen = () => {
               onPress={handleChatWithVendor}
               disabled={startingChat}
             >
+              {startingChat ? (
+                <ActivityIndicator size="small" color="#6366F1" />
+              ) : (
+                <Ionicons name="chatbubble-ellipses" size={22} color="#6366F1" />
+              )}
               {startingChat ? (
                 <ActivityIndicator size="small" color="#6366F1" />
               ) : (

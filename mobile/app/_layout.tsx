@@ -1,12 +1,12 @@
 import { Stack } from "expo-router";
 import { useTheme } from "@/lib/useTheme";
-import { SocketProvider } from "@/context/SocketContext";
 import "../global.css";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import * as Sentry from "@sentry/react-native";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { SocketProvider } from "../context/SocketContext";
 
 Sentry.init({
   dsn: "https://371fb9cd74d8726bfce0c169a82865ea@o4510599048658944.ingest.de.sentry.io/4510599050035280",

@@ -13,6 +13,7 @@ import {
   LayoutDashboardIcon,
   BanknoteIcon,
   MessageSquare,
+  BanknoteIcon,
 } from "lucide-react";
 
 // eslint-disable-next-line
