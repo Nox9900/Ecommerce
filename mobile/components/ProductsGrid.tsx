@@ -14,9 +14,10 @@ interface ProductsGridProps {
   isLoading: boolean;
   isError: boolean;
   products: Product[];
+  scrollEnabled?: boolean;
 }
 
-const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
+const ProductsGrid = ({ products, isLoading, isError, scrollEnabled = false }: ProductsGridProps) => {
 
   const renderProduct = ({ item: product, index }: { item: Product; index: number }) => (
     <ProductCard product={product} index={index} />
@@ -49,7 +50,7 @@ const ProductsGrid = ({ products, isLoading, isError }: ProductsGridProps) => {
       numColumns={2}
       columnWrapperStyle={{ justifyContent: "space-between" }}
       showsVerticalScrollIndicator={false}
-      scrollEnabled={false}
+      scrollEnabled={scrollEnabled}
       ListEmptyComponent={NoProductsFound}
     />
   );

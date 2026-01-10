@@ -43,7 +43,7 @@ const ShopScreen = () => {
     <SafeScreen>
       <View className="flex-1 bg-background">
         {/* STICKY HEADER */}
-        <View className="px-5 pt-4 bg-background border-b border-white/5">
+        <View className="px-5 pb-4 pt-4 bg-background border-b border-white/5">
           <View className="flex-row items-center justify-between mb-4">
             <View>
               <Text className="text-text-primary text-2xl font-bold tracking-tight">Discover</Text>
@@ -98,7 +98,7 @@ const ShopScreen = () => {
         >
 
           {/* HERO SECTION */}
-          <View className="px-5 mb-8 mt-6">
+          <View className="px-5 mb-5 mt-6">
             <Hero />
           </View>
 
@@ -116,15 +116,25 @@ const ShopScreen = () => {
                 {/* All Category */}
                 <TouchableOpacity
                   onPress={() => setSelectedCategory("All")}
-                  className={`mr-3 px-5 py-2.5 rounded-full flex-row items-center border ${selectedCategory === "All" ? "bg-primary border-primary" : "bg-surface-light border-white/5"}`}
+                  className={`mr-3 px-3 py-2 rounded-xl items-center border ${selectedCategory === "All"
+                    ? "bg-primary border-primary"
+                    : theme === 'dark'
+                      ? "bg-surface-light border-white/10"
+                      : "bg-surface-light border-black/5"
+                    }`}
+                  style={{ minWidth: 64 }}
                 >
                   <Ionicons
                     name="apps-outline"
-                    size={16}
-                    color={selectedCategory === "All" ? "#fff" : "#94A3B8"}
-                    style={{ marginRight: 8 }}
+                    size={20}
+                    color={
+                      selectedCategory === "All"
+                        ? theme === 'dark' ? "#262626" : "#FAFAFA"
+                        : theme === 'dark' ? "#A3A3A3" : "#737373"
+                    }
+                    style={{ marginBottom: 4 }}
                   />
-                  <Text className={`text-sm font-semibold ${selectedCategory === "All" ? "text-primary-foreground" : "text-text-secondary"}`}>
+                  <Text className={`text-xs font-semibold ${selectedCategory === "All" ? "text-primary-foreground" : "text-text-secondary"}`}>
                     All
                   </Text>
                 </TouchableOpacity>
@@ -135,17 +145,27 @@ const ShopScreen = () => {
                     <TouchableOpacity
                       key={category._id}
                       onPress={() => setSelectedCategory(category.name)}
-                      className={`mr-3 px-5 py-2.5 rounded-full flex-row items-center border ${isSelected ? "bg-primary border-primary" : "bg-surface-light border-white/5"}`}
+                      className={`mr-3 px-3 py-2 rounded-xl items-center border ${isSelected
+                        ? "bg-primary border-primary"
+                        : theme === 'dark'
+                          ? "bg-surface-light border-white/10"
+                          : "bg-surface-light border-black/5"
+                        }`}
+                      style={{ minWidth: 64 }}
                     >
                       {category.icon && (
                         <Ionicons
                           name={category.icon as any}
-                          size={16}
-                          color={isSelected ? "#fff" : "#94A3B8"}
-                          style={{ marginRight: 8 }}
+                          size={20}
+                          color={
+                            isSelected
+                              ? theme === 'dark' ? "#262626" : "#FAFAFA"
+                              : theme === 'dark' ? "#A3A3A3" : "#737373"
+                          }
+                          style={{ marginBottom: 4 }}
                         />
                       )}
-                      <Text className={`text-sm font-semibold ${isSelected ? "text-primary-foreground" : "text-text-secondary"}`}>
+                      <Text className={`text-xs font-semibold text-center ${isSelected ? "text-primary-foreground" : "text-text-secondary"}`}>
                         {category.name}
                       </Text>
                     </TouchableOpacity>
@@ -155,10 +175,9 @@ const ShopScreen = () => {
             )}
           </View>
 
-          <View className="px-5 mb-6">
+          <View className=" mb-6">
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-text-primary text-lg font-bold">Featured</Text>
-              <Text className="text-primary text-sm font-medium">See All</Text>
+              <Text className="px-5 text-text-primary text-lg font-bold">Featured</Text>
             </View>
 
             {/* PRODUCTS GRID */}
