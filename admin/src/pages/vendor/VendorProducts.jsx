@@ -16,6 +16,11 @@ function VendorProducts() {
         description: "",
         shop: "",
     });
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [newCategoryData, setNewCategoryData] = useState({
+        name: "",
+        icon: "apps-outline", // default icon
+    });
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -63,6 +68,17 @@ function VendorProducts() {
             queryClient.invalidateQueries({ queryKey: ["vendor-products"] });
         },
         onError: (error) => toast.error(error.response?.data?.message || "Failed to delete product"),
+    });
+
+    const createCategoryMutation = useMutation({
+        mutationFn: mobileApi.createCategory,
+        onSuccess: () => {
+            toast.success("Category suggestion sent to admin");
+            setShowCategoryModal(false);
+            setNewCategoryData({ name: "", icon: "apps-outline" });
+            queryClient.invalidateQueries({ queryKey: ["mobile-categories"] });
+        },
+        onError: (error) => toast.error(error.response?.data?.message || "Failed to suggest category"),
     });
 
     const closeModal = () => {
@@ -189,10 +205,18 @@ function VendorProducts() {
                                     <option value="">Select category</option>
                                     {categories.map((cat) => (
                                         <option key={cat._id} value={cat.name}>
-                                            {cat.name}
+                                            {cat.name} {!cat.isActive && "(Pending Approval)"}
                                         </option>
                                     ))}
                                 </select>
+                                {/* for the vendor to create a categorie */}
+                                {/* <button
+                                    type="button"
+                                    className="btn btn-sm btn-ghost"
+                                    onClick={() => setShowCategoryModal(true)}
+                                >
+                                    Suggest New
+                                </button> */}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <input type="number" placeholder="Price" className="input input-bordered" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
@@ -218,6 +242,49 @@ function VendorProducts() {
                                 <button type="submit" className="btn btn-primary">Save</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Category Suggestion Modal */}
+            {showCategoryModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box max-w-sm">
+                        <h3 className="font-bold text-lg mb-4">Suggest New Category</h3>
+                        <div className="space-y-4">
+                            <div className="form-control">
+                                <label className="label"><span className="label-text">Category Name</span></label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newCategoryData.name}
+                                    onChange={(e) => setNewCategoryData({ ...newCategoryData, name: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-control">
+                                <label className="label"><span className="label-text">Icon Name (Ionicons)</span></label>
+                                <input
+                                    type="text"
+                                    className="input input-bordered"
+                                    value={newCategoryData.icon}
+                                    onChange={(e) => setNewCategoryData({ ...newCategoryData, icon: e.target.value })}
+                                />
+                                <label className="label">
+                                    <span className="label-text-alt opacity-60">e.g., shirt-outline, watch-outline</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className="modal-action">
+                            <button className="btn" onClick={() => setShowCategoryModal(false)}>Cancel</button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => createCategoryMutation.mutate(newCategoryData)}
+                                disabled={createCategoryMutation.isPending || !newCategoryData.name}
+                            >
+                                {createCategoryMutation.isPending && <span className="loading loading-spinner"></span>}
+                                Suggest
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
