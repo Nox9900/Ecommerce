@@ -32,8 +32,8 @@ function VendorProducts() {
     });
 
     const { data: categories = [] } = useQuery({
-        queryKey: ["mobile-categories"],
-        queryFn: mobileApi.getCategories,
+        queryKey: ["active-categories"],
+        queryFn: mobileApi.getActiveCategories,
     });
 
     const { data: shops = [] } = useQuery({
