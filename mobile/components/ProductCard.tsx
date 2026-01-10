@@ -50,7 +50,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                 onPressOut={handlePressOut}
             >
                 <Animated.View
-                    className="bg-surface rounded-3xl overflow-hidden shadow-lg border border-white/5"
+                    className="bg-surface rounded-xl overflow-hidden shadow-lg border border-white/5"
                     style={animatedStyle}
                 >
                     <View className="relative">
