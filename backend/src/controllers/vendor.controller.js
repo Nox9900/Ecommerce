@@ -51,14 +51,14 @@ export const getVendorProfile = async (req, res) => {
 
 export const createVendorProduct = async (req, res) => {
     try {
-        const { name, description, price, stock, category } = req.body;
+        const { name, description, price, stock, category, shop } = req.body;
         const vendor = await Vendor.findOne({ owner: req.user._id });
 
         if (!vendor || vendor.status !== "approved") {
             return res.status(403).json({ message: "Only approved vendors can create products" });
         }
 
-        if (!name || !description || !price || !stock || !category) {
+        if (!name || !description || !price || !stock || !category || !shop) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -83,6 +83,7 @@ export const createVendorProduct = async (req, res) => {
             category,
             images: imageUrls,
             vendor: vendor._id,
+            shop,
         });
 
         res.status(201).json(product);

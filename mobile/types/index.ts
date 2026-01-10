@@ -8,7 +8,33 @@ export interface Product {
   images: string[];
   averageRating: number;
   totalReviews: number;
-  vendor: string;
+  vendor: string | Vendor;
+  shop: string | Shop;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Vendor {
+  _id: string;
+  owner: string;
+  shopName: string;
+  description: string;
+  status: "pending" | "approved" | "rejected";
+  logoUrl: string;
+  earnings: number;
+  commissionRate: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Shop {
+  _id: string;
+  name: string;
+  description: string;
+  logoUrl: string;
+  bannerUrl: string;
+  vendor: string | Vendor;
+  owner: string;
   createdAt: string;
   updatedAt: string;
 }

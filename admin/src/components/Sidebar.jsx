@@ -52,7 +52,7 @@ function Sidebar() {
               "/mobile-app",
               "/chat",
             ];
-            const vendorPages = ["/vendor-dashboard", "/vendor-products", "/chat"];
+            const vendorPages = ["/vendor-dashboard", "/vendor-products", "/vendor-shops", "/chat"];
             const customerPages = ["/vendor-onboarding"];
 
             if (role === "admin") return adminPages.includes(item.path);

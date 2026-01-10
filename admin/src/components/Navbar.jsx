@@ -41,6 +41,11 @@ export const NAVIGATION = [
     icon: <ShoppingBagIcon className="size-5" />,
   },
   {
+    name: "My Shops",
+    path: "/vendor-shops",
+    icon: <StoreIcon className="size-5" />,
+  },
+  {
     name: "Chat",
     path: "/chat",
     icon: <MessageSquare className="size-5" />,

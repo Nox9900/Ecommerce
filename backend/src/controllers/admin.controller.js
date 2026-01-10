@@ -71,7 +71,10 @@ export async function createProduct(req, res) {
 export async function getAllProducts(_, res) {
   try {
     // -1 means in desc order: most recent products first
-    const products = await Product.find().populate("vendor", "shopName").sort({ createdAt: -1 });
+    const products = await Product.find()
+      .populate("vendor", "shopName")
+      .populate("shop", "name logoUrl")
+      .sort({ createdAt: -1 });
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error);

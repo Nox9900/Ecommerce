@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { vendorApi, productApi, mobileApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
+import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
 import { getStockStatusBadge } from "../../lib/utils";
 import toast from "react-hot-toast";
 
@@ -14,6 +14,7 @@ function VendorProducts() {
         price: "",
         stock: "",
         description: "",
+        shop: "",
     });
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
@@ -28,6 +29,11 @@ function VendorProducts() {
     const { data: categories = [] } = useQuery({
         queryKey: ["mobile-categories"],
         queryFn: mobileApi.getCategories,
+    });
+
+    const { data: shops = [] } = useQuery({
+        queryKey: ["vendor-shops"],
+        queryFn: shopApi.getVendorShops,
     });
 
     const createProductMutation = useMutation({
@@ -62,7 +68,7 @@ function VendorProducts() {
     const closeModal = () => {
         setShowModal(false);
         setEditingProduct(null);
-        setFormData({ name: "", category: "", price: "", stock: "", description: "" });
+        setFormData({ name: "", category: "", price: "", stock: "", description: "", shop: "" });
         setImages([]);
         setImagePreviews([]);
     };
@@ -75,6 +81,7 @@ function VendorProducts() {
             price: product.price.toString(),
             stock: product.stock.toString(),
             description: product.description,
+            shop: product.shop?._id || product.shop || "",
         });
         setImagePreviews(product.images);
         setShowModal(true);
@@ -191,6 +198,19 @@ function VendorProducts() {
                                 <input type="number" placeholder="Price" className="input input-bordered" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
                                 <input type="number" placeholder="Stock" className="input input-bordered" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
                             </div>
+                            <select
+                                className="select select-bordered w-full"
+                                value={formData.shop}
+                                onChange={(e) => setFormData({ ...formData, shop: e.target.value })}
+                                required
+                            >
+                                <option value="">Select Shop</option>
+                                {shops.map((shop) => (
+                                    <option key={shop._id} value={shop._id}>
+                                        {shop.name}
+                                    </option>
+                                ))}
+                            </select>
                             <textarea className="textarea textarea-bordered w-full h-24" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
                             <input type="file" multiple className="file-input file-input-bordered w-full" onChange={handleImageChange} />
                             <div className="modal-action">
