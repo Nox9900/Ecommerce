@@ -10,8 +10,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState, useMemo } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-expo";
-import axios from "axios";
-import { useAuth } from "@clerk/clerk-expo";
 import {
   View,
   Text,
@@ -31,8 +29,6 @@ const ProductDetailScreen = () => {
   const { data: product, isError, isLoading } = useProduct(id);
   const { data: allProducts } = useProducts();
   const { addToCart, isAddingToCart } = useCart();
-  const { getToken } = useAuth();
-  const [startingChat, setStartingChat] = useState(false);
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
@@ -310,7 +306,6 @@ const ProductDetailScreen = () => {
                 <View className="flex-row items-center justify-between px-6 mb-4">
                   <Text className="text-text-primary text-xl font-bold">You May Also Like</Text>
                   <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
-                  <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
                     <Text className="text-primary font-semibold text-sm">See All</Text>
                   </TouchableOpacity>
                 </View>
@@ -340,8 +335,6 @@ const ProductDetailScreen = () => {
             <TouchableOpacity
               className="bg-surface-light rounded-full p-4 items-center justify-center border border-white/10"
               activeOpacity={0.85}
-              onPress={handleChatWithVendor}
-              disabled={startingChat}
               onPress={handleChatWithVendor}
               disabled={startingChat}
             >

@@ -47,10 +47,9 @@ function Sidebar() {
               "/orders",
               "/customers",
               "/vendors",
+              "/withdrawals",
               "/global-settings",
               "/mobile-app",
-              "/vendor-dashboard",
-              "/vendor-products",
               "/chat",
             ];
             const vendorPages = ["/vendor-dashboard", "/vendor-products", "/chat"];

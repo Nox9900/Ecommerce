@@ -1,6 +1,5 @@
 import { Stack } from "expo-router";
 import { useTheme } from "@/lib/useTheme";
-import { SocketProvider } from "@/context/SocketContext";
 import "../global.css";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ClerkProvider } from "@clerk/clerk-expo";
