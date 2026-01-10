@@ -16,9 +16,9 @@ export const Input = ({
 }: InputProps) => {
     return (
         <View className={`w-full ${containerClassName}`}>
-            {label && <Text className="text-gray-400 mb-2 ml-1 text-sm font-medium">{label}</Text>}
+            {label && <Text className="text-text-tertiary mb-2 ml-1 text-sm font-medium">{label}</Text>}
             <TextInput
-                className={`w-full bg-surface-light text-white p-4 rounded-2xl border border-transparent focus:border-primary placeholder:text-gray-500 ${error ? 'border-red-500' : ''} ${className}`}
+                className={`w-full bg-surface-light text-text-primary p-4 rounded-2xl border border-transparent focus:border-primary placeholder:text-text-tertiary ${error ? 'border-red-500' : ''} ${className}`}
                 placeholderTextColor="#64748B"
                 {...props}
             />

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router";
 import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage";
 import { useAuth } from "@clerk/clerk-react";
 import DashboardPage from "./pages/DashboardPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -37,7 +38,8 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={isSignedIn ? <Navigate to={"/dashboard"} /> : <LoginPage />} />
+      <Route path="/login" element={isSignedIn ? <Navigate to={"/"} /> : <LoginPage />} />
+      <Route path="/signup" element={isSignedIn ? <Navigate to={"/"} /> : <SignUpPage />} />
 
       <Route path="/" element={isSignedIn ? <DashboardLayout /> : <Navigate to={"/login"} />}>
         <Route index element={<Navigate to={getHomeRoute()} />} />
