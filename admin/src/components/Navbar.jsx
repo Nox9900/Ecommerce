@@ -44,11 +44,6 @@ export const NAVIGATION = [
     path: "/chat",
     icon: <MessageSquare className="size-5" />,
   },
-  {
-    name: "Chat",
-    path: "/chat",
-    icon: <MessageSquare className="size-5" />,
-  },
 ];
 
 function Navbar() {
