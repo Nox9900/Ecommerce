@@ -14,8 +14,8 @@ const router = Router();
 router.get("/", getActiveCategories);
 
 // Admin/Vendor routes
-router.get("/all", protectRoute, vendorOnly, getAllCategories);
-router.post("/", protectRoute, vendorOnly, createCategory);
+router.get("/all", protectRoute, adminOnly, getAllCategories);
+router.post("/", protectRoute, adminOnly, createCategory);
 router.put("/:id", protectRoute, adminOnly, updateCategory);
 router.delete("/:id", protectRoute, adminOnly, deleteCategory);
 
