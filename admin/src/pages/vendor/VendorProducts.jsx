@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { vendorApi, productApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
+import { vendorApi, productApi, mobileApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
 import { getStockStatusBadge } from "../../lib/utils";
 import toast from "react-hot-toast";
 
@@ -23,6 +23,11 @@ function VendorProducts() {
     const { data: products = [], isLoading } = useQuery({
         queryKey: ["vendor-products"],
         queryFn: vendorApi.getProducts,
+    });
+
+    const { data: categories = [] } = useQuery({
+        queryKey: ["mobile-categories"],
+        queryFn: mobileApi.getCategories,
     });
 
     const createProductMutation = useMutation({
@@ -168,7 +173,19 @@ function VendorProducts() {
                             {/* Form fields omitted for brevity, same as ProductsPage.jsx */}
                             <div className="grid grid-cols-2 gap-4">
                                 <input type="text" placeholder="Name" className="input input-bordered" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-                                <input type="text" placeholder="Category" className="input input-bordered" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required />
+                                <select
+                                    className="select select-bordered"
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select category</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat._id} value={cat.name}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <input type="number" placeholder="Price" className="input input-bordered" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />

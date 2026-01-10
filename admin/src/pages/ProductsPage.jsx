@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { productApi } from "../lib/api";
+import { productApi, mobileApi } from "../lib/api";
 import { getStockStatusBadge } from "../lib/utils";
 
 function ProductsPage() {
@@ -23,6 +23,11 @@ function ProductsPage() {
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
     queryFn: productApi.getAll,
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["mobile-categories"],
+    queryFn: mobileApi.getCategories,
   });
 
   // creating, update, deleting
@@ -149,7 +154,11 @@ function ProductsPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="card-title">{product.name}</h3>
-                        <p className="text-base-content/70 text-sm">{product.category}</p>
+                        <div className="flex items-center gap-2 text-base-content/70 text-sm">
+                          <span>{product.category}</span>
+                          <span>•</span>
+                          <span className="text-primary font-medium">{product.vendor?.shopName || "Unknown Vendor"}</span>
+                        </div>
                       </div>
                       <div className={`badge ${status.class}`}>{status.text}</div>
                     </div>
@@ -234,10 +243,11 @@ function ProductsPage() {
                   required
                 >
                   <option value="">Select category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Accessories">Accessories</option>
-                  <option value="Fashion">Fashion</option>
-                  <option value="Sports">Sports</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
