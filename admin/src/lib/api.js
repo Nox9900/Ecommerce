@@ -68,6 +68,10 @@ export const mobileApi = {
     const { data } = await axiosInstance.get("/categories/all");
     return data;
   },
+  getActiveCategories: async () => {
+    const { data } = await axiosInstance.get("/categories");
+    return data;
+  },
   createCategory: async (categoryData) => {
     const { data } = await axiosInstance.post("/categories", categoryData);
     return data;
