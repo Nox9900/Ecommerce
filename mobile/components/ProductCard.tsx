@@ -85,7 +85,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
                     <View className="p-4">
                         <Text className="text-text-tertiary text-xs font-medium uppercase tracking-wider mb-1">
-                            {product.category || "Collection"}
+                            {typeof product.shop === 'object' ? product.shop.name : (product.category || "Collection")}
                         </Text>
                         <Text
                             className="text-text-primary text-base font-bold mb-2 h-11"

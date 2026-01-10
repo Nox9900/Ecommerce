@@ -2,6 +2,8 @@ import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
 import useCategories from "@/hooks/useCategories";
+import { useRandomShops } from "@/hooks/useShops";
+import ShopCard from "@/components/ShopCard";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState, useEffect } from "react";
@@ -18,6 +20,7 @@ const ShopScreen = () => {
 
   const { data: products, isLoading: productsLoading, isError: productsError } = useProducts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const { data: randomShops, isLoading: shopsLoading } = useRandomShops(5);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -97,14 +100,9 @@ const ShopScreen = () => {
           showsVerticalScrollIndicator={false}
         >
 
-          {/* HERO SECTION */}
-          <View className="px-5 mb-5 mt-6">
-            <Hero />
-          </View>
-
           {/* CATEGORY FILTER */}
-          <View className="mb-8 pl-5">
-            <Text className="text-text-primary text-lg font-bold mb-4">Categories</Text>
+        <View className="mb-8 pl-5">
+            <Text className="mt-2 text-text-primary text-lg font-bold mb-4">Categories</Text>
             {categoriesLoading ? (
               <ActivityIndicator color={theme === 'dark' ? "#fff" : "#000"} style={{ alignSelf: "flex-start" }} />
             ) : (
@@ -174,6 +172,33 @@ const ShopScreen = () => {
               </ScrollView>
             )}
           </View>
+
+          <View className="px-5 mb-5 mt-6">
+            <Hero />
+          </View>
+
+          {/* RANDOM SHOPS SECTION */}
+          <View className="mb-8">
+            <View className="flex-row items-center justify-between px-5 mb-4">
+              <Text className="text-text-primary text-lg font-bold">Shops to Explore</Text>
+              <TouchableOpacity>
+                <Text className="text-text-secondary text-sm font-medium">View All</Text>
+              </TouchableOpacity>
+            </View>
+            {shopsLoading ? (
+              <ActivityIndicator color={theme === 'dark' ? "#fff" : "#000"} style={{ alignSelf: "flex-start", marginLeft: 20 }} />
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingLeft: 20, paddingRight: 4 }}
+              >
+                {Array.isArray(randomShops) && randomShops.map((shop) => (
+                  <ShopCard key={shop._id} shop={shop} />
+                ))}
+              </ScrollView>
+            )}
+          </View> 
 
           <View className=" mb-6">
             <View className="flex-row items-center justify-between mb-4">

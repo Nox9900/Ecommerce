@@ -22,6 +22,7 @@ import heroRoutes from "./routes/hero.route.js";
 import categoryRoutes from "./routes/category.route.js";
 import vendorRoutes from "./routes/vendor.route.js";
 import chatRoutes from "./routes/chat.route.js";
+import shopRoutes from "./routes/shop.route.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -79,6 +80,7 @@ app.use("/api/hero", heroRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/chats", chatRoutes);
+app.use("/api/shops", shopRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success inside the server nnow!!!! wooohhhhh" });

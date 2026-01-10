@@ -104,3 +104,26 @@ export const vendorApi = {
     return data;
   },
 };
+
+export const shopApi = {
+  getVendorShops: async () => {
+    const { data } = await axiosInstance.get("/shops");
+    return data;
+  },
+  create: async (formData) => {
+    const { data } = await axiosInstance.post("/shops", formData);
+    return data;
+  },
+  update: async (id, formData) => {
+    const { data } = await axiosInstance.patch(`/shops/${id}`, formData);
+    return data;
+  },
+  delete: async (id) => {
+    const { data } = await axiosInstance.delete(`/shops/${id}`);
+    return data;
+  },
+  getById: async (id) => {
+    const { data } = await axiosInstance.get(`/shops/${id}`);
+    return data;
+  },
+};

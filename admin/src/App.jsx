@@ -14,6 +14,7 @@ import GlobalSettings from "./pages/admin/GlobalSettings";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import VendorOnboarding from "./pages/vendor/VendorOnboarding";
 import VendorProducts from "./pages/vendor/VendorProducts";
+import VendorShops from "./pages/vendor/VendorShops";
 import ChatPage from "./pages/ChatPage";
 
 import PageLoader from "./components/PageLoader";
@@ -58,6 +59,7 @@ function App() {
         {/* Vendor Only Routes */}
         <Route path="vendor-dashboard" element={<ProtectedRoute allowedRoles={["vendor", "admin"]}><VendorDashboard /></ProtectedRoute>} />
         <Route path="vendor-products" element={<ProtectedRoute allowedRoles={["vendor", "admin"]}><VendorProducts /></ProtectedRoute>} />
+        <Route path="vendor-shops" element={<ProtectedRoute allowedRoles={["vendor", "admin"]}><VendorShops /></ProtectedRoute>} />
 
         {/* Customer / Onboarding Routes */}
         <Route path="vendor-onboarding" element={<ProtectedRoute allowedRoles={["customer", "admin"]}><VendorOnboarding /></ProtectedRoute>} />
