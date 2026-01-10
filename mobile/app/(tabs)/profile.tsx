@@ -39,7 +39,7 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await signOut();
-      router.replace("/(auth)/sign-in" as any);
+      router.replace("/(auth)/welcome" as any);
     } catch (error) {
       console.error("Logout error:", error);
       Alert.alert("Error", "Failed to sign out");

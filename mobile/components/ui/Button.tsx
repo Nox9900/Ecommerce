@@ -46,9 +46,9 @@ export const Button = ({
     };
 
     const textVariants = {
-        primary: "text-white font-bold",
-        secondary: "text-white font-bold",
-        outline: "text-white font-medium",
+        primary: "text-primary-foreground font-bold",
+        secondary: "text-primary-foreground font-bold",
+        outline: "text-text-primary font-medium",
         ghost: "text-primary font-medium",
     };
 
