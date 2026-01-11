@@ -10,6 +10,7 @@ import {
   deleteProduct,
   getAllVendors,
   updateVendorStatus,
+  getSettings,
   updateSettings,
   deleteVendorRequest,
   getAllShops,
