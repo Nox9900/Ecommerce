@@ -20,6 +20,10 @@ export const productApi = {
     const { data } = await axiosInstance.delete(`/admin/products/${productId}`);
     return data;
   },
+  getAllShops: async () => {
+    const { data } = await axiosInstance.get("/admin/shops");
+    return data;
+  },
 };
 
 export const orderApi = {

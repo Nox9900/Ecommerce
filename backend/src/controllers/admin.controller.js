@@ -5,13 +5,14 @@ import { Order } from "../models/order.model.js";
 import { User } from "../models/user.model.js";
 import { Vendor } from "../models/vendor.model.js";
 import { Settings } from "../models/settings.model.js";
+import { Shop } from "../models/shop.model.js";
 
 export async function createProduct(req, res) {
   try {
-    const { name, description, price, stock, category, attributes } = req.body;
+    const { name, description, price, stock, category, attributes, shop } = req.body;
 
-    if (!name || !description || !price || !stock || !category) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!name || !price || !stock || !category) {
+      return res.status(400).json({ message: "Name, price, stock and category are required" });
     }
 
     if (!req.files || req.files.length === 0) {
@@ -60,6 +61,7 @@ export async function createProduct(req, res) {
       attributes: attributes ? JSON.parse(attributes) : [],
       images: imageUrls,
       vendor: vendorId,
+      shop: shop || undefined,
     });
 
     res.status(201).json(product);
@@ -86,7 +88,7 @@ export async function getAllProducts(_, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, category, attributes } = req.body;
+    const { name, description, price, stock, category, attributes, shop } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -99,6 +101,7 @@ export async function updateProduct(req, res) {
     if (stock !== undefined) product.stock = parseInt(stock);
     if (category) product.category = category;
     if (attributes) product.attributes = JSON.parse(attributes);
+    if (shop !== undefined) product.shop = shop || undefined;
 
     // handle image updates if new images are uploaded
     if (req.files && req.files.length > 0) {
@@ -135,6 +138,16 @@ export async function getAllOrders(_, res) {
   } catch (error) {
     console.error("Error in getAllOrders controller:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function getAllShops(req, res) {
+  try {
+    const shops = await Shop.find().sort({ name: 1 });
+    res.status(200).json(shops);
+  } catch (error) {
+    console.error("Error in getAllShops controller:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
