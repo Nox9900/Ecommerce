@@ -44,6 +44,8 @@ function Sidebar() {
             const adminPages = [
               "/dashboard",
               "/products",
+              "/vendor-products", 
+              "/vendor-shops",
               "/orders",
               "/customers",
               "/vendors",
