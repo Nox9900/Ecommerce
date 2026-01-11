@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { productApi, mobileApi } from "../lib/api";
+import { productApi, mobileApi, shopApi } from "../lib/api";
 import { getStockStatusBadge } from "../lib/utils";
 
 function ProductsPage() {
@@ -13,6 +13,7 @@ function ProductsPage() {
     price: "",
     stock: "",
     description: "",
+    shop: "",
   });
   const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
   const [images, setImages] = useState([]);
@@ -29,6 +30,11 @@ function ProductsPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ["mobile-categories"],
     queryFn: mobileApi.getCategories,
+  });
+
+  const { data: shops = [] } = useQuery({
+    queryKey: ["all-shops"],
+    queryFn: productApi.getAllShops,
   });
 
   // creating, update, deleting
@@ -66,6 +72,7 @@ function ProductsPage() {
       price: "",
       stock: "",
       description: "",
+      shop: "",
     });
     setAttributes([]);
     setImages([]);
@@ -80,6 +87,7 @@ function ProductsPage() {
       price: product.price.toString(),
       stock: product.stock.toString(),
       description: product.description,
+      shop: product.shop?._id || product.shop || "",
     });
     setAttributes(product.attributes || []);
     setImagePreviews(product.images);
@@ -113,6 +121,7 @@ function ProductsPage() {
     formDataToSend.append("price", formData.price);
     formDataToSend.append("stock", formData.stock);
     formDataToSend.append("category", formData.category);
+    formDataToSend.append("shop", formData.shop);
     formDataToSend.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
 
     // only append new images if they were selected
@@ -161,7 +170,7 @@ function ProductsPage() {
                         <div className="flex items-center gap-2 text-base-content/70 text-sm">
                           <span>{product.category}</span>
                           <span>•</span>
-                          <span className="text-primary font-medium">{product.vendor?.shopName || "Unknown Vendor"}</span>
+                          <span className="text-primary font-medium">{product.vendor?.shopName || product.shop?.name || "Unknown Vendor"}</span>
                         </div>
                       </div>
                       <div className={`badge ${status.class}`}>{status.text}</div>
@@ -254,6 +263,24 @@ function ProductsPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span>Shop (Optional)</span>
+              </label>
+              <select
+                className="select select-bordered"
+                value={formData.shop}
+                onChange={(e) => setFormData({ ...formData, shop: e.target.value })}
+              >
+                <option value="">Select shop</option>
+                {shops.map((shop) => (
+                  <option key={shop._id} value={shop._id}>
+                    {shop.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
