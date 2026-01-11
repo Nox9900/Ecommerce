@@ -24,7 +24,7 @@ export async function getCart(req, res) {
 
 export async function addToCart(req, res) {
   try {
-    const { productId, quantity = 1 } = req.body;
+    const { productId, quantity = 1, selectedOptions } = req.body;
 
     // validate product exists and has stock
     const product = await Product.findById(productId);
@@ -48,18 +48,39 @@ export async function addToCart(req, res) {
       });
     }
 
-    // check if item already in the cart
-    const existingItem = cart.items.find((item) => item.product.toString() === productId);
+    // check if item already in the cart with the SAME options
+    const existingItem = cart.items.find((item) => {
+      if (item.product.toString() !== productId) return false;
+
+      // If no options provided, both must be empty
+      if (!selectedOptions || Object.keys(selectedOptions).length === 0) {
+        return !item.selectedOptions || item.selectedOptions.size === 0;
+      }
+
+      // Compare options
+      if (!item.selectedOptions || item.selectedOptions.size !== Object.keys(selectedOptions).length) {
+        return false;
+      }
+
+      for (const [key, value] of Object.entries(selectedOptions)) {
+        if (item.selectedOptions.get(key) !== value) return false;
+      }
+
+      return true;
+    });
+
     if (existingItem) {
-      // increment quantity by 1
-      const newQuantity = existingItem.quantity + 1;
-      if (product.stock < newQuantity) {
+      existingItem.quantity += parseInt(quantity);
+      if (product.stock < existingItem.quantity) {
         return res.status(400).json({ error: "Insufficient stock" });
       }
-      existingItem.quantity = newQuantity;
     } else {
       // add new item
-      cart.items.push({ product: productId, quantity });
+      cart.items.push({
+        product: productId,
+        quantity: parseInt(quantity),
+        selectedOptions
+      });
     }
 
     await cart.save();

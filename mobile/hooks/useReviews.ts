@@ -1,10 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApi } from "@/lib/api";
 
 interface CreateReviewData {
   productId: string;
   orderId: string;
   rating: number;
+  comment?: string;
 }
 
 export const useReviews = () => {
@@ -26,4 +27,17 @@ export const useReviews = () => {
     isCreatingReview: createReview.isPending,
     createReviewAsync: createReview.mutateAsync,
   };
+};
+
+export const useProductReviews = (productId: string) => {
+  const api = useApi();
+
+  return useQuery({
+    queryKey: ["reviews", productId],
+    queryFn: async () => {
+      const { data } = await api.get(`/reviews/product/${productId}`);
+      return data.reviews;
+    },
+    enabled: !!productId,
+  });
 };

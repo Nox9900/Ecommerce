@@ -24,6 +24,10 @@ const orderItemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  selectedOptions: {
+    type: Map,
+    of: String,
+  },
 });
 
 const shippingAddressSchema = new mongoose.Schema({

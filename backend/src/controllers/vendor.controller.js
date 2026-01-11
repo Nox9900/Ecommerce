@@ -51,7 +51,7 @@ export const getVendorProfile = async (req, res) => {
 
 export const createVendorProduct = async (req, res) => {
     try {
-        const { name, description, price, stock, category, shop } = req.body;
+        const { name, description, price, stock, category, shop, attributes } = req.body;
         const vendor = await Vendor.findOne({ owner: req.user._id });
 
         if (!vendor || vendor.status !== "approved") {
@@ -81,6 +81,7 @@ export const createVendorProduct = async (req, res) => {
             price: parseFloat(price),
             stock: parseInt(stock),
             category,
+            attributes: attributes ? JSON.parse(attributes) : [],
             images: imageUrls,
             vendor: vendor._id,
             shop,

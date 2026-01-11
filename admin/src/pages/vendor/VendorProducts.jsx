@@ -16,6 +16,7 @@ function VendorProducts() {
         description: "",
         shop: "",
     });
+    const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -69,6 +70,7 @@ function VendorProducts() {
         setShowModal(false);
         setEditingProduct(null);
         setFormData({ name: "", category: "", price: "", stock: "", description: "", shop: "" });
+        setAttributes([]);
         setImages([]);
         setImagePreviews([]);
     };
@@ -83,6 +85,7 @@ function VendorProducts() {
             description: product.description,
             shop: product.shop?._id || product.shop || "",
         });
+        setAttributes(product.attributes || []);
         setImagePreviews(product.images);
         setShowModal(true);
     };
@@ -98,6 +101,7 @@ function VendorProducts() {
         e.preventDefault();
         const data = new FormData();
         Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        data.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
         images.forEach(image => data.append("images", image));
 
         if (editingProduct) {
@@ -212,6 +216,97 @@ function VendorProducts() {
                                 ))}
                             </select>
                             <textarea className="textarea textarea-bordered w-full h-24" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
+
+                            {/* PRODUCT ATTRIBUTES */}
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-semibold flex items-center justify-between w-full">
+                                        Product Attributes
+                                        <button
+                                            type="button"
+                                            onClick={() => setAttributes([...attributes, { name: "", values: [""] }])}
+                                            className="btn btn-xs btn-outline btn-primary ml-2"
+                                        >
+                                            Add Attribute
+                                        </button>
+                                    </span>
+                                </label>
+
+                                <div className="space-y-4 bg-base-200 p-4 rounded-xl">
+                                    {attributes.map((attr, attrIndex) => (
+                                        <div key={attrIndex} className="bg-base-100 p-4 rounded-lg relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setAttributes(attributes.filter((_, i) => i !== attrIndex))}
+                                                className="btn btn-xs btn-circle btn-ghost absolute right-2 top-2 text-error"
+                                            >
+                                                <XIcon className="w-4 h-4" />
+                                            </button>
+
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Attribute Name (e.g. Size, Color)"
+                                                    className="input input-sm input-bordered w-full font-semibold"
+                                                    value={attr.name}
+                                                    onChange={(e) => {
+                                                        const newAttrs = [...attributes];
+                                                        newAttrs[attrIndex].name = e.target.value;
+                                                        setAttributes(newAttrs);
+                                                    }}
+                                                />
+
+                                                <div className="flex flex-wrap gap-2">
+                                                    {attr.values.map((val, valIndex) => (
+                                                        <div key={valIndex} className="flex items-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Value"
+                                                                className="input input-xs input-bordered w-24"
+                                                                value={val}
+                                                                onChange={(e) => {
+                                                                    const newAttrs = [...attributes];
+                                                                    newAttrs[attrIndex].values[valIndex] = e.target.value;
+                                                                    setAttributes(newAttrs);
+                                                                }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newAttrs = [...attributes];
+                                                                    newAttrs[attrIndex].values = attr.values.filter((_, i) => i !== valIndex);
+                                                                    if (newAttrs[attrIndex].values.length === 0) {
+                                                                        newAttrs[attrIndex].values = [""];
+                                                                    }
+                                                                    setAttributes(newAttrs);
+                                                                }}
+                                                                className="btn btn-xs btn-circle btn-ghost text-error"
+                                                            >
+                                                                <XIcon className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newAttrs = [...attributes];
+                                                            newAttrs[attrIndex].values.push("");
+                                                            setAttributes(newAttrs);
+                                                        }}
+                                                        className="btn btn-xs btn-ghost btn-circle"
+                                                    >
+                                                        <PlusIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {attributes.length === 0 && (
+                                        <p className="text-center text-xs opacity-50 italic">No attributes added yet</p>
+                                    )}
+                                </div>
+                            </div>
+
                             <input type="file" multiple className="file-input file-input-bordered w-full" onChange={handleImageChange} />
                             <div className="modal-action">
                                 <button type="button" className="btn" onClick={closeModal}>Cancel</button>

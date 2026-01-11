@@ -5,6 +5,7 @@ export interface Product {
   price: number;
   stock: number;
   category: string;
+  attributes: { name: string; values: string[] }[];
   images: string[];
   averageRating: number;
   totalReviews: number;
@@ -94,6 +95,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   image: string;
+  selectedOptions?: Record<string, string>;
 }
 
 export interface Review {
@@ -110,6 +112,7 @@ export interface CartItem {
   _id: string;
   product: Product;
   quantity: number;
+  selectedOptions?: Record<string, string>;
 }
 
 export interface Cart {

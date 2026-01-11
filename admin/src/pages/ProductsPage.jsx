@@ -14,6 +14,7 @@ function ProductsPage() {
     stock: "",
     description: "",
   });
+  const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -66,6 +67,7 @@ function ProductsPage() {
       stock: "",
       description: "",
     });
+    setAttributes([]);
     setImages([]);
     setImagePreviews([]);
   };
@@ -79,6 +81,7 @@ function ProductsPage() {
       stock: product.stock.toString(),
       description: product.description,
     });
+    setAttributes(product.attributes || []);
     setImagePreviews(product.images);
     setShowModal(true);
   };
@@ -110,6 +113,7 @@ function ProductsPage() {
     formDataToSend.append("price", formData.price);
     formDataToSend.append("stock", formData.stock);
     formDataToSend.append("category", formData.category);
+    formDataToSend.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
 
     // only append new images if they were selected
     if (images.length > 0) images.forEach((image) => formDataToSend.append("images", image));
@@ -292,8 +296,95 @@ function ProductsPage() {
                 placeholder="Enter product description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
               />
+            </div>
+
+            {/* PRODUCT ATTRIBUTES */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold text-base">Product Attributes</span>
+                <button
+                  type="button"
+                  onClick={() => setAttributes([...attributes, { name: "", values: [""] }])}
+                  className="btn btn-xs btn-outline btn-primary"
+                >
+                  Add Attribute
+                </button>
+              </label>
+
+              <div className="space-y-4 bg-base-200 p-4 rounded-xl">
+                {attributes.map((attr, attrIndex) => (
+                  <div key={attrIndex} className="bg-base-100 p-4 rounded-lg relative">
+                    <button
+                      type="button"
+                      onClick={() => setAttributes(attributes.filter((_, i) => i !== attrIndex))}
+                      className="btn btn-xs btn-circle btn-ghost absolute right-2 top-2  text-error"
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
+
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Attribute Name (e.g. Size, Color)"
+                        className="input input-sm input-bordered w-full font-semibold"
+                        value={attr.name}
+                        onChange={(e) => {
+                          const newAttrs = [...attributes];
+                          newAttrs[attrIndex].name = e.target.value;
+                          setAttributes(newAttrs);
+                        }}
+                      />
+
+                      <div className="flex flex-wrap gap-2">
+                        {attr.values.map((val, valIndex) => (
+                          <div key={valIndex} className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              placeholder="Value"
+                              className="input input-xs input-bordered w-24"
+                              value={val}
+                              onChange={(e) => {
+                                const newAttrs = [...attributes];
+                                newAttrs[attrIndex].values[valIndex] = e.target.value;
+                                setAttributes(newAttrs);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newAttrs = [...attributes];
+                                newAttrs[attrIndex].values = attr.values.filter((_, i) => i !== valIndex);
+                                if (newAttrs[attrIndex].values.length === 0) {
+                                  newAttrs[attrIndex].values = [""];
+                                }
+                                setAttributes(newAttrs);
+                              }}
+                              className="btn btn-xs btn-circle btn-ghost text-error"
+                            >
+                              <XIcon className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newAttrs = [...attributes];
+                            newAttrs[attrIndex].values.push("");
+                            setAttributes(newAttrs);
+                          }}
+                          className="btn btn-xs btn-ghost btn-circle"
+                        >
+                          <PlusIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {attributes.length === 0 && (
+                  <p className="text-center text-xs text-base-content/50 italic">No attributes added yet</p>
+                )}
+              </div>
             </div>
 
             <div className="form-control">
