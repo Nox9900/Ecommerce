@@ -206,7 +206,6 @@ function VendorProducts() {
                                 className="select select-bordered w-full"
                                 value={formData.shop}
                                 onChange={(e) => setFormData({ ...formData, shop: e.target.value })}
-                                required
                             >
                                 <option value="">Select Shop</option>
                                 {shops.map((shop) => (
