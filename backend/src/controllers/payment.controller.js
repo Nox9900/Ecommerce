@@ -39,6 +39,7 @@ export async function createPaymentIntent(req, res) {
         price: product.price,
         quantity: item.quantity,
         image: product.images[0],
+        selectedOptions: item.selectedOptions,
       });
     }
 

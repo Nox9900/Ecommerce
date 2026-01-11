@@ -19,8 +19,8 @@ const useCart = () => {
   });
 
   const addToCartMutation = useMutation({
-    mutationFn: async ({ productId, quantity = 1 }: { productId: string; quantity?: number }) => {
-      const { data } = await api.post<{ cart: Cart }>("/cart", { productId, quantity });
+    mutationFn: async ({ productId, quantity = 1, selectedOptions }: { productId: string; quantity?: number; selectedOptions?: Record<string, string> }) => {
+      const { data } = await api.post<{ cart: Cart }>("/cart", { productId, quantity, selectedOptions });
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),

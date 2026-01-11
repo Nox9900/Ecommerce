@@ -37,7 +37,7 @@ export async function createReview(req, res) {
     // atomic update or create
     const review = await Review.findOneAndUpdate(
       { productId, userId: user._id },
-      { rating, orderId, productId, userId: user._id },
+      { rating, comment: req.body.comment || "", orderId, productId, userId: user._id },
       { new: true, upsert: true, runValidators: true }
     );
 
@@ -93,6 +93,20 @@ export async function deleteReview(req, res) {
     res.status(200).json({ message: "Review deleted successfully" });
   } catch (error) {
     console.error("Error in deleteReview controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function getProductReviews(req, res) {
+  try {
+    const { productId } = req.params;
+    const reviews = await Review.find({ productId })
+      .populate("userId", "name imageUrl")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ reviews });
+  } catch (error) {
+    console.error("Error in getProductReviews controller:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 }

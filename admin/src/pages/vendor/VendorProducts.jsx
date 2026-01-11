@@ -16,11 +16,7 @@ function VendorProducts() {
         description: "",
         shop: "",
     });
-    const [showCategoryModal, setShowCategoryModal] = useState(false);
-    const [newCategoryData, setNewCategoryData] = useState({
-        name: "",
-        icon: "apps-outline", // default icon
-    });
+    const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -70,21 +66,11 @@ function VendorProducts() {
         onError: (error) => toast.error(error.response?.data?.message || "Failed to delete product"),
     });
 
-    const createCategoryMutation = useMutation({
-        mutationFn: mobileApi.createCategory,
-        onSuccess: () => {
-            toast.success("Category suggestion sent to admin");
-            setShowCategoryModal(false);
-            setNewCategoryData({ name: "", icon: "apps-outline" });
-            queryClient.invalidateQueries({ queryKey: ["mobile-categories"] });
-        },
-        onError: (error) => toast.error(error.response?.data?.message || "Failed to suggest category"),
-    });
-
     const closeModal = () => {
         setShowModal(false);
         setEditingProduct(null);
         setFormData({ name: "", category: "", price: "", stock: "", description: "", shop: "" });
+        setAttributes([]);
         setImages([]);
         setImagePreviews([]);
     };
@@ -99,6 +85,7 @@ function VendorProducts() {
             description: product.description,
             shop: product.shop?._id || product.shop || "",
         });
+        setAttributes(product.attributes || []);
         setImagePreviews(product.images);
         setShowModal(true);
     };
@@ -114,6 +101,7 @@ function VendorProducts() {
         e.preventDefault();
         const data = new FormData();
         Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        data.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
         images.forEach(image => data.append("images", image));
 
         if (editingProduct) {
@@ -205,18 +193,10 @@ function VendorProducts() {
                                     <option value="">Select category</option>
                                     {categories.map((cat) => (
                                         <option key={cat._id} value={cat.name}>
-                                            {cat.name} {!cat.isActive && "(Pending Approval)"}
+                                            {cat.name}
                                         </option>
                                     ))}
                                 </select>
-                                {/* for the vendor to create a categorie */}
-                                {/* <button
-                                    type="button"
-                                    className="btn btn-sm btn-ghost"
-                                    onClick={() => setShowCategoryModal(true)}
-                                >
-                                    Suggest New
-                                </button> */}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <input type="number" placeholder="Price" className="input input-bordered" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
@@ -236,55 +216,103 @@ function VendorProducts() {
                                 ))}
                             </select>
                             <textarea className="textarea textarea-bordered w-full h-24" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
+
+                            {/* PRODUCT ATTRIBUTES */}
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-semibold flex items-center justify-between w-full">
+                                        Product Attributes
+                                        <button
+                                            type="button"
+                                            onClick={() => setAttributes([...attributes, { name: "", values: [""] }])}
+                                            className="btn btn-xs btn-outline btn-primary ml-2"
+                                        >
+                                            Add Attribute
+                                        </button>
+                                    </span>
+                                </label>
+
+                                <div className="space-y-4 bg-base-200 p-4 rounded-xl">
+                                    {attributes.map((attr, attrIndex) => (
+                                        <div key={attrIndex} className="bg-base-100 p-4 rounded-lg relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setAttributes(attributes.filter((_, i) => i !== attrIndex))}
+                                                className="btn btn-xs btn-circle btn-ghost absolute right-2 top-2 text-error"
+                                            >
+                                                <XIcon className="w-4 h-4" />
+                                            </button>
+
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Attribute Name (e.g. Size, Color)"
+                                                    className="input input-sm input-bordered w-full font-semibold"
+                                                    value={attr.name}
+                                                    onChange={(e) => {
+                                                        const newAttrs = [...attributes];
+                                                        newAttrs[attrIndex].name = e.target.value;
+                                                        setAttributes(newAttrs);
+                                                    }}
+                                                />
+
+                                                <div className="flex flex-wrap gap-2">
+                                                    {attr.values.map((val, valIndex) => (
+                                                        <div key={valIndex} className="flex items-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Value"
+                                                                className="input input-xs input-bordered w-24"
+                                                                value={val}
+                                                                onChange={(e) => {
+                                                                    const newAttrs = [...attributes];
+                                                                    newAttrs[attrIndex].values[valIndex] = e.target.value;
+                                                                    setAttributes(newAttrs);
+                                                                }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newAttrs = [...attributes];
+                                                                    newAttrs[attrIndex].values = attr.values.filter((_, i) => i !== valIndex);
+                                                                    if (newAttrs[attrIndex].values.length === 0) {
+                                                                        newAttrs[attrIndex].values = [""];
+                                                                    }
+                                                                    setAttributes(newAttrs);
+                                                                }}
+                                                                className="btn btn-xs btn-circle btn-ghost text-error"
+                                                            >
+                                                                <XIcon className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newAttrs = [...attributes];
+                                                            newAttrs[attrIndex].values.push("");
+                                                            setAttributes(newAttrs);
+                                                        }}
+                                                        className="btn btn-xs btn-ghost btn-circle"
+                                                    >
+                                                        <PlusIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {attributes.length === 0 && (
+                                        <p className="text-center text-xs opacity-50 italic">No attributes added yet</p>
+                                    )}
+                                </div>
+                            </div>
+
                             <input type="file" multiple className="file-input file-input-bordered w-full" onChange={handleImageChange} />
                             <div className="modal-action">
                                 <button type="button" className="btn" onClick={closeModal}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">Save</button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Category Suggestion Modal */}
-            {showCategoryModal && (
-                <div className="modal modal-open">
-                    <div className="modal-box max-w-sm">
-                        <h3 className="font-bold text-lg mb-4">Suggest New Category</h3>
-                        <div className="space-y-4">
-                            <div className="form-control">
-                                <label className="label"><span className="label-text">Category Name</span></label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={newCategoryData.name}
-                                    onChange={(e) => setNewCategoryData({ ...newCategoryData, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label"><span className="label-text">Icon Name (Ionicons)</span></label>
-                                <input
-                                    type="text"
-                                    className="input input-bordered"
-                                    value={newCategoryData.icon}
-                                    onChange={(e) => setNewCategoryData({ ...newCategoryData, icon: e.target.value })}
-                                />
-                                <label className="label">
-                                    <span className="label-text-alt opacity-60">e.g., shirt-outline, watch-outline</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div className="modal-action">
-                            <button className="btn" onClick={() => setShowCategoryModal(false)}>Cancel</button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => createCategoryMutation.mutate(newCategoryData)}
-                                disabled={createCategoryMutation.isPending || !newCategoryData.name}
-                            >
-                                {createCategoryMutation.isPending && <span className="loading loading-spinner"></span>}
-                                Suggest
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}

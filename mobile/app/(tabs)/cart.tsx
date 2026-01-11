@@ -192,6 +192,17 @@ const CartScreen = () => {
                     >
                       {item.product.name}
                     </Text>
+                    {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                      <View className="flex-row flex-wrap gap-2 mt-1">
+                        {Object.entries(item.selectedOptions).map(([key, value]) => (
+                          <View key={key} className="bg-background-lighter px-2 py-0.5 rounded-md">
+                            <Text className="text-[10px] text-text-secondary uppercase font-bold">
+                              {key}: <Text className="text-text-primary capitalize">{value}</Text>
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
                     <View className="flex-row items-center mt-2">
                       <Text className="text-primary font-bold text-2xl">
                         ${(item.product.price * item.quantity).toFixed(2)}

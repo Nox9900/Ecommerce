@@ -131,13 +131,18 @@ function OrdersScreen() {
 
                   {/* ORDER ITEMS SUMMARY */}
                   {order.orderItems.map((item, index) => (
-                    <Text
-                      key={item._id}
-                      className="text-text-secondary text-sm flex-1"
-                      numberOfLines={1}
-                    >
-                      {item.name} × {item.quantity}
-                    </Text>
+                    <View key={item._id} className="mb-1">
+                      <Text className="text-text-secondary text-sm">
+                        {item.name} × {item.quantity}
+                      </Text>
+                      {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                        <Text className="text-[10px] text-text-tertiary uppercase font-bold ml-2">
+                          {Object.entries(item.selectedOptions)
+                            .map(([key, value]) => `${key}: ${value}`)
+                            .join(" | ")}
+                        </Text>
+                      )}
+                    </View>
                   ))}
 
                   <View className="border-t border-background-lighter pt-3 flex-row justify-between items-center">

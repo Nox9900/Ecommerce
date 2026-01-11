@@ -8,7 +8,7 @@ import { Settings } from "../models/settings.model.js";
 
 export async function createProduct(req, res) {
   try {
-    const { name, description, price, stock, category } = req.body;
+    const { name, description, price, stock, category, attributes } = req.body;
 
     if (!name || !description || !price || !stock || !category) {
       return res.status(400).json({ message: "All fields are required" });
@@ -57,6 +57,7 @@ export async function createProduct(req, res) {
       price: parseFloat(price),
       stock: parseInt(stock),
       category,
+      attributes: attributes ? JSON.parse(attributes) : [],
       images: imageUrls,
       vendor: vendorId,
     });
@@ -85,7 +86,7 @@ export async function getAllProducts(_, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, category } = req.body;
+    const { name, description, price, stock, category, attributes } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -97,6 +98,7 @@ export async function updateProduct(req, res) {
     if (price !== undefined) product.price = parseFloat(price);
     if (stock !== undefined) product.stock = parseInt(stock);
     if (category) product.category = category;
+    if (attributes) product.attributes = JSON.parse(attributes);
 
     // handle image updates if new images are uploaded
     if (req.files && req.files.length > 0) {

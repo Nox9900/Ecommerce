@@ -69,7 +69,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                             ) : (
                                 <Ionicons
                                     name={isInWishlist(product._id) ? "heart" : "heart-outline"}
-                                    size={20}
+                                    size={17}
                                     color={isInWishlist(product._id) ? "#EF4444" : "white"}
                                 />
                             )}
