@@ -58,7 +58,7 @@ export const createVendorProduct = async (req, res) => {
             return res.status(403).json({ message: "Only approved vendors can create products" });
         }
 
-        if (!name || !description || !price || !stock || !category || !shop) {
+        if (!name || !description || !price || !stock || !category) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -84,7 +84,7 @@ export const createVendorProduct = async (req, res) => {
             attributes: attributes ? JSON.parse(attributes) : [],
             images: imageUrls,
             vendor: vendor._id,
-            shop,
+            shop: shop || undefined,
         });
 
         res.status(201).json(product);
