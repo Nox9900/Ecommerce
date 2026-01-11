@@ -22,10 +22,17 @@ export async function getAllCategories(req, res) {
     }
 }
 
-// Admin: Create category
+// Admin/Vendor: Create category
 export async function createCategory(req, res) {
     try {
-        const category = await Category.create(req.body);
+        const categoryData = { ...req.body };
+
+        // If not admin, force isActive to false for moderation
+        if (req.user.role !== "admin") {
+            categoryData.isActive = false;
+        }
+
+        const category = await Category.create(categoryData);
         res.status(201).json(category);
     } catch (error) {
         console.error("Error creating category:", error);

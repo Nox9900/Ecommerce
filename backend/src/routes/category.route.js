@@ -13,7 +13,7 @@ const router = Router();
 // Public route
 router.get("/", getActiveCategories);
 
-// Admin routes
+// Admin/Vendor routes
 router.get("/all", protectRoute, adminOnly, getAllCategories);
 router.post("/", protectRoute, adminOnly, createCategory);
 router.put("/:id", protectRoute, adminOnly, updateCategory);
