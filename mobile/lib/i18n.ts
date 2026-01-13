@@ -28,6 +28,10 @@ const resources = {
                 delete_success: 'Account deleted successfully', error_deleting: 'Error deleting account',
                 password_success: 'Password updated successfully', error_updating: 'Error updating password'
             },
+            notifications: {
+                title: 'Notifications', empty: 'No notifications yet', order_update: 'Order Update',
+                new_message: 'New Message', promotion: 'Promotion', settings_desc: 'Manage your alerts'
+            },
             language: { title: 'Select Language', english: 'English', french: 'French', spanish: 'Spanish', arabic: 'Arabic', chinese: 'Chinese', russian: 'Russian' },
             db: { // Database content translations
                 "Electronics": "Electronics", "Fashion": "Fashion", "Home & Garden": "Home & Garden", "Beauty": "Beauty",
@@ -59,6 +63,10 @@ const resources = {
                 delete_confirm_title: 'Êtes-vous sûr ?', delete_confirm_desc: 'Cette action est permanente et ne peut pas être annulée. Toutes vos données seront perdues.',
                 delete_success: 'Compte supprimé avec succès', error_deleting: 'Erreur lors de la suppression du compte',
                 password_success: 'Mot de passe mis à jour avec succès', error_updating: 'Erreur lors de la mise à jour du mot de passe'
+            },
+            notifications: {
+                title: 'Notifications', empty: 'Aucune notification pour le moment', order_update: 'Mise à jour de commande',
+                new_message: 'Nouveau message', promotion: 'Promotion', settings_desc: 'Gérez vos alertes'
             },
             language: { title: 'Choisir la langue', english: 'Anglais', french: 'Français', spanish: 'Espagnol', arabic: 'Arabe', chinese: 'Chinois', russian: 'Russe' },
             db: {
@@ -92,6 +100,10 @@ const resources = {
                 delete_success: 'Cuenta eliminada con éxito', error_deleting: 'Error al eliminar la cuenta',
                 password_success: 'Contraseña actualizada con éxito', error_updating: 'Error al actualizar la contraseña'
             },
+            notifications: {
+                title: 'Notificaciones', empty: 'No hay notificaciones aún', order_update: 'Actualización de pedido',
+                new_message: 'Nuevo mensaje', promotion: 'Promoción', settings_desc: 'Gestiona tus alertas'
+            },
             language: { title: 'Seleccionar idioma', english: 'Inglés', french: 'Francés', spanish: 'Español', arabic: 'Árabe', chinese: 'Chino', russian: 'Ruso' },
             db: {
                 "Electronics": "Electrónica", "Fashion": "Moda", "Home & Garden": "Hogar y Jardín", "Beauty": "Belleza",
@@ -123,6 +135,10 @@ const resources = {
                 delete_confirm_title: 'هل أنت متأكد؟', delete_confirm_desc: 'هذا الإجراء نهائي ولا يمكن التراجع عنه. ستفقد جميع بياناتك.',
                 delete_success: 'تم حذف الحساب بنجاح', error_deleting: 'خطأ في حذف الحساب',
                 password_success: 'تم تحديث كلمة المرور بنجاح', error_updating: 'خطأ في تحديث كلمة المرور'
+            },
+            notifications: {
+                title: 'الإشعارات', empty: 'لا توجد إشعارات بعد', order_update: 'تحديث الطلب',
+                new_message: 'رسالة جديدة', promotion: 'عرض ترويجي', settings_desc: 'إدارة التنبيهات الخاصة بك'
             },
             language: { title: 'اختر اللغة', english: 'الإنجليزية', french: 'الفرنسية', spanish: 'الإسبانية', arabic: 'العربية', chinese: 'الصينية', russian: 'الروسية' },
             db: {
@@ -156,6 +172,10 @@ const resources = {
                 delete_success: '账户已成功删除', error_deleting: '删除账户时出错',
                 password_success: '密码已成功更新', error_updating: '更新密码时出错'
             },
+            notifications: {
+                title: '通知', empty: '暂无通知', order_update: '订单更新',
+                new_message: '新消息', promotion: '促销活动', settings_desc: '管理您的提醒'
+            },
             language: { title: '选择语言', english: '英语', french: '法语', spanish: '西班牙语', arabic: '阿拉伯语', chinese: '中文', russian: '俄语' },
             db: {
                 "Electronics": "电子产品", "Fashion": "时尚", "Home & Garden": "家居园艺", "Beauty": "美容",
@@ -187,6 +207,10 @@ const resources = {
                 delete_confirm_title: 'Вы уверены?', delete_confirm_desc: 'Это действие необратимо. Все ваши данные будут потеряны.',
                 delete_success: 'Аккаунт успешно удален', error_deleting: 'Ошибка при удалении аккаунта',
                 password_success: 'Пароль успешно обновлен', error_updating: 'Ошибка при обновлении пароля'
+            },
+            notifications: {
+                title: 'Уведомления', empty: 'Уведомлений пока нет', order_update: 'Обновление заказа',
+                new_message: 'Новое сообщение', promotion: 'Акция', settings_desc: 'Управление оповещениями'
             },
             language: { title: 'Выбрать язык', english: 'Английский', french: 'Французский', spanish: 'Испанский', arabic: 'Арабский', chinese: 'Китайский', russian: 'Русский' },
             db: {

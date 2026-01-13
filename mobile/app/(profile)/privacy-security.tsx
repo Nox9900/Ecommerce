@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ScrollView, Switch, Text, TouchableOpacity, View, Alert, Modal, TextInput, ActivityIndicator, I18nManager } from "react-native";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useTranslation } from "react-i18next";
+import { registerForPushNotificationsAsync } from "@/lib/notifications";
 
 type SecurityOption = {
   id: string;
@@ -77,11 +78,22 @@ function PrivacyAndSecurityScreen() {
     },
   ];
 
-  const handleToggle = (id: string, value: boolean) => {
+  const handleToggle = async (id: string, value: boolean) => {
     switch (id) {
       case "two-factor": setTwoFactorEnabled(value); break;
       case "biometric": setBiometricEnabled(value); break;
-      case "push": setPushNotifications(value); break;
+      case "push":
+        if (value) {
+          const token = await registerForPushNotificationsAsync();
+          if (token) {
+            setPushNotifications(true);
+          } else {
+            setPushNotifications(false);
+          }
+        } else {
+          setPushNotifications(false);
+        }
+        break;
       case "email": setEmailNotifications(value); break;
     }
   };
@@ -94,7 +106,7 @@ function PrivacyAndSecurityScreen() {
 
     setIsUpdatingPassword(true);
     try {
-      await user?.update({ password: newPassword });
+      await user?.updatePassword({ newPassword });
       Alert.alert(t('common.success'), t('security.password_success'));
       setPasswordModalVisible(false);
       setNewPassword("");
