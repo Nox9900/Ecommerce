@@ -10,6 +10,7 @@ const useCart = () => {
     data: cart,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["cart"],
     queryFn: async () => {
@@ -59,6 +60,7 @@ const useCart = () => {
     cart,
     isLoading,
     isError,
+    refetch,
     cartTotal,
     cartItemCount,
     addToCart: addToCartMutation.mutate,

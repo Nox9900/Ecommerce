@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-na
 import useCart from "@/hooks/useCart";
 import useWishlist from "@/hooks/useWishlist";
 import { Product } from "@/types"; // Import Product type correctly
+import { useTranslation } from "react-i18next";
 
 interface ProductCardProps {
     product: Product;
@@ -17,6 +18,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
     const scale = useSharedValue(1);
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
     const { isAddingToCart, addToCart } = useCart();
+    const { t } = useTranslation();
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
@@ -85,13 +87,13 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
                     <View className="p-4">
                         <Text className="text-text-tertiary text-xs font-medium uppercase tracking-wider mb-1">
-                            {typeof product.shop === 'object' ? product.shop.name : (product.category || "Collection")}
+                            {t('db.' + (typeof product.shop === 'object' ? product.shop.name : (product.category || "Collection")), { defaultValue: typeof product.shop === 'object' ? product.shop.name : (product.category || "Collection") })}
                         </Text>
                         <Text
                             className="text-text-primary text-base font-bold mb-2 h-11"
                             numberOfLines={2}
                         >
-                            {product.name}
+                            {t('db.' + product.name, { defaultValue: product.name })}
                         </Text>
                         <View className="flex-row items-center justify-between mt-1">
                             <Text className="text-primary-light text-lg font-bold">

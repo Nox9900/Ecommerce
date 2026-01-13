@@ -2,7 +2,7 @@ import SafeScreen from "@/components/SafeScreen";
 import { useAddresses } from "@/hooks/useAddressess";
 import useCart from "@/hooks/useCart";
 import { useApi } from "@/lib/api";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, RefreshControl } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useState } from "react";
 import { Address } from "@/types";
@@ -10,11 +10,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import OrderSummary from "@/components/OrderSummary";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
+import { useTranslation } from "react-i18next";
 
 import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
+  const { t } = useTranslation();
   const {
     cart,
     cartItemCount,
@@ -33,6 +35,16 @@ const CartScreen = () => {
 
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [addressModalVisible, setAddressModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { refetch } = useCart();
+  const { refetch: refetchAddresses } = useAddresses();
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refetch(), refetchAddresses()]);
+    setRefreshing(false);
+  };
 
   const cartItems = (cart?.items || []).filter((item) => item.product != null);
   const subtotal = cartTotal;
@@ -47,10 +59,10 @@ const CartScreen = () => {
   };
 
   const handleRemoveItem = (productId: string, productName: string) => {
-    Alert.alert("Remove Item", `Remove ${productName} from cart?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('common.remove_item'), t('common.remove_item_desc', { name: productName }), [
+      { text: t('common.cancel'), style: "cancel" },
       {
-        text: "Remove",
+        text: t('common.remove'),
         style: "destructive",
         onPress: () => removeFromCart(productId),
       },
@@ -136,7 +148,7 @@ const CartScreen = () => {
           itemCount: cartItems.length,
         });
 
-        Alert.alert("Success", "Your payment was successful! Your order is being processed.", [
+        Alert.alert(t('common.success'), t('common.payment_success'), [
           { text: "OK", onPress: () => { } },
         ]);
         clearCart();
@@ -160,12 +172,19 @@ const CartScreen = () => {
 
   return (
     <SafeScreen>
-      <Text className="pt-4 px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">Cart</Text>
+      <Text className="pt-4 px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">{t('tabs.cart')}</Text>
 
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 240 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#00D9FF"
+          />
+        }
       >
         <View className="px-6 gap-2">
           {cartItems.map((item, index) => (
@@ -190,7 +209,7 @@ const CartScreen = () => {
                       className="text-text-primary font-bold text-lg leading-tight"
                       numberOfLines={2}
                     >
-                      {item.product.name}
+                      {t('db.' + item.product.name, { defaultValue: item.product.name })}
                     </Text>
                     {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
                       <View className="flex-row flex-wrap gap-2 mt-1">
@@ -271,7 +290,7 @@ const CartScreen = () => {
           <View className="flex-row items-center">
             <Ionicons name="cart" size={20} color="#1DB954" />
             <Text className="text-text-secondary ml-2">
-              {cartItemCount} {cartItemCount === 1 ? "item" : "items"}
+              {cartItemCount} {cartItemCount === 1 ? t('common.item') : t('common.items')}
             </Text>
           </View>
           <View className="flex-row items-center">
@@ -291,7 +310,7 @@ const CartScreen = () => {
               <ActivityIndicator size="small" color="#121212" />
             ) : (
               <>
-                <Text className="text-background font-bold text-lg mr-2">Checkout</Text>
+                <Text className="text-background font-bold text-lg mr-2">{t('common.checkout')}</Text>
                 <Ionicons name="arrow-forward" size={20} color="#121212" />
               </>
             )}

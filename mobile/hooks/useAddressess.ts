@@ -10,6 +10,7 @@ export const useAddresses = () => {
     data: addresses,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["addresses"],
     queryFn: async () => {
@@ -61,6 +62,7 @@ export const useAddresses = () => {
     addresses: addresses || [],
     isLoading,
     isError,
+    refetch,
     addAddress: addAddressMutation.mutate,
     updateAddress: updateAddressMutation.mutate,
     deleteAddress: deleteAddressMutation.mutate,

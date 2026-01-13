@@ -92,15 +92,11 @@ export default function ChatScreen() {
                                         onPress={() => router.push(`/chat/${chat._id}` as any)}
                                         activeOpacity={0.7}
                                     >
-                                        <View className="w-14 h-14 rounded-full mr-4 bg-surface items-center justify-center">
-                                            {other?.imageUrl ? (
-                                                <Image
-                                                    source={{ uri: other.imageUrl }}
-                                                    className="w-14 h-14 rounded-full"
-                                                />
-                                            ) : (
-                                                <Ionicons name="person" size={24} color="#94A3B8" />
-                                            )}
+                                        <View className="w-14 h-14 rounded-full mr-4 bg-surface-light border border-white/5 overflow-hidden">
+                                            <Image
+                                                source={other?.imageUrl ? { uri: other.imageUrl } : require("@/assets/images/default-avatar.png")}
+                                                className="w-14 h-14"
+                                            />
                                         </View>
                                         <View className="flex-1">
                                             <View className="flex-row items-center justify-between mb-1">

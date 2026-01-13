@@ -5,11 +5,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { StyleSheet } from "react-native";
 import { useTheme } from "@/lib/useTheme";
+import { useTranslation } from "react-i18next";
 
 const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   if (!isLoaded) return null; // for a better ux
   if (!isSignedIn) return <Redirect href={"/(auth)/welcome"} />;
@@ -25,12 +27,6 @@ const TabsLayout = () => {
           borderTopWidth: 0,
           height: 45 + insets.bottom,
           paddingTop: 4,
-          // marginHorizontal: 50,
-          // marginBottom: insets.bottom,
-          // borderRadius: 20,
-          // marginHorizontal: 50,
-          // marginBottom: insets.bottom,
-          // borderRadius: 20,
           overflow: "hidden",
         },
         tabBarBackground: () => (
@@ -38,8 +34,6 @@ const TabsLayout = () => {
             intensity={80}
             tint={theme === "dark" ? "dark" : "light"}
             style={StyleSheet.absoluteFill}
-          // StyleSheet.absoluteFill is equal to this 👇
-          // { position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }
           />
         ),
         tabBarLabelStyle: {
@@ -52,14 +46,14 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Shop",
+          title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="cart"
         options={{
-          title: "Cart",
+          title: t('tabs.cart'),
           tabBarIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />,
         }}
       />
@@ -67,7 +61,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="chat"
         options={{
-          title: "Chat",
+          title: t('tabs.chat'),
           tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
         }}
       />
@@ -75,7 +69,7 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
