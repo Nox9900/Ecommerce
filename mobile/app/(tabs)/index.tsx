@@ -7,20 +7,34 @@ import ShopCard from "@/components/ShopCard";
 
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl } from "react-native";
 
 import { Hero } from "@/components/Hero";
 import { useTheme } from "@/lib/useTheme";
+import { useTranslation } from "react-i18next";
 
 const ShopScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
-  const { data: products, isLoading: productsLoading, isError: productsError } = useProducts();
-  const { data: categories, isLoading: categoriesLoading } = useCategories();
-  const { data: randomShops, isLoading: shopsLoading } = useRandomShops(5);
+  const { data: products, isLoading: productsLoading, isError: productsError, refetch: refetchProducts } = useProducts();
+  const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useCategories();
+  const { data: randomShops, isLoading: shopsLoading, refetch: refetchShops } = useRandomShops(5);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      refetchProducts(),
+      refetchCategories(),
+      refetchShops()
+    ]);
+    setRefreshing(false);
+  };
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -49,8 +63,8 @@ const ShopScreen = () => {
         <View className="px-5 pb-4 pt-4 bg-background border-b border-white/5">
           <View className="flex-row items-center justify-between mb-4">
             <View>
-              <Text className="text-text-primary text-2xl font-bold tracking-tight">Discover</Text>
-              <Text className="text-text-secondary text-sm">Find your perfect item</Text>
+              <Text className="text-text-primary text-2xl font-bold tracking-tight">{t('common.discover')}</Text>
+              <Text className="text-text-secondary text-sm">{t('common.discover_desc')}</Text>
             </View>
 
             <View className="flex-row items-center gap-3">
@@ -76,7 +90,7 @@ const ShopScreen = () => {
             <View className="bg-surface-light flex-row items-center px-4 py-3.5 rounded-2xl border border-white/5">
               <Ionicons color={"#94A3B8"} size={20} name="search-outline" />
               <TextInput
-                placeholder="Search products..."
+                placeholder={t('common.search')}
                 placeholderTextColor={"#64748B"}
                 className="flex-1 ml-3 text-base text-text-primary"
                 value={searchQuery}
@@ -98,11 +112,18 @@ const ShopScreen = () => {
           className="flex-1"
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme === 'dark' ? "#fff" : "#000"}
+            />
+          }
         >
 
           {/* CATEGORY FILTER */}
-        <View className="mb-8 pl-5">
-            <Text className="mt-2 text-text-primary text-lg font-bold mb-4">Categories</Text>
+          <View className="mb-8 pl-5">
+            <Text className="mt-2 text-text-primary text-lg font-bold mb-4">{t('common.categories')}</Text>
             {categoriesLoading ? (
               <ActivityIndicator color={theme === 'dark' ? "#fff" : "#000"} style={{ alignSelf: "flex-start" }} />
             ) : (
@@ -133,7 +154,7 @@ const ShopScreen = () => {
                     style={{ marginBottom: 4 }}
                   />
                   <Text className={`text-xs font-semibold ${selectedCategory === "All" ? "text-primary-foreground" : "text-text-secondary"}`}>
-                    All
+                    {t('common.all')}
                   </Text>
                 </TouchableOpacity>
 
@@ -164,7 +185,7 @@ const ShopScreen = () => {
                         />
                       )}
                       <Text className={`text-xs font-semibold text-center ${isSelected ? "text-primary-foreground" : "text-text-secondary"}`}>
-                        {category.name}
+                        {t('db.' + category.name, { defaultValue: category.name })}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -180,9 +201,9 @@ const ShopScreen = () => {
           {/* RANDOM SHOPS SECTION */}
           <View className="mb-8">
             <View className="flex-row items-center justify-between px-5 mb-4">
-              <Text className="text-text-primary text-lg font-bold">Shops to Explore</Text>
+              <Text className="text-text-primary text-lg font-bold">{t('common.shops_to_explore')}</Text>
               <TouchableOpacity>
-                <Text className="text-text-secondary text-sm font-medium">View All</Text>
+                <Text className="text-text-secondary text-sm font-medium">{t('common.view_all')}</Text>
               </TouchableOpacity>
             </View>
             {shopsLoading ? (
@@ -198,11 +219,11 @@ const ShopScreen = () => {
                 ))}
               </ScrollView>
             )}
-          </View> 
+          </View>
 
           <View className=" mb-6">
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="px-5 text-text-primary text-lg font-bold">Featured</Text>
+              <Text className="px-5 text-text-primary text-lg font-bold">{t('common.featured')}</Text>
             </View>
 
             {/* PRODUCTS GRID */}
