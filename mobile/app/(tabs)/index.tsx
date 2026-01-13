@@ -12,6 +12,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
 import { Hero } from "@/components/Hero";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
+import { router } from "expo-router";
 
 const ShopScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,6 +80,7 @@ const ShopScreen = () => {
               <TouchableOpacity
                 className={`p-2.5 rounded-full border ${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-black/5 border-black/10'}`}
                 activeOpacity={0.7}
+                onPress={() => router.push("/(profile)/notifications" as any)}
               >
                 <Ionicons name="notifications-outline" size={20} color={theme === 'dark' ? "#fff" : "#000"} />
               </TouchableOpacity>
