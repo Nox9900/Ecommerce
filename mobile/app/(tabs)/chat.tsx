@@ -6,6 +6,9 @@ import { useAuth } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { GlassView } from "@/components/ui/GlassView";
+import { useTheme } from "@/lib/useTheme";
 
 interface Conversation {
     _id: string;
@@ -21,6 +24,7 @@ interface Conversation {
 
 export default function ChatScreen() {
     const { getToken, userId } = useAuth();
+    const { theme } = useTheme();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -55,70 +59,79 @@ export default function ChatScreen() {
         <SafeScreen>
             <View className="flex-1 bg-background">
                 {/* Header */}
-                <View className="px-6 pt-4 pb-6">
-                    <Text className="text-2xl font-bold text-text-primary">Messages</Text>
-                    <Text className="text-text-secondary text-sm mt-1">
-                        {loading ? "..." : conversations.length} conversations
-                    </Text>
-                </View>
+                <GlassView intensity={theme === 'dark' ? 20 : 40} className="px-6 pt-4 pb-6 border-b border-white/5">
+                    <AnimatedContainer animation="fadeDown">
+                        <Text className="text-3xl font-bold text-text-primary tracking-tight">Messages</Text>
+                        <Text className="text-text-secondary text-sm font-medium mt-1">
+                            {loading ? "..." : conversations.length} conversations
+                        </Text>
+                    </AnimatedContainer>
+                </GlassView>
 
                 {loading ? (
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator color="#6366F1" size="large" />
+                        <ActivityIndicator color={theme === 'dark' ? "#fff" : "#000"} size="large" />
                     </View>
                 ) : (
                     <ScrollView
-                        className="flex-1 px-6"
+                        className="flex-1"
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 100 }}
+                        contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
                     >
                         {conversations.length === 0 ? (
-                            <View className="items-center justify-center py-20">
-                                <View className="w-20 h-20 rounded-full bg-surface-light items-center justify-center mb-4">
-                                    <Ionicons name="chatbubbles-outline" size={32} color="#94A3B8" />
+                            <AnimatedContainer animation="fade" className="items-center justify-center py-20 px-10">
+                                <View className="w-24 h-24 rounded-full bg-surface-light items-center justify-center mb-6 shadow-sm border border-white/5">
+                                    <Ionicons name="chatbubbles-outline" size={40} color={theme === 'dark' ? "#94A3B8" : "#6366F1"} />
                                 </View>
-                                <Text className="text-text-primary font-bold text-lg mb-2">No messages yet</Text>
-                                <Text className="text-text-secondary text-center text-sm">
+                                <Text className="text-text-primary font-bold text-xl mb-2 text-center">No messages yet</Text>
+                                <Text className="text-text-secondary text-center text-base leading-snug">
                                     Start a conversation with a seller from a product page
                                 </Text>
-                            </View>
+                            </AnimatedContainer>
                         ) : (
-                            conversations.map((chat) => {
-                                const other = getOtherParticipant(chat.participants);
-                                return (
-                                    <TouchableOpacity
-                                        key={chat._id}
-                                        className="flex-row items-center bg-surface-light p-4 rounded-2xl mb-3 border border-white/5 active:bg-surface"
-                                        onPress={() => router.push(`/chat/${chat._id}` as any)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <View className="w-14 h-14 rounded-full mr-4 bg-surface-light border border-white/5 overflow-hidden">
-                                            <Image
-                                                source={other?.imageUrl ? { uri: other.imageUrl } : require("@/assets/images/default-avatar.png")}
-                                                className="w-14 h-14"
-                                            />
-                                        </View>
-                                        <View className="flex-1">
-                                            <View className="flex-row items-center justify-between mb-1">
-                                                <Text className="text-text-primary font-bold text-base">
-                                                    {other?.name || "Unknown"}
-                                                </Text>
-                                                <Text className="text-text-tertiary text-xs">
-                                                    {chat.lastMessageAt ? formatDistanceToNow(new Date(chat.lastMessageAt), { addSuffix: true }) : ""}
-                                                </Text>
-                                            </View>
-                                            <View className="flex-row items-center justify-between">
-                                                <Text
-                                                    className="text-text-secondary text-sm flex-1"
-                                                    numberOfLines={1}
-                                                >
-                                                    {chat.lastMessage || "No messages yet"}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </TouchableOpacity>
-                                );
-                            })
+                            <View className="px-6">
+                                {conversations.map((chat, index) => {
+                                    const other = getOtherParticipant(chat.participants);
+                                    return (
+                                        <AnimatedContainer key={chat._id} animation="fadeUp" delay={index * 100}>
+                                            <TouchableOpacity
+                                                className="flex-row items-center bg-surface p-4 rounded-3xl mb-4 border border-white/5 shadow-sm active:bg-surface-light"
+                                                onPress={() => router.push(`/chat/${chat._id}` as any)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <View className="relative">
+                                                    <View className="w-16 h-16 rounded-full mr-4 bg-background border border-white/5 overflow-hidden shadow-sm">
+                                                        <Image
+                                                            source={other?.imageUrl ? { uri: other.imageUrl } : require("@/assets/images/default-avatar.png")}
+                                                            className="w-full h-full"
+                                                        />
+                                                    </View>
+                                                    <View className="absolute bottom-0 right-4 w-4 h-4 bg-green-500 rounded-full border-2 border-surface" />
+                                                </View>
+                                                <View className="flex-1">
+                                                    <View className="flex-row items-center justify-between mb-1">
+                                                        <Text className="text-text-primary font-bold text-lg" numberOfLines={1}>
+                                                            {other?.name || "Unknown"}
+                                                        </Text>
+                                                        <Text className="text-text-tertiary text-xs">
+                                                            {chat.lastMessageAt ? formatDistanceToNow(new Date(chat.lastMessageAt), { addSuffix: true }) : ""}
+                                                        </Text>
+                                                    </View>
+                                                    <View className="flex-row items-center justify-between">
+                                                        <Text
+                                                            className={`text-sm flex-1 ${chat.lastMessage ? 'text-text-secondary' : 'text-text-tertiary italic'}`}
+                                                            numberOfLines={1}
+                                                        >
+                                                            {chat.lastMessage || "No messages yet"}
+                                                        </Text>
+                                                        <Ionicons name="chevron-forward" size={16} color="#94A3B8" style={{ marginLeft: 8 }} />
+                                                    </View>
+                                                </View>
+                                            </TouchableOpacity>
+                                        </AnimatedContainer>
+                                    );
+                                })}
+                            </View>
                         )}
                     </ScrollView>
                 )}

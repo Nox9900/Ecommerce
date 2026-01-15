@@ -27,6 +27,9 @@ import {
   StatusBar,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/lib/useTheme";
+import { LinearGradient } from "expo-linear-gradient";
+import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 
 const { width } = Dimensions.get("window");
 
@@ -35,6 +38,7 @@ const ProductDetailScreen = () => {
   const { data: product, isError, isLoading } = useProduct(id);
   const { data: allProducts } = useProducts();
   const { addToCart, isAddingToCart } = useCart();
+  const { theme } = useTheme();
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
     useWishlist();
@@ -134,45 +138,63 @@ const ProductDetailScreen = () => {
 
   return (
     <View className="flex-1 bg-background">
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle={theme === 'dark' ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
 
       {/* HEADER */}
       <View
-        className={`absolute left-0 right-0 z-50 px-6 flex-row items-center justify-between pb-3 ${isScrolled ? "bg-background border-b border-white/5" : "bg-transparent"
+        className={`absolute left-0 right-0 z-50 px-6 flex-row items-center justify-between pb-3 transition-all duration-300 ${isScrolled ? (theme === 'dark' ? "bg-black/90 border-b border-white/10" : "bg-white/90 border-b border-black/5") : "bg-transparent"
           }`}
         style={{ paddingTop: insets.top + 10 }}
       >
         <TouchableOpacity
-          className="bg-black/40 backdrop-blur-md w-10 h-10 rounded-full items-center justify-center border border-white/10"
+          className={`w-10 h-10 rounded-full items-center justify-center border backdrop-blur-md ${isScrolled
+            ? (theme === 'dark' ? "bg-white/10 border-white/10" : "bg-black/5 border-black/10")
+            : "bg-black/30 border-white/20"
+            }`}
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={15} color="#FFFFFF" />
+          <Ionicons
+            name="arrow-back"
+            size={20}
+            color={isScrolled ? (theme === 'dark' ? "#fff" : "#000") : "#fff"}
+          />
         </TouchableOpacity>
 
         <View className="flex-row gap-3">
           <TouchableOpacity
-            className="bg-black/40 backdrop-blur-md w-10 h-10 rounded-full items-center justify-center border border-white/10"
+            className={`w-10 h-10 rounded-full items-center justify-center border backdrop-blur-md ${isScrolled
+              ? (theme === 'dark' ? "bg-white/10 border-white/10" : "bg-black/5 border-black/10")
+              : "bg-black/30 border-white/20"
+              }`}
             onPress={handleShare}
             activeOpacity={0.7}
           >
-            <Ionicons name="share-social-outline" size={15} color="#FFFFFF" />
+            <Ionicons
+              name="share-social-outline"
+              size={20}
+              color={isScrolled ? (theme === 'dark' ? "#fff" : "#000") : "#fff"}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
-            className={`w-10 h-10 rounded-full items-center justify-center border border-white/10 ${isInWishlist(product._id) ? "bg-accent/20" : "bg-black/40 backdrop-blur-md"
+            className={`w-10 h-10 rounded-full items-center justify-center border backdrop-blur-md ${isInWishlist(product._id)
+              ? "bg-red-500/20 border-red-500/50"
+              : isScrolled
+                ? (theme === 'dark' ? "bg-white/10 border-white/10" : "bg-black/5 border-black/10")
+                : "bg-black/30 border-white/20"
               }`}
             onPress={() => toggleWishlist(product._id)}
             disabled={isAddingToWishlist || isRemovingFromWishlist}
             activeOpacity={0.7}
           >
             {isAddingToWishlist || isRemovingFromWishlist ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color={isScrolled ? (theme === 'dark' ? "#fff" : "#000") : "#fff"} />
             ) : (
               <Ionicons
                 name={isInWishlist(product._id) ? "heart" : "heart-outline"}
-                size={17}
-                color={isInWishlist(product._id) ? "var(--color-accent-error)" : "#FFFFFF"}
+                size={20}
+                color={isInWishlist(product._id) ? "#EF4444" : (isScrolled ? (theme === 'dark' ? "#fff" : "#000") : "#fff")}
               />
             )}
           </TouchableOpacity>
@@ -212,7 +234,10 @@ const ProductDetailScreen = () => {
                 style={{ width, height: 450 }}
               >
                 <Image source={image} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={500} />
-                <View className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60" />
+                <LinearGradient
+                  colors={['rgba(0,0,0,0.4)', 'transparent', 'transparent', 'rgba(0,0,0,0.4)']}
+                  className="absolute inset-0"
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -222,97 +247,120 @@ const ProductDetailScreen = () => {
             {product.images.map((_: any, index: number) => (
               <View
                 key={index}
-                className={`h-1.5 rounded-full transition-all ${index === selectedImageIndex ? "bg-white w-6" : "bg-white/30 w-1.5"
+                className={`h-1.5 rounded-full transition-all ${index === selectedImageIndex ? "bg-white w-6" : "bg-white/40 w-1.5"
                   }`}
               />
             ))}
           </View>
         </View>
 
-        {/* ATTRIBUTE SELECTORS */}
-        {product.attributes && product.attributes.length > 0 && (
-          <View className="px-6 mt-6 gap-6">
-            {product.attributes.map((attr) => (
-              <View key={attr.name} className="gap-3">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-text-primary font-bold text-sm uppercase tracking-wider">
-                    {attr.name}
-                  </Text>
-                  {selectedOptions[attr.name] && (
-                    <Text className="text-accent text-xs font-medium">
-                      Selected: {selectedOptions[attr.name]}
-                    </Text>
-                  )}
-                </View>
-                <View className="flex-row flex-wrap gap-2">
-                  {attr.values.map((value) => {
-                    const isSelected = selectedOptions[attr.name] === value;
-                    return (
-                      <TouchableOpacity
-                        key={value}
-                        onPress={() => setSelectedOptions(prev => ({ ...prev, [attr.name]: value }))}
-                        className={`px-4 py-2 rounded-full border ${isSelected
-                          ? "bg-primary border-primary"
-                          : "bg-surface-light border-white/5"
-                          }`}
-                        activeOpacity={0.7}
-                      >
-                        <Text className={`text-sm font-medium ${isSelected ? "text-white" : "text-text-secondary"}`}>
-                          {value}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+        {/* CONTENT CONTAINER */}
+        <View className={`px-6 -mt-8 pt-8 rounded-[32px] overflow-hidden ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
 
-        {/* PRODUCT INFO */}
-        <View className="px-6 -mt-8 pt-8 bg-background rounded-t-3xl">
+
           {/* Category & Rating */}
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-primary font-bold tracking-wider uppercase text-xs">{product.category}</Text>
-            <View className="flex-row items-center bg-surface-light px-2.5 py-1 rounded-full border border-white/5">
-              <Ionicons name="star" size={14} color="var(--color-accent-warning)" />
-              <Text className="text-white font-bold ml-1 text-xs">
-                {product.averageRating.toFixed(1)} <Text className="text-text-tertiary">({product.totalReviews})</Text>
+          <AnimatedContainer animation="fadeUp" delay={200} className="flex-row items-center justify-between mb-3">
+            <View className={`px-3 py-1 rounded-full border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"}`}>
+              <Text className="text-text-secondary font-bold tracking-wider uppercase text-[10px]">{product.category}</Text>
+            </View>
+            <View className="flex-row items-center">
+              <Ionicons name="star" size={16} color="#F59E0B" />
+              <Text className="text-text-primary font-bold ml-1.5 text-base">
+                {product.averageRating.toFixed(1)} <Text className="text-text-tertiary text-sm font-medium">({product.totalReviews} reviews)</Text>
               </Text>
             </View>
-          </View>
+          </AnimatedContainer>
 
           {/* Product Name */}
-          <Text className="text-text-primary text-3xl font-bold mb-2 leading-tight">{product.name}</Text>
+          <AnimatedContainer animation="fadeUp" delay={300}>
+            <Text className="text-text-primary text-3xl font-black mb-4 leading-tight tracking-tight">{product.name}</Text>
+          </AnimatedContainer>
 
           {/* Price & Stock */}
-          <View className="flex-row items-end justify-between mb-6">
-            <Text className="text-text-primary text-4xl font-bold tracking-tight">
-              <Text className="text-2xl text-primary">$</Text>
-              {product.price.toFixed(2)}
-            </Text>
+          <AnimatedContainer animation="fadeUp" delay={400} className="flex-row items-end justify-between mb-8 pb-8 border-b border-black/5 dark:border-white/5">
+            <View>
+              <Text className="text-text-tertiary text-sm font-medium mb-1">Price</Text>
+              <Text className="text-text-primary text-4xl font-black tracking-tight">
+                <Text className="text-2xl text-primary font-bold">$</Text>
+                {product.price.toFixed(2)}
+              </Text>
+            </View>
 
             {inStock ? (
-              <View className="flex-row items-center bg-accent-success/10 px-3 py-1.5 rounded-full border border-accent-success/20">
-                <View className="w-1.5 h-1.5 bg-accent-success rounded-full mr-2" />
-                <Text className="text-accent-success font-bold text-xs uppercase tracking-wide">In Stock</Text>
+              <View className="items-end">
+                <View className="flex-row items-center bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20 mb-1">
+                  <View className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
+                  <Text className="text-green-600 dark:text-green-400 font-bold text-xs uppercase tracking-wide">In Stock</Text>
+                </View>
+                <Text className="text-text-tertiary text-xs">{product.stock} items left</Text>
               </View>
             ) : (
-              <View className="flex-row items-center bg-accent-error/10 px-3 py-1.5 rounded-full border border-accent-error/20">
-                <View className="w-1.5 h-1.5 bg-accent-error rounded-full mr-2" />
-                <Text className="text-accent-error font-bold text-xs uppercase tracking-wide">Sold Out</Text>
+              <View className="flex-row items-center bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
+                <View className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2" />
+                <Text className="text-red-600 dark:text-red-400 font-bold text-xs uppercase tracking-wide">Sold Out</Text>
               </View>
             )}
-          </View>
+          </AnimatedContainer>
+
+          {/* ATTRIBUTE SELECTORS */}
+          {product.attributes && product.attributes.length > 0 && (
+            <AnimatedContainer animation="fadeDown" delay={100} className="mb-6 gap-6">
+              {product.attributes.map((attr) => (
+                <View key={attr.name} className="gap-3">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-text-primary font-bold text-sm uppercase tracking-wider opacity-60">
+                      {attr.name}
+                    </Text>
+                    {selectedOptions[attr.name] && (
+                      <LinearGradient
+                        colors={['#6366F1', '#8B5CF6']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        className="px-2 py-0.5 rounded-md"
+                      >
+                        <Text className="text-white text-[10px] font-bold uppercase tracking-wider">
+                          {selectedOptions[attr.name]}
+                        </Text>
+                      </LinearGradient>
+                    )}
+                  </View>
+                  <View className="flex-row flex-wrap gap-2">
+                    {attr.values.map((value) => {
+                      const isSelected = selectedOptions[attr.name] === value;
+                      return (
+                        <TouchableOpacity
+                          key={value}
+                          onPress={() => setSelectedOptions(prev => ({ ...prev, [attr.name]: value }))}
+                          activeOpacity={0.7}
+                        >
+                          <LinearGradient
+                            colors={isSelected ? ['#6366F1', '#8B5CF6'] : [theme === 'dark' ? '#18181B' : '#F4F4F5', theme === 'dark' ? '#18181B' : '#F4F4F5']}
+                            className={`px-5 py-2.5 rounded-xl border ${isSelected
+                              ? "border-transparent"
+                              : theme === 'dark' ? "border-white/10" : "border-black/5"
+                              }`}
+                          >
+                            <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-text-secondary"}`}>
+                              {value}
+                            </Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
+            </AnimatedContainer>
+          )}
 
           {/* Description */}
-          <View className="mb-6">
+          <AnimatedContainer animation="fadeUp" delay={500} className="mb-8">
             <Text className="text-text-primary text-lg font-bold mb-3">Description</Text>
             <Text className="text-text-secondary text-base leading-7">{product.description}</Text>
-          </View>
+          </AnimatedContainer>
 
           {/* Reviews & Ratings Section */}
-          <View className="mb-8">
+          <AnimatedContainer animation="fadeUp" delay={600} className="mb-8">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-text-primary text-lg font-bold">Reviews</Text>
               {eligibleOrder && (
@@ -321,48 +369,25 @@ const ProductDetailScreen = () => {
                   onPress={() => setIsReviewModalVisible(true)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="create-outline" size={16} color="var(--color-primary-DEFAULT)" style={{ marginRight: 6 }} />
+                  <Ionicons name="create-outline" size={16} color="#6366F1" style={{ marginRight: 6 }} />
                   <Text className="text-primary font-bold text-sm">Write Review</Text>
                 </TouchableOpacity>
               )}
             </View>
 
-            {/* Rating Summary */}
-            <View className="bg-surface-light p-5 rounded-2xl border border-white/5 mb-4">
-              <View className="flex-row items-center mb-3">
-                <View className="mr-6">
-                  <Text className="text-white text-5xl font-bold">{product.averageRating.toFixed(1)}</Text>
-                  <View className="flex-row mt-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Ionicons
-                        key={star}
-                        name={star <= Math.round(product.averageRating) ? "star" : "star-outline"}
-                        size={16}
-                        color="var(--color-accent-warning)"
-                      />
-                    ))}
-                  </View>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-text-secondary text-sm">Based on {product.totalReviews} reviews</Text>
-                  <Text className="text-text-tertiary text-xs mt-1">Verified purchases only</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Reviews List */}
+            {/* Rating Summary Check */}
             {reviews && reviews.length > 0 ? (
-              <View className="gap-4">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-6 px-6 pt-2 pb-4">
                 {reviews.map((review: any) => (
-                  <View key={review._id} className="bg-surface-light p-4 rounded-2xl border border-white/5">
-                    <View className="flex-row items-center justify-between mb-2">
+                  <View key={review._id} className={`w-72 mr-4 p-4 rounded-2xl border ${theme === 'dark' ? "bg-surface-light border-white/5" : "bg-gray-50 border-black/5"}`}>
+                    <View className="flex-row items-center justify-between mb-3">
                       <View className="flex-row items-center gap-2">
                         <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
                           <Text className="text-primary font-bold text-xs">
                             {review.userId.name.charAt(0)}
                           </Text>
                         </View>
-                        <Text className="text-text-primary font-bold text-sm">{review.userId.name}</Text>
+                        <Text className="text-text-primary font-bold text-sm" numberOfLines={1}>{review.userId.name}</Text>
                       </View>
                       <View className="flex-row">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -370,52 +395,50 @@ const ProductDetailScreen = () => {
                             key={s}
                             name={s <= review.rating ? "star" : "star-outline"}
                             size={12}
-                            color="var(--color-accent-warning)"
+                            color="#F59E0B"
                           />
                         ))}
                       </View>
                     </View>
-                    {review.comment ? (
-                      <Text className="text-text-secondary text-sm leading-5">{review.comment}</Text>
-                    ) : (
-                      <Text className="text-text-tertiary text-xs italic">No comment provided</Text>
-                    )}
+                    <Text className="text-text-secondary text-sm leading-5" numberOfLines={3}>
+                      {review.comment || "No comment provided"}
+                    </Text>
                   </View>
                 ))}
-              </View>
+              </ScrollView>
             ) : (
-              <Text className="text-text-tertiary text-sm text-center">
-                Be the first to review this product
-              </Text>
+              <View className={`p-6 rounded-2xl items-center justify-center border border-dashed ${theme === 'dark' ? "border-white/10" : "border-black/10"}`}>
+                <Text className="text-text-tertiary text-sm">No reviews yet. Be the first!</Text>
+              </View>
             )}
-          </View>
+          </AnimatedContainer>
 
           {/* Quantity Selector */}
           {inStock && (
-            <View className="mb-8 p-4 bg-surface-light rounded-2xl border border-white/5 flex-row items-center justify-between">
+            <AnimatedContainer animation="fadeUp" delay={700} className={`mb-8 p-4 rounded-2xl border flex-row items-center justify-between ${theme === 'dark' ? "bg-surface-light border-white/5" : "bg-gray-50 border-black/5"}`}>
               <Text className="text-text-primary font-bold">Quantity</Text>
               <View className="flex-row items-center gap-4">
                 <TouchableOpacity
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 rounded-full bg-surface items-center justify-center border border-white/10"
+                  className={`w-10 h-10 rounded-full items-center justify-center border ${theme === 'dark' ? "bg-black/20 border-white/10" : "bg-white border-black/10"}`}
                 >
-                  <Ionicons name="remove" size={20} color="white" />
+                  <Ionicons name="remove" size={20} color={theme === 'dark' ? "#fff" : "#000"} />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-white w-6 text-center">{quantity}</Text>
+                <Text className="text-xl font-bold text-text-primary w-6 text-center">{quantity}</Text>
                 <TouchableOpacity
                   onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="w-10 h-10 rounded-full bg-primary items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-primary items-center justify-center shadow-lg shadow-primary/30"
                 >
                   <Ionicons name="add" size={20} color="white" />
                 </TouchableOpacity>
               </View>
-            </View>
+            </AnimatedContainer>
           )}
 
           {/* Related Products Section */}
           {relatedProducts.length > 0 && (
-            <View className="mt-8 mb-4">
-              <View className="flex-row items-center justify-between px-6 mb-4">
+            <AnimatedContainer animation="fadeUp" delay={800} className="mt-4 mb-4">
+              <View className="flex-row items-center justify-between px-0 mb-4">
                 <Text className="text-text-primary text-xl font-bold">You May Also Like</Text>
                 <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
                   <Text className="text-primary font-semibold text-sm">See All</Text>
@@ -426,7 +449,7 @@ const ProductDetailScreen = () => {
                 data={relatedProducts}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 12 }}
+                contentContainerStyle={{ paddingRight: 20 }}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item, index }) => (
                   <View style={{ width: width * 0.45 }}>
@@ -434,36 +457,39 @@ const ProductDetailScreen = () => {
                   </View>
                 )}
               />
-            </View>
+            </AnimatedContainer>
           )}
-
         </View>
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="absolute bottom-0 left-0 right-0 bg-background border-t border-white/5 px-4 pt-4 pb-6">
+      <View className={`flex-row items-center justify-between gap-4 absolute bottom-0 left-0 right-0 px-4 pt-4 pb-6 border-t ${theme === 'dark' ? 'bg-background border-white/5' : 'bg-white border-black/5'}`}>
         <View className="flex-row items-center gap-2">
           {/* Chat Button */}
           <TouchableOpacity
-            className="bg-surface-light rounded-full p-3 items-center justify-center border border-white/10"
+            className={`rounded-full p-2 items-center justify-center border ${theme === 'dark' ? "bg-surface-light border-white/10" : "bg-gray-100 border-black/5"}`}
             activeOpacity={0.85}
             onPress={handleChatWithVendor}
             disabled={startingChat}
           >
             {startingChat ? (
-              <ActivityIndicator size="small" color="var(--color-primary-DEFAULT)" />
+              <ActivityIndicator size="small" color="#6366F1" />
             ) : (
-              <Ionicons name="chatbubble-ellipses" size={17} color="var(--color-text-primary)" />
+              <Ionicons name="chatbubble-ellipses-outline" size={22} color={theme === 'dark' ? "#fff" : "#000"} />
             )}
           </TouchableOpacity>
+        </View>
+        
+        {/* Spacer */}
+        <View className="flex-1" />
 
-          {/* Spacer */}
-          <View className="flex-1" />
-
-          {/* Buy Now Button */}
+        {/* Buy Now & Add to Cart Container */}
+        <View className="flex-1 flex-row gap-3">
+          {/* Buy Now*/}
           <TouchableOpacity
-            className={`rounded-full px-5 py-3 flex-row items-center justify-center  ${!inStock ? "bg-surface-light" : "bg-primary"
-              }`}
+            className={`flex-1 rounded-xl py-3.5 flex-row items-center justify-center border ${!inStock
+              ? (theme === 'dark' ? "bg-white/5 border-white/5" : "bg-gray-100 border-black/5")
+              : (theme === 'dark' ? "bg-white border-white" : "bg-black border-black")}`}
             activeOpacity={0.85}
             onPress={() => {
               if (inStock) {
@@ -472,35 +498,33 @@ const ProductDetailScreen = () => {
             }}
             disabled={!inStock}
           >
-            <Ionicons name="flash" size={16} color={!inStock ? "#94A3B8" : "white"} style={{ marginRight: 4 }} />
-            <Text className={`font-bold text-xs ${!inStock ? "text-text-secondary" : "text-white"}`}>
-              {!inStock ? "Sold Out" : "Buy"}
+            <Text className={`font-bold text-sm ${!inStock ? "text-text-secondary" : (theme === 'dark' ? "text-black" : "text-white")}`}>
+              {!inStock ? "Sold Out" : "Buy Now"}
             </Text>
           </TouchableOpacity>
 
-          {/* Add to Cart Button */}
+          {/* Add to Cart */}
           <TouchableOpacity
-            className={`rounded-full px-5 py-3 flex-row items-center justify-center ${!inStock ? "bg-surface-light" : "bg-primary"
-              }`}
+            className={`flex-1 rounded-xl py-3.5 flex-row items-center justify-center shadow-lg ${!inStock || isAddingToCart
+              ? "bg-primary/50 shadow-none"
+              : "bg-primary shadow-primary/30"}`}
             activeOpacity={0.85}
             onPress={handleAddToCart}
             disabled={!inStock || isAddingToCart}
           >
             {isAddingToCart ? (
-              <ActivityIndicator color="white" size="small" />
+              <ActivityIndicator color={theme === 'dark' ? "black" : "white"} size="small" />
             ) : (
-              <Ionicons name="cart" size={16} color={!inStock ? "#94A3B8" : "white"} style={{ marginRight: 4 }} />
-            )}
-            {!isAddingToCart && (
-              <Text className={`font-bold text-xs ${!inStock ? "text-text-secondary" : "text-white"}`}>
-                Cart
-              </Text>
+              <>
+                <Ionicons name="cart" size={18} color={theme === 'dark' ? "black" : "white"} style={{ marginRight: 8 }} />
+                <Text className={`font-bold text-sm ${theme === 'dark' ? "text-black" : "text-white"}`}>Cart</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
-      </View>
+      </View> 
 
-      {/* Full Screen Image Viewer */}
+      {/* Full Screen Image Viewer & Review Modal (Unchanged parts...) */}
       <Modal
         visible={isImageViewerVisible}
         transparent={true}
@@ -540,7 +564,6 @@ const ProductDetailScreen = () => {
         </View>
       </Modal>
 
-      {/* Review Modal */}
       {eligibleOrder && (
         <ReviewModal
           isVisible={isReviewModalVisible}

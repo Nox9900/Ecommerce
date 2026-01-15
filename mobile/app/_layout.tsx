@@ -58,7 +58,7 @@ const queryClient = new QueryClient({
   }),
 });
 
-export default Sentry.wrap(function RootLayout() {
+export default function RootLayout() {
   const { isLoaded } = useTheme();
 
   if (!isLoaded) {
@@ -76,4 +76,4 @@ export default Sentry.wrap(function RootLayout() {
       </QueryClientProvider>
     </ClerkProvider>
   );
-});
+}
