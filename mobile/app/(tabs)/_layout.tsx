@@ -23,7 +23,7 @@ const TabsLayout = () => {
         tabBarInactiveTintColor: theme === "dark" ? "#A1A1AA" : "#52525B",
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: theme === "dark" ? "rgba(0,0,0,0.8)" : "rgba(255,255,255,0.8)",
+          backgroundColor: theme === "dark" ? "rgba(0, 0, 0)" : "rgba(255,255,255)",
           borderTopWidth: 0,
           height: 45 + insets.bottom,
           paddingTop: 4,

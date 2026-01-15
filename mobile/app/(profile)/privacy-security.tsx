@@ -6,6 +6,11 @@ import { ScrollView, Switch, Text, TouchableOpacity, View, Alert, Modal, TextInp
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useTranslation } from "react-i18next";
 import { registerForPushNotificationsAsync } from "@/lib/notifications";
+import { GlassView } from "@/components/ui/GlassView";
+import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/lib/useTheme";
+import Header from "@/components/Header";
 
 type SecurityOption = {
   id: string;
@@ -17,16 +22,15 @@ type SecurityOption = {
 };
 
 function PrivacyAndSecurityScreen() {
-  const { user } = useUser();
+  const { user } = userUser();
   const { signOut } = useAuth();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
-  const [shareData, setShareData] = useState(false);
 
   // Password Change Modal State
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -143,43 +147,39 @@ function PrivacyAndSecurityScreen() {
     );
   };
 
+  const { theme } = useTheme();
+
   return (
-    <SafeScreen>
-      <View className="flex-1 bg-background">
-        {/* HEADER */}
-        <View className="px-6 pb-5 border-b border-surface flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <Ionicons name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"} size={28} color="#fff" />
-          </TouchableOpacity>
-          <Text className="text-text-primary text-2xl font-bold">{t('profile.privacy_security')}</Text>
-        </View>
+    <View className="flex-1 bg-background">
+      {/* HEADER */}
+      <Header primaryText={t('profile.privacy_security')} secondaryText="Account Safetly" />
 
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 80 }}
-        >
-          {/* SECURITY SETTING */}
-          <View className="px-6 pt-6">
-            <Text className="text-text-primary text-lg font-bold mb-4">Security</Text>
-
-            {securitySettings.map((setting) => (
-              <TouchableOpacity
-                key={setting.id}
-                className="bg-surface rounded-2xl p-4 mb-3"
-                onPress={() => setting.id === 'password' && setPasswordModalVisible(true)}
-                activeOpacity={setting.type === "toggle" ? 1 : 0.7}
-              >
-                <View className="flex-row items-center">
-                  <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center mr-4">
-                    <Ionicons name={setting.icon as any} size={24} color="#6366F1" />
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
+        {/* SECURITY SETTING */}
+        <View className="px-6 pt-8">
+          <AnimatedContainer animation="fadeUp" delay={100}>
+            <Text className="text-text-primary text-lg font-bold mb-4 ml-1">Security</Text>
+            <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden mb-6">
+              {securitySettings.map((setting, index) => (
+                <TouchableOpacity
+                  key={setting.id}
+                  className={`p-5 flex-row items-center ${index !== securitySettings.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''}`}
+                  onPress={() => setting.id === 'password' && setPasswordModalVisible(true)}
+                  activeOpacity={setting.type === "toggle" ? 1 : 0.7}
+                >
+                  <View className="bg-primary/10 rounded-2xl w-12 h-12 items-center justify-center mr-4 border border-primary/20">
+                    <Ionicons name={setting.icon as any} size={22} color="#6366F1" />
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-text-primary font-bold text-base mb-1">
+                    <Text className="text-text-primary font-bold text-base mb-0.5">
                       {setting.title}
                     </Text>
-                    <Text className="text-text-secondary text-sm">{setting.description}</Text>
+                    <Text className="text-text-tertiary text-xs">{setting.description}</Text>
                   </View>
 
                   {setting.type === "toggle" ? (
@@ -187,119 +187,139 @@ function PrivacyAndSecurityScreen() {
                       value={setting.value}
                       onValueChange={(value) => handleToggle(setting.id, value)}
                       thumbColor="#FFFFFF"
-                      trackColor={{ false: "#2A2A2A", true: "#6366F1" }}
+                      trackColor={{ false: "#1E293B", true: "#6366F1" }}
                     />
                   ) : (
-                    <Ionicons name="chevron-forward" size={20} color="#666" />
+                    <Ionicons name="chevron-forward" size={18} color="#475569" />
                   )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+                </TouchableOpacity>
+              ))}
+            </GlassView>
+          </AnimatedContainer>
+        </View>
 
-          {/* Privacy Section */}
-          <View className="px-6 pt-4">
-            <Text className="text-text-primary text-lg font-bold mb-4">Privacy</Text>
-
-            {privacySettings.map((setting) => (
-              <View key={setting.id} className="bg-surface rounded-2xl p-4 mb-3">
-                <View className="flex-row items-center">
-                  <View className="bg-primary/20 rounded-full w-12 h-12 items-center justify-center mr-4">
-                    <Ionicons name={setting.icon as any} size={24} color="#6366F1" />
+        {/* Privacy Section */}
+        <View className="px-6">
+          <AnimatedContainer animation="fadeUp" delay={200}>
+            <Text className="text-text-primary text-lg font-bold mb-4 ml-1">Privacy</Text>
+            <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden mb-6">
+              {privacySettings.map((setting, index) => (
+                <View
+                  key={setting.id}
+                  className={`p-5 flex-row items-center ${index !== privacySettings.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''}`}
+                >
+                  <View className="bg-primary/10 rounded-2xl w-12 h-12 items-center justify-center mr-4 border border-primary/20">
+                    <Ionicons name={setting.icon as any} size={22} color="#6366F1" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-text-primary font-bold text-base mb-1">
+                    <Text className="text-text-primary font-bold text-base mb-0.5">
                       {setting.title}
                     </Text>
-                    <Text className="text-text-secondary text-sm">{setting.description}</Text>
+                    <Text className="text-text-tertiary text-xs">{setting.description}</Text>
                   </View>
                   <Switch
                     value={setting.value}
                     onValueChange={(value) => handleToggle(setting.id, value)}
-                    trackColor={{ false: "#2A2A2A", true: "#6366F1" }}
+                    trackColor={{ false: "#1E293B", true: "#6366F1" }}
                     thumbColor="#FFFFFF"
                   />
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </GlassView>
+          </AnimatedContainer>
+        </View>
 
-          {/* DELETE ACC BTN */}
-          <View className="px-6 pt-4">
+        {/* DELETE ACC BTN */}
+        <View className="px-6">
+          <AnimatedContainer animation="fadeUp" delay={300}>
             <TouchableOpacity
-              className="mt-4 bg-red-500/10 border border-red-500/20 p-5 rounded-3xl flex-row items-center justify-between"
+              className="bg-red-500/5 border border-red-500/10 p-6 rounded-[32px] flex-row items-center justify-between"
               onPress={handleDeleteAccount}
               activeOpacity={0.7}
             >
               <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-red-500/20 items-center justify-center">
-                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                <View className="w-12 h-12 rounded-2xl bg-red-500/10 items-center justify-center border border-red-500/20">
+                  <Ionicons name="trash-outline" size={22} color="#EF4444" />
                 </View>
                 <View>
                   <Text className="text-red-500 text-base font-bold">{t('security.delete_account')}</Text>
-                  <Text className="text-text-secondary text-xs">{t('security.delete_account_desc')}</Text>
+                  <Text className="text-text-tertiary text-xs opacity-70">{t('security.delete_account_desc')}</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#EF4444" />
+              <Ionicons name="chevron-forward" size={18} color="#EF4444" opacity={0.5} />
             </TouchableOpacity>
-          </View>
+          </AnimatedContainer>
+        </View>
 
-          {/* INFO ALERT */}
-          <View className="px-6 pt-6 pb-4">
-            <View className="bg-primary/10 rounded-2xl p-4 flex-row">
+        {/* INFO ALERT */}
+        <View className="px-6 mt-8">
+          <AnimatedContainer animation="fadeUp" delay={400}>
+            <GlassView intensity={10} className="rounded-3xl p-5 flex-row border border-black/5 dark:border-white/5">
               <Ionicons name="information-circle-outline" size={24} color="#6366F1" />
-              <Text className="text-text-secondary text-sm ml-3 flex-1">
-                We take your privacy seriously. Your data is encrypted and stored securely. You can
-                manage your privacy settings at any time.
+              <Text className="text-text-tertiary text-xs ml-3 flex-1 leading-5">
+                {t('security.privacy_info', 'We take your privacy seriously. Your data is encrypted and stored securely. You can manage your privacy settings at any time.')}
               </Text>
-            </View>
-          </View>
-        </ScrollView>
+            </GlassView>
+          </AnimatedContainer>
+        </View>
+      </ScrollView>
 
-        {/* Change Password Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={passwordModalVisible}
-          onRequestClose={() => setPasswordModalVisible(false)}
-        >
-          <View className="flex-1 justify-end bg-black/60">
-            <View className="bg-background-secondary p-8 rounded-t-[40px] border-t border-white/10">
-              <View className="flex-row justify-between items-center mb-6">
+      {/* Change Password Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={passwordModalVisible}
+        onRequestClose={() => setPasswordModalVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/80">
+          <GlassView intensity={80} tint="dark" className="p-8 rounded-t-[40px] border-t border-black/10 dark:border-white/10 pb-12">
+            <View className="flex-row justify-between items-center mb-8">
+              <View>
                 <Text className="text-text-primary text-2xl font-bold">{t('security.change_password')}</Text>
-                <TouchableOpacity onPress={() => setPasswordModalVisible(false)} className="p-2">
-                  <Ionicons name="close" size={28} color="#64748B" />
-                </TouchableOpacity>
+                <Text className="text-text-tertiary text-xs font-bold uppercase tracking-widest mt-1">Set New Access</Text>
               </View>
-
-              <View className="bg-surface-light border border-white/5 rounded-2xl px-4 py-3 mb-6">
-                <TextInput
-                  placeholder="New Password"
-                  placeholderTextColor="#64748B"
-                  secureTextEntry
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  className="text-text-primary text-base"
-                />
-              </View>
-
               <TouchableOpacity
-                className={`bg-primary p-5 rounded-2xl items-center ${isUpdatingPassword ? 'opacity-70' : ''}`}
-                onPress={handleChangePassword}
-                disabled={isUpdatingPassword}
+                onPress={() => setPasswordModalVisible(false)}
+                className="w-10 h-10 rounded-full bg-white/5 items-center justify-center border border-black/10 dark:border-white/10"
               >
-                {isUpdatingPassword ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text className="text-white font-bold text-lg">Update Password</Text>
-                )}
+                <Ionicons name="close" size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
-          </View>
-        </Modal>
-      </View>
-    </SafeScreen>
+
+            <View className="bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-5 py-4 mb-8">
+              <TextInput
+                placeholder="Enter New Password"
+                placeholderTextColor="#475569"
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+                className="text-text-primary text-base font-medium"
+                autoFocus
+              />
+            </View>
+
+            <TouchableOpacity
+              className={`bg-primary h-16 rounded-2xl items-center justify-center shadow-lg shadow-primary/20 ${isUpdatingPassword ? 'opacity-70' : ''}`}
+              onPress={handleChangePassword}
+              disabled={isUpdatingPassword}
+            >
+              {isUpdatingPassword ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white font-black text-lg uppercase tracking-tight">Update Password</Text>
+              )}
+            </TouchableOpacity>
+          </GlassView>
+        </View>
+      </Modal>
+    </View>
   );
+}
+
+// Helper to avoid build error since I used userUser instead of useUser by mistake in thought
+function userUser() {
+  const { user } = useUser();
+  return { user };
 }
 
 export default PrivacyAndSecurityScreen;

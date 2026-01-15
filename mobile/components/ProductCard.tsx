@@ -2,10 +2,10 @@ import { Link } from "expo-router";
 import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import useCart from "@/hooks/useCart";
 import useWishlist from "@/hooks/useWishlist";
-import { Product } from "@/types"; // Import Product type correctly
+import { Product } from "@/types";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "@/lib/useTheme";
 
 interface ProductCardProps {
     product: Product;
@@ -17,24 +17,19 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
     const scale = useSharedValue(1);
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
-    const { isAddingToCart, addToCart } = useCart();
     const { t } = useTranslation();
+    const { theme } = useTheme();
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
     }));
 
     const handlePressIn = () => {
-        scale.value = withSpring(0.95);
+        scale.value = withSpring(0.97);
     };
 
     const handlePressOut = () => {
         scale.value = withSpring(1);
-    };
-
-    const handleAddToCart = (e: any) => {
-        e.stopPropagation(); // Prevent navigation
-        addToCart({ productId: product._id, quantity: 1 });
     };
 
     const handleToggleWishlist = (e: any) => {
@@ -44,73 +39,65 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
     const isWishlistLoading = isAddingToWishlist || isRemovingFromWishlist;
 
+    // Mock sold count based on price (just for visuals)
+    const mockSold = Math.floor(product.price * 10 + Math.random() * 100);
+
     return (
         <Link href={`/product/${product._id}`} asChild>
             <Pressable
-                className="flex-1 m-2"
+                className="flex-1 m-1.5"
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
             >
                 <Animated.View
-                    className="bg-surface rounded-xl overflow-hidden shadow-lg border border-white/5"
+                    className="bg-white dark:bg-zinc-900 rounded-lg overflow-hidden shadow-sm border border-black/5 dark:border-white/5 pb-2"
                     style={animatedStyle}
                 >
                     <View className="relative">
                         <Image
                             source={{ uri: product.images[0] }}
-                            className="w-full h-48 bg-gray-800"
+                            className="w-full h-44 bg-gray-100 dark:bg-zinc-800"
                             resizeMode="cover"
                         />
-
-                        <Pressable
-                            onPress={handleToggleWishlist}
-                            className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-full p-2"
-                        >
-                            {isWishlistLoading ? (
-                                <ActivityIndicator size="small" color="#FFF" />
-                            ) : (
-                                <Ionicons
-                                    name={isInWishlist(product._id) ? "heart" : "heart-outline"}
-                                    size={17}
-                                    color={isInWishlist(product._id) ? "#EF4444" : "white"}
-                                />
-                            )}
-                        </Pressable>
-
-                        {product.averageRating > 0 && (
-                            <View className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md rounded-full px-2 py-1 flex-row items-center">
-                                <Ionicons name="star" size={12} color="#F59E0B" />
-                                <Text className="text-white text-xs font-bold ml-1">{product.averageRating.toFixed(1)}</Text>
-                            </View>
-                        )}
                     </View>
 
-                    <View className="p-4">
-                        <Text className="text-text-tertiary text-xs font-medium uppercase tracking-wider mb-1">
-                            {t('db.' + (typeof product.shop === 'object' ? product.shop.name : (product.category || "Collection")), { defaultValue: typeof product.shop === 'object' ? product.shop.name : (product.category || "Collection") })}
-                        </Text>
+                    <View className="p-2">
+                        {/* Title */}
                         <Text
-                            className="text-text-primary text-base font-bold mb-2 h-11"
+                            className="text-text-primary text-[13px] font-bold mb-1.5 leading-4"
                             numberOfLines={2}
                         >
                             {t('db.' + product.name, { defaultValue: product.name })}
                         </Text>
-                        <View className="flex-row items-center justify-between mt-1">
-                            <Text className="text-primary-light text-lg font-bold">
-                                ${product.price.toFixed(2)}
-                            </Text>
-                            <Pressable
-                                onPress={handleAddToCart}
-                                className="bg-primary/20 p-2 rounded-full active:bg-primary/40"
-                                disabled={isAddingToCart}
-                            >
-                                {isAddingToCart ? (
-                                    <ActivityIndicator size="small" color="#6366F1" />
-                                ) : (
-                                    <Ionicons name="add" size={20} color="#818CF8" />
-                                )}
-                            </Pressable>
+
+                        {/* Tags (Mock) */}
+                        <View className="flex-row gap-1 mb-2">
+                            <View className="border border-red-500/30 px-1 rounded-[2px]">
+                                <Text className="text-[9px] text-red-500 font-medium">Free Return</Text>
+                            </View>
+                            <View className="border border-orange-500/30 px-1 rounded-[2px]">
+                                <Text className="text-[9px] text-orange-500 font-medium">Fast Ship</Text>
+                            </View>
                         </View>
+
+                        {/* Price and Sold */}
+                        <View className="flex-row items-end justify-between">
+                            <View className="flex-row items-baseline gap-1">
+                                <Text className="text-red-600 font-black text-xs">¥</Text>
+                                <Text className="text-red-600 font-black text-lg -ml-0.5">{product.price.toFixed(0)}</Text>
+                                <Text className="text-red-600 font-bold text-xs">.{(product.price % 1 * 100).toFixed(0)}</Text>
+                            </View>
+                            <Text className="text-[#9CA3AF] text-[10px] mb-0.5">Sold {mockSold > 1000 ? (mockSold / 1000).toFixed(1) + 'k' : mockSold}</Text>
+                        </View>
+
+                        {/* Shop Name / Avatar Row */}
+                        <View className="flex-row items-center mt-2 opacity-70">
+                            {/* <View className="w-4 h-4 rounded-full bg-gray-200 mr-1" /> */}
+                            <Text className="text-[10px] text-text-tertiary truncate" numberOfLines={1}>
+                                {typeof product.shop === 'object' ? product.shop.name : "Official Store"} &gt;
+                            </Text>
+                        </View>
+
                     </View>
                 </Animated.View>
             </Pressable>

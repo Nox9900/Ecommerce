@@ -1,12 +1,15 @@
 import AddressCard from "@/components/AddressCard";
-import AddressesHeader from "@/components/AddressesHeader";
+import Header from "@/components/Header";
 import AddressFormModal from "@/components/AddressFormModal";
-import SafeScreen from "@/components/SafeScreen";
 import { useAddresses } from "@/hooks/useAddressess";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { router } from "expo-router";
+import LoadingUI from "@/components/ui/Loading";
+import ErrorUI from "@/components/ui/Error";
 
 function AddressesScreen() {
   const {
@@ -121,56 +124,52 @@ function AddressesScreen() {
     setEditingAddressId(null);
   };
 
-  if (isLoading) return <LoadingUI />;
-  if (isError) return <ErrorUI />;
+  if (isLoading) return <LoadingUI title="Loading" />;
+  if (isError) return <ErrorUI title="Something went wrong" subtitle="We couldn't retrieve your saved items. Please try again." buttonTitle="Go Back" buttonAction={() => router.back()} />;
+
 
   return (
-    <SafeScreen>
-      <AddressesHeader />
+    <View className="flex-1 bg-background">
+      {/* HEADER */}
+      <Header onAdd={handleAddAddress} primaryText="My Addresses" secondaryText="Your addresses list" />
 
+      {/* ADDRESSES LIST */}
       {addresses.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <Ionicons name="location-outline" size={80} color="#666" />
-          <Text className="text-text-primary font-semibold text-xl mt-4">No addresses yet</Text>
-          <Text className="text-text-secondary text-center mt-2">
-            Add your first delivery address
+        <AnimatedContainer animation="fadeUp" className="flex-1 items-center justify-center px-6">
+          <View className="w-24 h-24 bg-surface-light rounded-full items-center justify-center mb-6">
+            <Ionicons name="location-outline" size={48} color="#6366F1" />
+          </View>
+          <Text className="text-text-primary font-bold text-2xl mt-4 text-center">No addresses yet</Text>
+          <Text className="text-text-secondary text-center mt-2 mx-8 text-base">
+            Add your primary delivery address to speed up the checkout process.
           </Text>
           <TouchableOpacity
-            className="bg-primary rounded-2xl px-8 py-4 mt-6"
+            className="bg-primary rounded-2xl px-10 py-4 mt-10 shadow-lg shadow-primary/20"
             activeOpacity={0.8}
             onPress={handleAddAddress}
           >
-            <Text className="text-background font-bold text-base">Add Address</Text>
+            <Text className="text-white font-black uppercase tracking-tight">Add Address</Text>
           </TouchableOpacity>
-        </View>
+        </AnimatedContainer>
       ) : (
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
         >
-          <View className="px-6 py-4">
-            {addresses.map((address) => (
-              <AddressCard
-                key={address._id}
-                address={address}
-                onEdit={handleEditAddress}
-                onDelete={handleDeleteAddress}
-                isUpdatingAddress={isUpdatingAddress}
-                isDeletingAddress={isDeletingAddress}
-              />
+          <View className="px-6 py-6">
+            {addresses.map((address, index) => (
+              <AnimatedContainer animation="fadeUp" delay={index * 100} key={address._id}>
+                <AddressCard
+                  address={address}
+                  onEdit={handleEditAddress}
+                  onDelete={handleDeleteAddress}
+                  isUpdatingAddress={isUpdatingAddress}
+                  isDeletingAddress={isDeletingAddress}
+                />
+                <View className="h-[1px] bg-black/5 dark:bg-white/5 w-full mb-6" />
+              </AnimatedContainer>
             ))}
-
-            <TouchableOpacity
-              className="bg-primary rounded-2xl py-4 items-center mt-2"
-              activeOpacity={0.8}
-              onPress={handleAddAddress}
-            >
-              <View className="flex-row items-center">
-                <Ionicons name="add-circle-outline" size={24} color="#121212" />
-                <Text className="text-background font-bold text-base ml-2">Add New Address</Text>
-              </View>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       )}
@@ -185,36 +184,8 @@ function AddressesScreen() {
         onSave={handleSaveAddress}
         onFormChange={setAddressForm}
       />
-    </SafeScreen>
+    </View>
   );
 }
+
 export default AddressesScreen;
-
-function ErrorUI() {
-  return (
-    <SafeScreen>
-      <AddressesHeader />
-      <View className="flex-1 items-center justify-center px-6">
-        <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
-        <Text className="text-text-primary font-semibold text-xl mt-4">
-          Failed to load addresses
-        </Text>
-        <Text className="text-text-secondary text-center mt-2">
-          Please check your connection and try again
-        </Text>
-      </View>
-    </SafeScreen>
-  );
-}
-
-function LoadingUI() {
-  return (
-    <SafeScreen>
-      <AddressesHeader />
-      <View className="flex-1 items-center justify-center px-6">
-        <ActivityIndicator size="large" color="#00D9FF" />
-        <Text className="text-text-secondary mt-4">Loading addresses...</Text>
-      </View>
-    </SafeScreen>
-  );
-}

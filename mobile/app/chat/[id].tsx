@@ -1,153 +1,230 @@
-import React, { useEffect, useState, useRef } from "react";
-import { View, Text, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
-import axios from "axios";
+import SafeScreen from "@/components/SafeScreen";
+import { useApi } from "@/lib/api";
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
-
-import { useTheme } from "@/lib/useTheme";
-import { useSocket } from "@/context/SocketContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, router } from "expo-router";
+import { useState, useRef, useEffect } from "react";
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    ActivityIndicator,
+    Image,
+} from "react-native";
 
 interface Message {
     _id: string;
-    sender: {
-        _id: string;
-        name: string;
-        clerkId?: string;
-    };
-    content: string;
+    sender: string;
+    receiver: string;
+    text: string;
     createdAt: string;
 }
 
-export default function ChatRoomScreen() {
-    const { id } = useLocalSearchParams();
-    const { getToken, userId } = useAuth();
-    const [messages, setMessages] = useState<Message[]>([]);
+export default function ChatScreen() {
+    const { id: receiverId, productId, productName, productImage } = useLocalSearchParams<{
+        id: string;
+        productId?: string;
+        productName?: string;
+        productImage?: string;
+    }>();
+    const { user } = useUser();
+    const api = useApi();
+    const queryClient = useQueryClient();
     const [inputText, setInputText] = useState("");
-    const [loading, setLoading] = useState(true);
     const flatListRef = useRef<FlatList>(null);
-    const { theme } = useTheme();
-    const socket = useSocket();
+
+    // Fetch messages
+    const { data: messages, isLoading } = useQuery<Message[]>({
+        queryKey: ["chat", receiverId],
+        queryFn: async () => {
+            const { data } = await api.get(`/chat/${receiverId}`);
+            return data.messages;
+        },
+        refetchInterval: 5000, // Polling every 5 seconds for now
+    });
+
+    // Send message mutation
+    const sendMessage = useMutation({
+        mutationFn: async (text: string) => {
+            const { data } = await api.post("/chat", {
+                receiverId,
+                text,
+                productId, // Include productId if present
+            });
+            return data.message;
+        },
+        onSuccess: (newMessage) => {
+            queryClient.setQueryData(["chat", receiverId], (old: Message[] = []) => [
+                ...old,
+                newMessage,
+            ]);
+            setInputText("");
+        },
+    });
+
+    const handleSend = () => {
+        if (!inputText.trim()) return;
+        sendMessage.mutate(inputText);
+    };
 
     useEffect(() => {
-        fetchMessages();
-        if (socket) {
-            socket.emit("joinConversation", id);
-
-            socket.on("newMessage", (message: Message) => {
-                setMessages((prev) => [...prev, message]);
-                scrollToBottom();
-            });
-
-            return () => {
-                socket.off("newMessage");
-            };
+        if (messages?.length) {
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
         }
-    }, [id, socket]);
+    }, [messages]);
 
-    const fetchMessages = async () => {
-        try {
-            const token = await getToken();
-            const response = await axios.get(
-                `${process.env.EXPO_PUBLIC_API_URL}/api/chats/${id}/messages`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            setMessages(response.data);
-            setLoading(false);
-            setTimeout(() => scrollToBottom(), 100);
-        } catch (error) {
-            console.error("Error fetching messages:", error);
-            setLoading(false);
-        }
-    };
+    const renderMessage = ({ item, index }: { item: Message, index: number }) => {
+        // We assume if `item.sender` matches our clerk ID (which we don't know easily without backend help) 
+        // OR more simply, if sender != receiverId, it's us.
+        // The backend stores `sender` as MongoDB _id, `receiverId` passed here is also Mongo _id.
+        const isMe = item.sender !== receiverId;
 
-    const sendMessage = async () => {
-        if (!inputText.trim()) return;
+        // Show date if it's the first message or if significant time passed since last
+        const showDate = index === 0 ||
+            (new Date(item.createdAt).getTime() - new Date(messages![index - 1].createdAt).getTime() > 1000 * 60 * 60);
 
-        try {
-            const token = await getToken();
-            const content = inputText.trim();
-            setInputText(""); // Optimistic clear
-
-            // Send to API
-            await axios.post(
-                `${process.env.EXPO_PUBLIC_API_URL}/api/chats/message`,
-                {
-                    conversationId: id,
-                    content,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-        } catch (error) {
-            console.error("Error sending message:", error);
-        }
-    };
-
-    const scrollToBottom = () => {
-        if (flatListRef.current && messages.length > 0) {
-            flatListRef.current.scrollToEnd({ animated: true });
-        }
-    };
-
-    if (loading) {
         return (
-            <View className="flex-1 justify-center items-center bg-white dark:bg-black">
-                <ActivityIndicator size="large" color="#6366F1" />
+            <View>
+                {showDate && (
+                    <View className="items-center my-4">
+                        <Text className="text-xs text-text-secondary bg-surface px-2 py-1 rounded-full">
+                            {new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
+                )}
+
+                <View
+                    className={`flex-row mb-2 ${isMe ? "justify-end" : "justify-start"}`}
+                >
+                    {!isMe && (
+                        <View className="w-8 h-8 rounded-full bg-surface mr-2 items-center justify-center overflow-hidden border border-white/10">
+                            <Ionicons name="storefront-outline" color="#888" size={16} />
+                        </View>
+                    )}
+
+                    <View
+                        className={`px-4 py-3 rounded-2xl max-w-[75%] shadow-sm ${isMe ? "bg-primary rounded-tr-sm" : "bg-surface rounded-tl-sm"
+                            }`}
+                    >
+                        <Text
+                            className={`${isMe ? "text-background font-medium" : "text-text-primary"} text-base leading-5`}
+                        >
+                            {item.text}
+                        </Text>
+                        <View className="flex-row justify-end mt-1">
+                            <Text
+                                className={`text-[10px] ${isMe ? "text-background/70" : "text-text-secondary"
+                                    }`}
+                            >
+                                {new Date(item.createdAt).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </Text>
+                            {isMe && <Ionicons name="checkmark-done" size={12} color="rgba(0,0,0,0.5)" style={{ marginLeft: 4 }} />}
+                        </View>
+                    </View>
+                </View>
             </View>
         );
-    }
+    };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="flex-1 bg-white dark:bg-black"
-            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-        >
-            <View className="flex-1">
+        <SafeScreen>
+            {/* Header */}
+            <View className="flex-row items-center px-4 py-3 border-b border-white/5 bg-background z-10">
+                <TouchableOpacity onPress={() => router.back()} className="mr-4 p-1">
+                    <Ionicons name="arrow-back" size={24} color="#fff" />
+                </TouchableOpacity>
+                <View className="flex-1">
+                    <Text className="text-lg font-bold text-text-primary">Chat with Vendor</Text>
+                    {!isLoading && <Text className="text-xs text-green-500">Fast reply</Text>}
+                </View>
+                <TouchableOpacity>
+                    <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
+                </TouchableOpacity>
+            </View>
+
+            {/* Product Context Banner */}
+            {productId && productName && (
+                <View className="bg-surface/50 p-3 mx-4 mt-2 rounded-xl flex-row items-center border border-white/10">
+                    <Image
+                        source={{ uri: productImage }}
+                        className="w-10 h-10 rounded-lg bg-surface mr-3"
+                    />
+                    <View className="flex-1">
+                        <Text className="text-xs text-text-secondary uppercase font-bold text-[10px]">Inquiry about</Text>
+                        <Text className="text-text-primary font-medium text-sm" numberOfLines={1}>{productName}</Text>
+                    </View>
+                </View>
+            )}
+
+            {isLoading ? (
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#1DB954" />
+                </View>
+            ) : (
+                <Image
+                    source={require("@/assets/images/auth-image.png")}
+                    className="absolute inset-0 opacity-5"
+                // contentFit="cover"
+                />
+            )}
+
+            {!isLoading && (
                 <FlatList
                     ref={flatListRef}
                     data={messages}
                     keyExtractor={(item) => item._id}
-                    contentContainerStyle={{ padding: 16 }}
-                    renderItem={({ item }) => {
-                        // Check if message is from me using Clerk ID
-                        const isMe = item.sender.clerkId === userId;
-
-                        return (
-                            <View
-                                className={`mb-3 p-3 rounded-lg max-w-[80%] ${isMe ? "self-end bg-blue-500" : "self-start bg-gray-200 dark:bg-gray-700"
-                                    }`}
-                            >
-                                {!isMe && (
-                                    <Text className="text-xs text-gray-500 mb-1">{item.sender.name}</Text>
-                                )}
-                                <Text className={isMe ? "text-white" : "text-black dark:text-white"}>{item.content}</Text>
-                            </View>
-                        );
-                    }}
-                    onContentSizeChange={scrollToBottom}
+                    renderItem={renderMessage}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
+                    className="flex-1"
                 />
-                <View className="p-4 border-t border-gray-200 dark:border-gray-800 flex-row items-center bg-white dark:bg-neutral-900">
+            )}
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+            >
+                <View className="p-3 border-t border-white/10 flex-row items-end bg-background/95 backdrop-blur-md pb-6">
+                    <TouchableOpacity className="p-3 mr-1">
+                        <Ionicons name="add-circle-outline" size={28} color="#1DB954" />
+                    </TouchableOpacity>
+
                     <TextInput
-                        className="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-full mr-2 text-black dark:text-white"
+                        className="flex-1 bg-surface rounded-2xl px-4 py-3 text-text-primary mr-2 text-base max-h-24"
                         placeholder="Type a message..."
-                        placeholderTextColor="#9CA3AF"
+                        placeholderTextColor="#666"
                         value={inputText}
                         onChangeText={setInputText}
+                        multiline
                     />
-                    <TouchableOpacity onPress={sendMessage} disabled={!inputText.trim()}>
-                        <Ionicons name="send" size={24} color="#6366F1" />
+                    <TouchableOpacity
+                        onPress={handleSend}
+                        disabled={!inputText.trim() || sendMessage.isPending}
+                        className={`w-12 h-12 rounded-full items-center justify-center mb-1 ${!inputText.trim() ? "bg-surface" : "bg-primary"
+                            }`}
+                    >
+                        {sendMessage.isPending ? (
+                            <ActivityIndicator size="small" color="#121212" />
+                        ) : (
+                            <Ionicons
+                                name="send"
+                                size={20}
+                                color={!inputText.trim() ? "#666" : "#121212"}
+                                style={{ marginLeft: 2 }}
+                            />
+                        )}
                     </TouchableOpacity>
                 </View>
-            </View>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </SafeScreen>
     );
 }
