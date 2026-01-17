@@ -47,7 +47,6 @@ export const GlassView: React.FC<GlassViewProps> = ({
             style={[
                 {
                     overflow: 'hidden',
-                    // Add a subtle background color for light mode so glass doesn't look gray/muddy
                     backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0)' : 'rgba(255,255,255,0.4)'
                 },
                 style
