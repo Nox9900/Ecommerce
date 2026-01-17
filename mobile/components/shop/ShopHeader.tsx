@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/useTheme";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 
 interface ShopHeaderProps {
@@ -14,6 +15,7 @@ export default function ShopHeader({ onSearch }: ShopHeaderProps) {
     const { theme } = useTheme();
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const { t } = useTranslation();
 
     const handleSearchChange = (text: string) => {
         setSearchQuery(text);
@@ -42,7 +44,7 @@ export default function ShopHeader({ onSearch }: ShopHeaderProps) {
                         <Ionicons name="search-outline" size={20} color="#9CA3AF" className="ml-2" />
                         <TextInput
                             className="flex-1 p-2 text-base text-text-primary"
-                            placeholder="Search products..."
+                            placeholder={t('common.search')}
                             placeholderTextColor="#9CA3AF"
                             value={searchQuery}
                             onChangeText={handleSearchChange}
@@ -56,8 +58,8 @@ export default function ShopHeader({ onSearch }: ShopHeaderProps) {
                     // Normal Mode
                     <>
                         <View>
-                            <Text className="text-text-primary text-2xl font-bold">Discover</Text>
-                            <Text className="text-text-primary text-sm">Explore a infinite range of products</Text>
+                            <Text className="text-text-primary text-2xl font-bold">{t('common.discover')}</Text>
+                            <Text className="text-text-primary text-sm">{t('common.discover_desc')}</Text>
                         </View>
 
                         <View className="flex-row items-center gap-4">

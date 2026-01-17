@@ -35,6 +35,9 @@ function PrivacyAndSecurityScreen() {
   // Password Change Modal State
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   const securitySettings: SecurityOption[] = [
@@ -108,12 +111,20 @@ function PrivacyAndSecurityScreen() {
       return;
     }
 
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
     setIsUpdatingPassword(true);
     try {
       await user?.updatePassword({ newPassword });
       Alert.alert(t('common.success'), t('security.password_success'));
       setPasswordModalVisible(false);
       setNewPassword("");
+      setConfirmPassword("");
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
     } catch (error: any) {
       console.error("Password update error:", error);
       Alert.alert("Error", error.errors?.[0]?.message || t('security.error_updating'));
@@ -264,52 +275,130 @@ function PrivacyAndSecurityScreen() {
         </View>
       </ScrollView>
 
-      {/* Change Password Modal */}
       <Modal
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         visible={passwordModalVisible}
-        onRequestClose={() => setPasswordModalVisible(false)}
+        onRequestClose={() => {
+          setPasswordModalVisible(false);
+          setNewPassword("");
+          setConfirmPassword("");
+        }}
       >
-        <View className="flex-1 justify-end bg-black/80">
-          <GlassView intensity={80} tint="dark" className="p-8 rounded-t-[40px] border-t border-black/10 dark:border-white/10 pb-12">
-            <View className="flex-row justify-between items-center mb-8">
-              <View>
-                <Text className="text-text-primary text-2xl font-bold">{t('security.change_password')}</Text>
-                <Text className="text-text-tertiary text-xs font-bold uppercase tracking-widest mt-1">Set New Access</Text>
+        <View className="flex-1 justify-end bg-black/70">
+          <TouchableOpacity
+            className="flex-1"
+            activeOpacity={1}
+            onPress={() => {
+              setPasswordModalVisible(false);
+              setNewPassword("");
+              setConfirmPassword("");
+            }}
+          />
+          <AnimatedContainer animation="fadeUp" duration={400}>
+            <View
+              className={`p-8 rounded-t-[40px] border-t ${theme === 'dark' ? 'bg-[#121212] border-white/5' : 'bg-white border-black/5'} shadow-2xl pb-12`}
+            >
+              {/* Decorative Handle */}
+              <View className={`w-12 h-1.5 rounded-full self-center -mt-2 mb-8 ${theme === 'dark' ? 'bg-white/10' : 'bg-black/5'}`} />
+
+              {/* Modal Header */}
+              <View className="flex-row justify-between items-center mb-10">
+                <View>
+                  <Text className="text-text-primary text-3xl font-black tracking-tighter">{t('security.change_password')}</Text>
+                  <View className="flex-row items-center mt-1">
+                    <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
+                    <Text className="text-text-tertiary text-[10px] font-black uppercase tracking-[2px]">Update Secret Access</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setPasswordModalVisible(false);
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setShowNewPassword(false);
+                    setShowConfirmPassword(false);
+                  }}
+                  className={`w-12 h-12 rounded-full items-center justify-center border ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/5'}`}
+                >
+                  <Ionicons name="close" size={24} color={theme === 'dark' ? "#94A3B8" : "#475569"} />
+                </TouchableOpacity>
               </View>
+
+              {/* Input Fields */}
+              <View className="flex-col gap-5">
+                <View>
+                  <Text className="text-text-primary text-sm font-black mb-2 ml-1">New Password</Text>
+                  <View className={`flex-row items-center border rounded-2xl px-5 py-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
+                    <Ionicons name="lock-closed-outline" size={20} color="#6366F1" style={{ marginRight: 12 }} />
+                    <TextInput
+                      placeholder="Min. 8 characters"
+                      placeholderTextColor={theme === 'dark' ? "#475569" : "#94A3B8"}
+                      secureTextEntry={!showNewPassword}
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      className="text-text-primary text-base font-bold flex-1"
+                      autoFocus
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowNewPassword(!showNewPassword)}
+                      className="ml-2"
+                    >
+                      <Ionicons
+                        name={showNewPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={theme === 'dark' ? "#94A3B8" : "#475569"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-text-primary text-sm font-black mb-2 ml-1">Confirm Password</Text>
+                  <View className={`flex-row items-center border rounded-2xl px-5 py-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
+                    <Ionicons name="shield-outline" size={20} color="#6366F1" style={{ marginRight: 12 }} />
+                    <TextInput
+                      placeholder="Repeat password"
+                      placeholderTextColor={theme === 'dark' ? "#475569" : "#94A3B8"}
+                      secureTextEntry={!showConfirmPassword}
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      className="text-text-primary text-base font-bold flex-1"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="ml-2"
+                    >
+                      <Ionicons
+                        name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={theme === 'dark' ? "#94A3B8" : "#475569"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Action Button - Polished */}
               <TouchableOpacity
-                onPress={() => setPasswordModalVisible(false)}
-                className="w-10 h-10 rounded-full bg-white/5 items-center justify-center border border-black/10 dark:border-white/10"
+                className={`bg-primary h-18 rounded-[28px] items-center justify-center mt-12 shadow-xl shadow-primary/40 flex-row gap-3 ${isUpdatingPassword ? 'opacity-70' : ''}`}
+                onPress={handleChangePassword}
+                disabled={isUpdatingPassword}
+                activeOpacity={0.8}
               >
-                <Ionicons name="close" size={20} color="#94A3B8" />
+                {isUpdatingPassword ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Text className={ `font-black text-lg uppercase tracking-tight ${theme === 'dark' ? 'text-black' : 'text-white'}`}>Update Password</Text>
+                    <View className="bg-white/20 p-2 rounded-full">
+                      <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+                    </View>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
-
-            <View className="bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-5 py-4 mb-8">
-              <TextInput
-                placeholder="Enter New Password"
-                placeholderTextColor="#475569"
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-                className="text-text-primary text-base font-medium"
-                autoFocus
-              />
-            </View>
-
-            <TouchableOpacity
-              className={`bg-primary h-16 rounded-2xl items-center justify-center shadow-lg shadow-primary/20 ${isUpdatingPassword ? 'opacity-70' : ''}`}
-              onPress={handleChangePassword}
-              disabled={isUpdatingPassword}
-            >
-              {isUpdatingPassword ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white font-black text-lg uppercase tracking-tight">Update Password</Text>
-              )}
-            </TouchableOpacity>
-          </GlassView>
+          </AnimatedContainer>
         </View>
       </Modal>
     </View>

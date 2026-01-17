@@ -24,11 +24,11 @@ export default function EmptyUI({ title, subtitle, buttonTitle, buttonAction }: 
         </Text>
         {buttonTitle && buttonAction && (
         <TouchableOpacity
-          className={`rounded-2xl px-10 py-4 mt-10 shadow-lg shadow-primary/20 ${theme === "dark" ? "bg-primary/20" : "bg-primary"}`}
+          className={`rounded-2xl px-10 py-4 mt-10 shadow-lg shadow-primary/20 ${theme === "dark" ? "bg-primary" : "bg-white"}`}
           activeOpacity={0.8}
           onPress={buttonAction}
         >
-          <Text className={`uppercase ${theme === "dark" ? "text-white" : "text-black"}`}>{buttonTitle}</Text>
+          <Text className={`uppercase ${theme === "dark" ? "text-text-white" : "text-text-primary"}`}>{buttonTitle}</Text>
         </TouchableOpacity>
         )}
       </AnimatedContainer>

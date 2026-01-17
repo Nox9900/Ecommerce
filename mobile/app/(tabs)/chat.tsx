@@ -9,6 +9,7 @@ import { formatDistanceToNow } from "date-fns";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { GlassView } from "@/components/ui/GlassView";
 import { useTheme } from "@/lib/useTheme";
+import { useTranslation } from "react-i18next";
 
 interface Conversation {
     _id: string;
@@ -27,6 +28,7 @@ export default function ChatScreen() {
     const { theme } = useTheme();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
 
     const fetchConversations = async () => {
         try {
@@ -61,9 +63,9 @@ export default function ChatScreen() {
                 {/* Header */}
                 <GlassView intensity={theme === 'dark' ? 20 : 40} className="px-6 pt-4 pb-6 border-b border-white/5">
                     <AnimatedContainer animation="fadeDown">
-                        <Text className="text-3xl font-bold text-text-primary tracking-tight">Messages</Text>
+                        <Text className="text-3xl font-bold text-text-primary tracking-tight">{t('chat.title')}</Text>
                         <Text className="text-text-secondary text-sm font-medium mt-1">
-                            {loading ? "..." : conversations.length} conversations
+                            {loading ? "..." : t('chat.conversations', { count: conversations.length })}
                         </Text>
                     </AnimatedContainer>
                 </GlassView>
@@ -83,9 +85,9 @@ export default function ChatScreen() {
                                 <View className="w-24 h-24 rounded-full bg-surface-light items-center justify-center mb-6 shadow-sm border border-white/5">
                                     <Ionicons name="chatbubbles-outline" size={40} color={theme === 'dark' ? "#94A3B8" : "#6366F1"} />
                                 </View>
-                                <Text className="text-text-primary font-bold text-xl mb-2 text-center">No messages yet</Text>
+                                <Text className="text-text-primary font-bold text-xl mb-2 text-center">{t('chat.empty_title')}</Text>
                                 <Text className="text-text-secondary text-center text-base leading-snug">
-                                    Start a conversation with a seller from a product page
+                                    {t('chat.empty_desc')}
                                 </Text>
                             </AnimatedContainer>
                         ) : (
@@ -111,7 +113,7 @@ export default function ChatScreen() {
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center justify-between mb-1">
                                                         <Text className="text-text-primary font-bold text-lg" numberOfLines={1}>
-                                                            {other?.name || "Unknown"}
+                                                            {other?.name || t('chat.unknown_user')}
                                                         </Text>
                                                         <Text className="text-text-tertiary text-xs">
                                                             {chat.lastMessageAt ? formatDistanceToNow(new Date(chat.lastMessageAt), { addSuffix: true }) : ""}
@@ -122,7 +124,7 @@ export default function ChatScreen() {
                                                             className={`text-sm flex-1 ${chat.lastMessage ? 'text-text-secondary' : 'text-text-tertiary italic'}`}
                                                             numberOfLines={1}
                                                         >
-                                                            {chat.lastMessage || "No messages yet"}
+                                                            {chat.lastMessage || t('chat.empty_title')}
                                                         </Text>
                                                         <Ionicons name="chevron-forward" size={16} color="#94A3B8" style={{ marginLeft: 8 }} />
                                                     </View>
