@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View, ScrollView, I18nManager } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Updates from "expo-updates";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,23 +26,41 @@ export default function LanguageScreen() {
     const { theme } = useTheme();
 
     const changeLanguage = async (lng: string) => {
-        const isRTL = lng === 'ar';
+        try {
+            const isRTL = lng === 'ar';
 
-        await i18n.changeLanguage(lng);
+            // 1. Save language preference directly to storage
+            // This is picked up by i18n.ts on the next app boot
+            await AsyncStorage.setItem('user-language', lng);
 
-        // Explicitly set RTL state based on language
-        I18nManager.allowRTL(isRTL);
-        I18nManager.forceRTL(isRTL);
+            // 2. Set RTL state safely
+            try {
+                I18nManager.allowRTL(isRTL);
+                I18nManager.forceRTL(isRTL);
+            } catch (i18nError) {
+                console.warn("I18nManager error:", i18nError);
+            }
 
-        // Force app reload to apply new language and RTL globally
-        await Updates.reloadAsync();
+            // 3. Reload the application
+            // We use a small timeout to ensure the storage operation is flushed
+            // and to avoid race conditions with the current event loop.
+            setTimeout(async () => {
+                try {
+                    await Updates.reloadAsync();
+                } catch (reloadError) {
+                    console.error("Failed to reload app:", reloadError);
+                }
+            }, 50);
+        } catch (error) {
+            console.error("Error changing language:", error);
+        }
     };
 
     return (
         <View className="flex-1 bg-background">
             {/* Header */}
-            <Header primaryText="Language" secondaryText="Select Locale" />
-            
+            <Header primaryText={t('profile.language')} secondaryText={t('language.title')} />
+
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 <View className="px-6 py-8">
                     <AnimatedContainer animation="fadeUp" delay={100}>
@@ -76,7 +95,7 @@ export default function LanguageScreen() {
                         <View className="bg-primary/5 rounded-3xl p-5 border border-primary/10 flex-row items-center">
                             <Ionicons name="information-circle-outline" size={20} color="#6366F1" />
                             <Text className="text-text-tertiary text-xs ml-3 flex-1 leading-5">
-                                Switching languages will restart the application to apply changes correctly.
+                                {t('language.info')}
                             </Text>
                         </View>
                     </AnimatedContainer>

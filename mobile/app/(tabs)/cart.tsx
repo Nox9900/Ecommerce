@@ -78,8 +78,8 @@ const CartScreen = () => {
     // check if user has addresses
     if (!addresses || addresses.length === 0) {
       Alert.alert(
-        "No Address",
-        "Please add a shipping address in your profile before checking out.",
+        t('cart.no_address'),
+        t('cart.no_address_desc'),
         [{ text: "OK" }]
       );
       return;
@@ -163,7 +163,7 @@ const CartScreen = () => {
         itemCount: cartItems.length,
       });
 
-      Alert.alert("Error", "Failed to process payment!!!!");
+      Alert.alert(t('common.error'), t('common.error_desc'));
     } finally {
       setPaymentLoading(false);
     }
@@ -230,7 +230,7 @@ const CartScreen = () => {
                           ${(item.product.price * item.quantity).toFixed(2)}
                         </Text>
                         <Text className="text-text-secondary text-sm ml-2">
-                          ${item.product.price.toFixed(2)} each
+                          ${item.product.price.toFixed(2)} {t('common.item')}
                         </Text>
                       </View>
                     </View>
@@ -319,7 +319,7 @@ const CartScreen = () => {
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <Text className="text-primary-foreground font-bold text-lg mr-2">{t('common.checkout')}</Text>
+                <Text className="text-primary-foreground font-bold text-lg mr-2">{t('cart.checkout_button')}</Text>
                 <Ionicons name="arrow-forward" size={20} color="#000" />
               </>
             )}
@@ -341,38 +341,41 @@ export default CartScreen;
 
 function LoadingUI() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <View className="flex-1 bg-background items-center justify-center">
       <ActivityIndicator size="large" color={theme === 'dark' ? "#fff" : "#000"} />
-      <Text className="text-text-secondary mt-4">Loading cart...</Text>
+      <Text className="text-text-secondary mt-4">{t('cart.loading')}</Text>
     </View>
   );
 }
 
 function ErrorUI() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <View className="flex-1 bg-background items-center justify-center px-6">
       <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-      <Text className="text-text-primary font-semibold text-xl mt-4">Failed to load cart</Text>
+      <Text className="text-text-primary font-semibold text-xl mt-4">{t('cart.error_title')}</Text>
       <Text className="text-text-secondary text-center mt-2">
-        Please check your connection and try again
+        {t('cart.error_desc')}
       </Text>
     </View>
   );
 }
 
 function EmptyUI() {
+  const { t } = useTranslation();
   return (
     <View className="flex-1 bg-background">
       <View className="px-6 pt-16 pb-5">
-        <Text className="text-text-primary text-3xl font-bold tracking-tight">Cart</Text>
+        <Text className="text-text-primary text-3xl font-bold tracking-tight">{t('cart.title')}</Text>
       </View>
       <View className="flex-1 items-center justify-center px-6">
         <Ionicons name="cart-outline" size={80} color="#666" />
-        <Text className="text-text-primary font-semibold text-xl mt-4">Your cart is empty</Text>
+        <Text className="text-text-primary font-semibold text-xl mt-4">{t('cart.empty_title')}</Text>
         <Text className="text-text-secondary text-center mt-2">
-          Add some products to get started
+          {t('cart.empty_desc')}
         </Text>
       </View>
     </View>

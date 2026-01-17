@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "@/components/ui/Button";
 import SafeScreen from "@/components/SafeScreen";
 import { useTheme } from "@/lib/useTheme";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
@@ -15,6 +16,7 @@ export default function RootIndex() {
     const { isSignedIn, isLoaded } = useAuth();
     const { theme } = useTheme();
     const router = useRouter();
+    const { t } = useTranslation();
 
     const [hasSeenSplash, setHasSeenSplash] = useState<boolean | null>(null);
     const [checkingSplash, setCheckingSplash] = useState(true);
@@ -61,13 +63,13 @@ export default function RootIndex() {
             <View className="flex-1 px-8 justify-between py-12 bg-background">
                 <View className="items-center mt-10">
                     <View className="w-24 h-24 bg-primary rounded-3xl items-center justify-center mb-6 shadow-xl">
-                        <Text className="text-primary-foreground text-4xl font-bold">N</Text>
+                        <Text className="text-primary-foreground text-4xl font-bold">{t('splash.title').charAt(0)}</Text>
                     </View>
                     <Text className="text-4xl font-bold text-text-primary text-center mb-4">
-                        Nox<Text className="text-text-tertiary">9900</Text>
+                        {t('splash.title')}<Text className="text-text-tertiary">{t('splash.subtitle')}</Text>
                     </Text>
                     <Text className="text-text-secondary text-center text-lg px-4">
-                        Discover the best products from verified vendors. Fast, secure, and premium.
+                        {t('splash.desc')}
                     </Text>
                 </View>
 
@@ -82,14 +84,14 @@ export default function RootIndex() {
 
                     <View className="w-full gap-4">
                         <Button
-                            title="Get Started"
+                            title={t('splash.get_started')}
                             onPress={handleGetStarted}
                             variant="primary"
                             className="py-5"
                             textClassName="text-lg font-bold"
                         />
                         <Text className="text-text-tertiary text-center text-sm">
-                            Already have an account? <Text onPress={() => router.replace("/(auth)/welcome")} className="text-text-primary font-semibold">Sign In</Text>
+                            {t('splash.already_have_account')} <Text onPress={() => router.replace("/(auth)/welcome")} className="text-text-primary font-semibold">{t('splash.sign_in')}</Text>
                         </Text>
                     </View>
                 </View>

@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Address } from "@/types";
-import { useTheme } from "@/lib/useTheme";
+import { GlassView } from "./ui/GlassView";
 
 
 
@@ -24,7 +24,7 @@ export default function AddressCard({
 }: AddressCardProps) {
 
   return (
-    <View className={`rounded-[32px] p-6 mb-4`}>
+    <GlassView intensity={20} className="p-4 rounded-[20px] border border-black/10 dark:border-white/10 overflow-hidden">
       <View className="flex-row items-center justify-between mb-4">
         <View className="flex-row items-center">
           <View className="w-12 h-12 items-center justify-center mr-4">
@@ -58,17 +58,19 @@ export default function AddressCard({
       </View>
 
       <View className="ml-16 space-y-1">
-        <Text className="text-text-primary font-bold text-base">{address.fullName}</Text>
-        <Text className="text-text-secondary text-sm leading-5 opacity-90">{address.streetAddress}</Text>
-        <Text className="text-text-secondary text-sm leading-5 opacity-90">
-          {address.city}, {address.state} {address.zipCode}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <Text className="text-text-primary font-bold text-base">{address.fullName}</Text>
+          <Text className="text-text-secondary text-sm leading-5 opacity-90">{address.streetAddress}</Text>
+          <Text className="text-text-secondary text-sm leading-5 opacity-90">
+            {address.city}, {address.state} {address.zipCode}
+          </Text>
+        </View>
         <View className="flex-row items-center mt-2">
           <Ionicons name="call-outline" size={14} color="#64748B" style={{ marginRight: 6 }} />
           <Text className="text-text-tertiary text-xs font-medium">{address.phoneNumber}</Text>
         </View>
       </View>
-    </View>
+    </GlassView>
 
     
   );
