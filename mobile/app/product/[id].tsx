@@ -86,7 +86,7 @@ const ProductDetailScreen = () => {
     if (!product || !product.variants || product.variants.length === 0) return null;
 
     // Check if all required attributes have a selected value
-    const attributeNames = product.attributes.map(a => a.name);
+    const attributeNames = (product.attributes || []).map(a => a.name);
     const allOptionsSelected = attributeNames.every(name => selectedOptions[name]);
 
     if (!allOptionsSelected) return null;
@@ -98,7 +98,7 @@ const ProductDetailScreen = () => {
   }, [product, selectedOptions]);
 
   const currentPrice = selectedVariant ? selectedVariant.price : product?.price ?? 0;
-  const currentImage = selectedVariant?.image || product?.images[0];
+  const currentImage = selectedVariant?.image || (product?.images && product.images.length > 0 ? product.images[0] : null);
   const currentStock = selectedVariant ? selectedVariant.stock : product?.stock ?? 0;
   const inStock = currentStock > 0;
 

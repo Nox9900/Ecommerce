@@ -1,6 +1,7 @@
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
 import { User } from "../models/user.model.js";
+import { Vendor } from "../models/vendor.model.js";
 
 export const getConversations = async (req, res) => {
     try {

@@ -54,7 +54,7 @@ const useCart = () => {
   const cartTotal =
     cart?.items.reduce((sum, item) => {
       const price = item.variantId && item.product?.variants ?
-        (item.product.variants.find(v => v._id === item.variantId)?.price ?? item.product.price) :
+        (item.product.variants.find(v => v._id === item.variantId)?.price ?? item.product?.price ?? 0) :
         (item.product?.price ?? 0);
       return sum + price * item.quantity;
     }, 0) ?? 0;
