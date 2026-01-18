@@ -36,23 +36,8 @@ export default function ChatScreen() {
     const api = useApi();
     const queryClient = useQueryClient();
     const [inputText, setInputText] = useState("");
-    const [conversationId, setConversationId] = useState<string | null>(productId ? null : receiverId);
+    const [conversationId] = useState<string>(receiverId);
     const flatListRef = useRef<FlatList>(null);
-
-    // Initialize conversation if needed (e.g., from product page)
-    useEffect(() => {
-        if (!conversationId && receiverId) {
-            const initChat = async () => {
-                try {
-                    const { data } = await api.post("/chats", { participantId: receiverId });
-                    setConversationId(data._id);
-                } catch (error) {
-                    console.error("Failed to initialize chat:", error);
-                }
-            };
-            initChat();
-        }
-    }, [conversationId, receiverId]);
 
     // Fetch messages
     const { data: messages, isLoading } = useQuery<Message[]>({
@@ -69,7 +54,6 @@ export default function ChatScreen() {
     // Send message mutation
     const sendMessage = useMutation({
         mutationFn: async (text: string) => {
-            if (!conversationId) throw new Error("Conversation not initialized");
             const { data } = await api.post("/chats/message", {
                 conversationId,
                 content: text,
@@ -86,7 +70,7 @@ export default function ChatScreen() {
     });
 
     const handleSend = () => {
-        if (!inputText.trim() || !conversationId) return;
+        if (!inputText.trim()) return;
         sendMessage.mutate(inputText);
     };
 
