@@ -15,6 +15,8 @@ const ChatPage = () => {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState("");
     const [socket, setSocket] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
@@ -58,9 +60,31 @@ const ChatPage = () => {
 
     // Refactor socket setup:
     useEffect(() => {
-        const newSocket = io(API_URL, { transports: ["websocket"] });
-        setSocket(newSocket);
-        return () => newSocket.disconnect();
+        try {
+            const newSocket = io(API_URL, {
+                transports: ["websocket"],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+            });
+
+            newSocket.on("connect", () => {
+                console.log("Socket connected:", newSocket.id);
+            });
+
+            newSocket.on("connect_error", (error) => {
+                console.error("Socket connection error:", error);
+            });
+
+            newSocket.on("disconnect", (reason) => {
+                console.log("Socket disconnected:", reason);
+            });
+
+            setSocket(newSocket);
+            return () => newSocket.disconnect();
+        } catch (error) {
+            console.error("Error initializing socket:", error);
+        }
     }, []);
 
     useEffect(() => {
@@ -77,13 +101,18 @@ const ChatPage = () => {
             });
 
             // This is tricky with hooks. Let's just update conversations always.
-            setConversations((prev) =>
-                prev.map((c) =>
+            setConversations((prev) => {
+                // Ensure prev is an array
+                if (!Array.isArray(prev)) {
+                    console.error("Conversations is not an array:", prev);
+                    return [];
+                }
+                return prev.map((c) =>
                     c._id === message.conversationId
                         ? { ...c, lastMessage: message.content, lastMessageAt: message.createdAt }
                         : c
-                ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt))
-            );
+                ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+            });
         };
 
         socket.on("newMessage", handleNewMessage);
@@ -121,27 +150,60 @@ const ChatPage = () => {
 
     const fetchConversations = async () => {
         try {
+            setLoading(true);
+            setError(null);
             const token = await getToken();
+
+            if (!token) {
+                throw new Error("No authentication token available");
+            }
+
             const res = await axios.get(`${API_URL}/api/chats`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setConversations(res.data);
+
+            // Ensure we always set an array
+            if (Array.isArray(res.data)) {
+                setConversations(res.data);
+            } else {
+                console.error("Invalid response format:", res.data);
+                setConversations([]);
+                toast.error("Received invalid data format");
+            }
         } catch (error) {
-            console.error("Error fetching chats", error);
-            toast.error("Failed to load chats");
+            console.error("Error fetching chats:", error);
+            setError(error.message || "Failed to load chats");
+            setConversations([]); // Ensure conversations is always an array
+            toast.error(error.response?.data?.message || "Failed to load chats");
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchMessages = async (id) => {
         try {
             const token = await getToken();
+
+            if (!token) {
+                throw new Error("No authentication token available");
+            }
+
             const res = await axios.get(`${API_URL}/api/chats/${id}/messages`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setMessages(res.data);
+
+            // Ensure we always set an array
+            if (Array.isArray(res.data)) {
+                setMessages(res.data);
+            } else {
+                console.error("Invalid messages format:", res.data);
+                setMessages([]);
+            }
             scrollToBottom();
         } catch (error) {
-            console.error("Error fetching messages", error);
+            console.error("Error fetching messages:", error);
+            setMessages([]); // Ensure messages is always an array
+            toast.error(error.response?.data?.message || "Failed to load messages");
         }
     };
 
@@ -189,10 +251,27 @@ const ChatPage = () => {
                     </h2>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                    {conversations.length === 0 ? (
+                    {loading ? (
+                        <div className="p-4 text-center">
+                            <span className="loading loading-spinner loading-md"></span>
+                            <p className="text-sm text-base-content/50 mt-2">Loading conversations...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="p-4 text-center">
+                            <div className="alert alert-error">
+                                <span>{error}</span>
+                            </div>
+                            <button
+                                onClick={fetchConversations}
+                                className="btn btn-sm btn-primary mt-2"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    ) : conversations.length === 0 ? (
                         <div className="p-4 text-center text-base-content/50">No conversations</div>
                     ) : (
-                        conversations.map((conv) => {
+                        Array.isArray(conversations) && conversations.map((conv) => {
                             const other = getOtherParticipant(conv.participants);
                             return (
                                 <div
@@ -233,7 +312,7 @@ const ChatPage = () => {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-base-100">
-                            {messages.map((msg) => {
+                            {Array.isArray(messages) && messages.map((msg) => {
                                 // Check if me. msg.sender has clerkId now (per my backend update).
                                 const isMe = msg.sender?.clerkId === userId;
                                 return (
