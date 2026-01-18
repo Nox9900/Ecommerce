@@ -27,32 +27,51 @@ const MOCK_LINKS = [
 
 import { Ionicons } from "@expo/vector-icons";
 
-export default function QuickLinksGrid() {
+interface QuickLink {
+    id?: number | string;
+    _id?: string;
+    label?: string;
+    name?: string;
+    color?: string;
+    icon: string;
+}
+
+interface QuickLinksGridProps {
+    items?: any[];
+    onLinkPress: (link: any) => void;
+}
+
+export default function QuickLinksGrid({ items, onLinkPress }: QuickLinksGridProps) {
     const { theme } = useTheme();
+
+    const displayItems = items || MOCK_LINKS;
 
     return (
         <View className="bg-white dark:bg-background py-4 px-2">
             <View className="flex-row flex-wrap justify-between">
-                {MOCK_LINKS.map((item) => (
+                {displayItems.map((item, index) => (
                     <TouchableOpacity
-                        key={item.id}
+                        key={item.id || item._id || index}
                         className="w-[20%] items-center mb-4"
                         activeOpacity={0.7}
+                        onPress={() => onLinkPress(item)}
                     >
                         <View
                             className="w-10 h-10 rounded-xl items-center justify-center mb-1"
-                            style={{ backgroundColor: item.color + '15' }} // 10% opacity
+                            style={{ backgroundColor: (item.color || '#737373') + '15' }} // 10% opacity
                         >
                             {/* Using Ionicons as placeholders for the graphic icons */}
-                            <Ionicons name={item.icon as any} size={22} color={item.color} />
+                            <Ionicons name={(item.icon || 'grid') as any} size={22} color={item.color || (theme === 'dark' ? '#A3A3A3' : '#737373')} />
                             {/* Reference has badges like 'Hot', 'New'. Adding a visual mock for one */}
-                            {item.id === 1 && (
+                            {items ? null : (item.id === 1 && (
                                 <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1 py-[1px] border border-white dark:border-background">
                                     <Text className="text-[8px] text-white font-bold">Hot</Text>
                                 </View>
-                            )}
+                            ))}
                         </View>
-                        <Text className="text-xs text-text-secondary font-medium text-center">{item.label}</Text>
+                        <Text className="text-xs text-text-secondary font-medium text-center" numberOfLines={1}>
+                            {item.label || item.name}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>

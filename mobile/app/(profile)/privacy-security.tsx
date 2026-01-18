@@ -392,7 +392,7 @@ function PrivacyAndSecurityScreen() {
                   <>
                     <Text className={ `font-black text-lg uppercase tracking-tight ${theme === 'dark' ? 'text-black' : 'text-white'}`}>Update Password</Text>
                     <View className="bg-white/20 p-2 rounded-full">
-                      <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+                      <Ionicons name="chevron-forward" size={18} color={theme === 'dark' ? '#FFFFFF' : '#FFFFFF'} />
                     </View>
                   </>
                 )}
