@@ -115,6 +115,10 @@ export const vendorApi = {
     const { data } = await axiosInstance.post("/vendors/products", formData);
     return data;
   },
+  updateProduct: async ({ id, formData }) => {
+    const { data } = await axiosInstance.put(`/vendors/products/${id}`, formData);
+    return data;
+  },
 };
 
 export const shopApi = {

@@ -53,7 +53,7 @@ function VendorProducts() {
     });
 
     const updateProductMutation = useMutation({
-        mutationFn: productApi.update, // Backend needs to ensure vendor owns it
+        mutationFn: vendorApi.updateProduct,
         onSuccess: () => {
             toast.success("Product updated successfully");
             closeModal();
@@ -418,8 +418,14 @@ function VendorProducts() {
 
                             <input type="file" multiple className="file-input file-input-bordered w-full" onChange={handleImageChange} />
                             <div className="modal-action">
-                                <button type="button" className="btn" onClick={closeModal}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">Save</button>
+                                <button type="button" className="btn" onClick={closeModal} disabled={createProductMutation.isPending || updateProductMutation.isPending}>Cancel</button>
+                                <button type="submit" className="btn btn-primary min-w-[100px]" disabled={createProductMutation.isPending || updateProductMutation.isPending}>
+                                    {createProductMutation.isPending || updateProductMutation.isPending ? (
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                    ) : (
+                                        "Save"
+                                    )}
+                                </button>
                             </div>
                         </form>
                     </div>
