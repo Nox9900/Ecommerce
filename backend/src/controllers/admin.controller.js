@@ -9,7 +9,7 @@ import { Shop } from "../models/shop.model.js";
 
 export async function createProduct(req, res) {
   try {
-    const { name, description, price, stock, category, attributes, shop } = req.body;
+    const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, shop } = req.body;
 
     if (!name || !price || !stock || !category) {
       return res.status(400).json({ message: "Name, price, stock and category are required" });
@@ -56,8 +56,13 @@ export async function createProduct(req, res) {
       name,
       description,
       price: parseFloat(price),
+      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
       stock: parseInt(stock),
       category,
+      subcategory,
+      brand,
+      isSubsidy: isSubsidy === "true" || isSubsidy === true,
+      soldCount: soldCount ? parseInt(soldCount) : 0,
       attributes: attributes ? JSON.parse(attributes) : [],
       images: imageUrls,
       vendor: vendorId,
@@ -88,20 +93,25 @@ export async function getAllProducts(_, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, category, attributes, shop } = req.body;
+    const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, shop } = req.body;
 
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    const updateData = {
+      name,
+      description,
+      price: price ? parseFloat(price) : undefined,
+      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+      stock: stock ? parseInt(stock) : undefined,
+      category,
+      subcategory,
+      brand,
+      isSubsidy: isSubsidy !== undefined ? (isSubsidy === "true" || isSubsidy === true) : undefined,
+      soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
+      attributes: attributes ? JSON.parse(attributes) : undefined,
+      shop: shop || undefined,
+    };
 
-    if (name) product.name = name;
-    if (description) product.description = description;
-    if (price !== undefined) product.price = parseFloat(price);
-    if (stock !== undefined) product.stock = parseInt(stock);
-    if (category) product.category = category;
-    if (attributes) product.attributes = JSON.parse(attributes);
-    if (shop !== undefined) product.shop = shop || undefined;
+    // Remove undefined fields to avoid overwriting with null/undefined
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
     // handle image updates if new images are uploaded
     if (req.files && req.files.length > 0) {

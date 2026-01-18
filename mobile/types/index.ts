@@ -3,8 +3,13 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
+  brand?: string;
+  isSubsidy?: boolean;
+  soldCount?: number;
   stock: number;
   category: string;
+  subcategory?: string;
   attributes: { name: string; values: string[] }[];
   images: string[];
   averageRating: number;
@@ -137,6 +142,7 @@ export interface Category {
   _id: string;
   name: string;
   icon: string;
+  color?: string;
   displayOrder: number;
   isActive: boolean;
   subcategories?: SubCategory[];

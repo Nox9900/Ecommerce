@@ -24,7 +24,7 @@ export default function PromoBanners() {
 
                 return (
                     <TouchableOpacity
-                        key={banner._id}
+                        key={banner._id || `banner-${index}`}
                         className={`flex-1 ${index === 0 ? 'mr-2' : 'ml-2'} ${bgColorClass} p-3 rounded-lg border`}
                         activeOpacity={0.8}
                     >

@@ -15,6 +15,21 @@ const productSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    originalPrice: {
+      type: Number,
+      min: 0,
+    },
+    brand: {
+      type: String,
+    },
+    isSubsidy: {
+      type: Boolean,
+      default: false,
+    },
+    soldCount: {
+      type: Number,
+      default: 0,
+    },
     stock: {
       type: Number,
       required: true,
@@ -24,6 +39,9 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+    },
+    subcategory: {
+      type: String,
     },
     attributes: [
       {

@@ -1,10 +1,11 @@
 import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, Text, ScrollView, RefreshControl, Alert } from "react-native";
 import { useMemo, useState } from "react";
 import { useTheme } from "@/lib/useTheme";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { router } from "expo-router";
 
 // New Components
 import ShopHeader from "@/components/shop/ShopHeader";
@@ -12,7 +13,6 @@ import CategoryTabs from "@/components/shop/CategoryTabs";
 import QuickLinksGrid from "@/components/shop/QuickLinksGrid";
 import PromoBanners from "@/components/shop/PromoBanners";
 import useCategories from "@/hooks/useCategories";
-import { Alert } from "react-native";
 
 const ShopScreen = () => {
   const { theme } = useTheme();
@@ -37,7 +37,10 @@ const ShopScreen = () => {
   const handleQuickLinkPress = (link: any) => {
     // If it's a subcategory from the database
     if (link.name) {
-      setSearchQuery(link.name);
+      router.push({
+        pathname: "/subcategory/[id]",
+        params: { id: link._id, name: link.name }
+      });
       return;
     }
 

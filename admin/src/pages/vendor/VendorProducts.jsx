@@ -11,8 +11,13 @@ function VendorProducts() {
     const [formData, setFormData] = useState({
         name: "",
         category: "",
+        subcategory: "",
+        brand: "",
+        isSubsidy: false,
         price: "",
+        originalPrice: "",
         stock: "",
+        soldCount: "0",
         description: "",
         shop: "",
     });
@@ -69,7 +74,19 @@ function VendorProducts() {
     const closeModal = () => {
         setShowModal(false);
         setEditingProduct(null);
-        setFormData({ name: "", category: "", price: "", stock: "", description: "", shop: "" });
+        setFormData({
+            name: "",
+            category: "",
+            subcategory: "",
+            brand: "",
+            isSubsidy: false,
+            price: "",
+            originalPrice: "",
+            stock: "",
+            soldCount: "0",
+            description: "",
+            shop: "",
+        });
         setAttributes([]);
         setImages([]);
         setImagePreviews([]);
@@ -80,8 +97,13 @@ function VendorProducts() {
         setFormData({
             name: product.name,
             category: product.category,
+            subcategory: product.subcategory || "",
+            brand: product.brand || "",
+            isSubsidy: product.isSubsidy || false,
             price: product.price.toString(),
+            originalPrice: product.originalPrice ? product.originalPrice.toString() : "",
             stock: product.stock.toString(),
+            soldCount: (product.soldCount || 0).toString(),
             description: product.description,
             shop: product.shop?._id || product.shop || "",
         });
@@ -100,7 +122,17 @@ function VendorProducts() {
     const handleSubmit = (e) => {
         e.preventDefault();
         const data = new FormData();
-        Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        data.append("name", formData.name);
+        data.append("description", formData.description);
+        data.append("price", formData.price);
+        data.append("originalPrice", formData.originalPrice);
+        data.append("stock", formData.stock);
+        data.append("category", formData.category);
+        data.append("subcategory", formData.subcategory);
+        data.append("brand", formData.brand);
+        data.append("isSubsidy", formData.isSubsidy);
+        data.append("soldCount", formData.soldCount);
+        data.append("shop", formData.shop);
         data.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
         images.forEach(image => data.append("images", image));
 
@@ -181,40 +213,118 @@ function VendorProducts() {
                     <div className="modal-box max-w-2xl">
                         <h3 className="font-bold text-lg mb-4">{editingProduct ? "Edit Product" : "Add Product"}</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Form fields omitted for brevity, same as ProductsPage.jsx */}
                             <div className="grid grid-cols-2 gap-4">
-                                <input type="text" placeholder="Name" className="input input-bordered" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                                <div className="form-control">
+                                    <label className="label"><span>Name</span></label>
+                                    <input type="text" placeholder="Name" className="input input-bordered" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label"><span>Category</span></label>
+                                    <select
+                                        className="select select-bordered"
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value, subcategory: "" })}
+                                        required
+                                    >
+                                        <option value="">Select category</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat._id} value={cat.name}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="form-control">
+                                    <label className="label"><span>Subcategory</span></label>
+                                    <select
+                                        className="select select-bordered"
+                                        value={formData.subcategory}
+                                        onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                                        disabled={!formData.category}
+                                    >
+                                        <option value="">Select subcategory</option>
+                                        {categories
+                                            .find(c => c.name === formData.category)
+                                            ?.subcategories?.map((sub) => (
+                                                <option key={sub.name} value={sub.name}>
+                                                    {sub.name}
+                                                </option>
+                                            ))}
+                                    </select>
+                                </div>
+                                <div className="form-control">
+                                    <label className="label"><span>Brand</span></label>
+                                    <input
+                                        type="text"
+                                        placeholder="Brand"
+                                        className="input input-bordered"
+                                        value={formData.brand}
+                                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="form-control">
+                                    <label className="label cursor-pointer justify-start gap-4 h-full">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox checkbox-primary"
+                                            checked={formData.isSubsidy}
+                                            onChange={(e) => setFormData({ ...formData, isSubsidy: e.target.checked })}
+                                        />
+                                        <span className="label-text font-bold text-red-500">Enable 10B Subsidy</span>
+                                    </label>
+                                </div>
+                                <div className="form-control">
+                                    <label className="label"><span>Sold Count</span></label>
+                                    <input
+                                        type="number"
+                                        className="input input-bordered"
+                                        value={formData.soldCount}
+                                        onChange={(e) => setFormData({ ...formData, soldCount: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="form-control">
+                                    <label className="label"><span>Price ($)</span></label>
+                                    <input type="number" step="0.01" className="input input-bordered" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label"><span>Orig. Price ($)</span></label>
+                                    <input type="number" step="0.01" className="input input-bordered opacity-70" value={formData.originalPrice} onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })} />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label"><span>Stock</span></label>
+                                    <input type="number" className="input input-bordered" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
+                                </div>
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label"><span>Shop</span></label>
                                 <select
-                                    className="select select-bordered"
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    required
+                                    className="select select-bordered w-full"
+                                    value={formData.shop}
+                                    onChange={(e) => setFormData({ ...formData, shop: e.target.value })}
                                 >
-                                    <option value="">Select category</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat._id} value={cat.name}>
-                                            {cat.name}
+                                    <option value="">Select Shop</option>
+                                    {shops.map((shop) => (
+                                        <option key={shop._id} value={shop._id}>
+                                            {shop.name}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input type="number" placeholder="Price" className="input input-bordered" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
-                                <input type="number" placeholder="Stock" className="input input-bordered" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
+
+                            <div className="form-control">
+                                <label className="label"><span>Description</span></label>
+                                <textarea className="textarea textarea-bordered w-full h-24" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
                             </div>
-                            <select
-                                className="select select-bordered w-full"
-                                value={formData.shop}
-                                onChange={(e) => setFormData({ ...formData, shop: e.target.value })}
-                            >
-                                <option value="">Select Shop</option>
-                                {shops.map((shop) => (
-                                    <option key={shop._id} value={shop._id}>
-                                        {shop.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <textarea className="textarea textarea-bordered w-full h-24" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
 
                             {/* PRODUCT ATTRIBUTES */}
                             <div className="form-control">

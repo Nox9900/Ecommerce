@@ -10,6 +10,9 @@ const categorySchema = new mongoose.Schema(
             type: String,
             required: true, // Ionicons icon name
         },
+        color: {
+            type: String,
+        },
         displayOrder: {
             type: Number,
             default: 0,
