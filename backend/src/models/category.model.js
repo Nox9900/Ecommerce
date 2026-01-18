@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const categorySchema = new mongoose.Schema(
     {
         name: {
@@ -26,6 +25,9 @@ const categorySchema = new mongoose.Schema(
                     required: true,
                 },
                 icon: {
+                    type: String,
+                },
+                color: {
                     type: String,
                 },
                 displayOrder: {

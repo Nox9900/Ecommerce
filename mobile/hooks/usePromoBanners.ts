@@ -1,14 +1,14 @@
 import { useApi } from "@/lib/api";
-import { Hero } from "@/types";
+import { PromoBanner } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-const useHero = () => {
+const usePromoBanners = () => {
     const api = useApi();
 
     const result = useQuery({
-        queryKey: ["hero"],
+        queryKey: ["promo-banners"],
         queryFn: async () => {
-            const { data } = await api.get<Hero>("/hero");
+            const { data } = await api.get<PromoBanner[]>("/promo-banners");
             return data;
         },
     });
@@ -16,4 +16,4 @@ const useHero = () => {
     return result;
 };
 
-export default useHero;
+export default usePromoBanners;
