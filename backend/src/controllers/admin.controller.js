@@ -141,6 +141,11 @@ export async function updateProduct(req, res) {
     const { id } = req.params;
     const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, shop } = req.body;
 
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     const updateData = {
       name,
       description,
@@ -158,6 +163,9 @@ export async function updateProduct(req, res) {
 
     // Remove undefined fields to avoid overwriting with null/undefined
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    // Update fields
+    Object.assign(product, updateData);
 
     // handle image updates if new images are uploaded
     if (req.files && req.files.length > 0) {

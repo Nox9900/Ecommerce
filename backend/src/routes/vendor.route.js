@@ -5,6 +5,7 @@ import {
     createVendorProduct,
     getVendorProducts,
     getVendorStats,
+    updateVendorProduct,
 } from "../controllers/vendor.controller.js";
 import {
     createConnectAccount,
@@ -26,6 +27,7 @@ router.get("/profile", protectRoute, vendorOnly, getVendorProfile);
 router.get("/stats", protectRoute, vendorOnly, getVendorStats);
 router.get("/products", protectRoute, vendorOnly, getVendorProducts);
 router.post("/products", protectRoute, vendorOnly, upload.array("images", 3), createVendorProduct);
+router.put("/products/:id", protectRoute, vendorOnly, upload.array("images", 3), updateVendorProduct);
 router.post("/withdrawals", protectRoute, vendorOnly, requestWithdrawal);
 router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
 

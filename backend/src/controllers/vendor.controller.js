@@ -131,3 +131,63 @@ export const getVendorStats = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const updateVendorProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, price, stock, category, subcategory, brand, isSubsidy, soldCount, shop, attributes } = req.body;
+        const vendor = await Vendor.findOne({ owner: req.user._id });
+
+        if (!vendor || vendor.status !== "approved") {
+            return res.status(403).json({ message: "Only approved vendors can update products" });
+        }
+
+        const product = await Product.findOne({ _id: id, vendor: vendor._id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found or not owned by you" });
+        }
+
+        const updateData = {
+            name,
+            description,
+            price: price ? parseFloat(price) : undefined,
+            originalPrice: req.body.originalPrice ? parseFloat(req.body.originalPrice) : undefined,
+            stock: stock ? parseInt(stock) : undefined,
+            category,
+            subcategory,
+            brand,
+            isSubsidy: isSubsidy !== undefined ? (isSubsidy === "true" || isSubsidy === true) : undefined,
+            soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
+            attributes: attributes ? JSON.parse(attributes) : undefined,
+            shop: shop || undefined,
+        };
+
+        // Remove undefined fields
+        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+        // Merge updates
+        Object.assign(product, updateData);
+
+        // handle image updates
+        if (req.files && req.files.length > 0) {
+            if (req.files.length > 3) {
+                return res.status(400).json({ message: "Maximum 3 images allowed" });
+            }
+
+            const uploadPromises = req.files.map((file) => {
+                return cloudinary.uploader.upload(file.path, {
+                    folder: "products",
+                });
+            });
+
+            const uploadResults = await Promise.all(uploadPromises);
+            product.images = uploadResults.map((result) => result.secure_url);
+        }
+
+        await product.save();
+        res.status(200).json(product);
+    } catch (error) {
+        console.error("Error updating vendor product:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
