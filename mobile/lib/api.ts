@@ -2,14 +2,10 @@ import { useAuth } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useEffect } from "react";
 
-// localhost will work in simulator
-const API_URL = "https://ecommerce-production-aa.up.railway.app/api";
-
-// prod url will work in your physical device
-// const API_URL = "https://expo-ecommerce-th4ln.sevalla.app/api"
+const API = process.env.EXPO_PUBLIC_API_URL!;
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API,
   headers: {
     "Content-Type": "application/json",
   },

@@ -38,7 +38,14 @@ export const startConversation = async (req, res) => {
     try {
         const { participantId } = req.body;
         const user = req.user;
-        const participant = await User.findById(participantId);
+        let participant = await User.findById(participantId);
+
+        if (!participant) {
+            const vendor = await Vendor.findById(participantId);
+            if (vendor) {
+                participant = await User.findById(vendor.owner);
+            }
+        }
 
         if (!participant) {
             return res.status(404).json({ message: "Participant not found" });
