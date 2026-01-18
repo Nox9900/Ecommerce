@@ -36,30 +36,48 @@ export default function ChatScreen() {
     const api = useApi();
     const queryClient = useQueryClient();
     const [inputText, setInputText] = useState("");
+    const [conversationId, setConversationId] = useState<string | null>(productId ? null : receiverId);
     const flatListRef = useRef<FlatList>(null);
+
+    // Initialize conversation if needed (e.g., from product page)
+    useEffect(() => {
+        if (!conversationId && receiverId) {
+            const initChat = async () => {
+                try {
+                    const { data } = await api.post("/chats", { participantId: receiverId });
+                    setConversationId(data._id);
+                } catch (error) {
+                    console.error("Failed to initialize chat:", error);
+                }
+            };
+            initChat();
+        }
+    }, [conversationId, receiverId]);
 
     // Fetch messages
     const { data: messages, isLoading } = useQuery<Message[]>({
-        queryKey: ["chat", receiverId],
+        queryKey: ["chat", conversationId],
         queryFn: async () => {
-            const { data } = await api.get(`/chat/${receiverId}`);
-            return data.messages;
+            if (!conversationId) return [];
+            const { data } = await api.get(`/chats/${conversationId}/messages`);
+            return data;
         },
-        refetchInterval: 5000, // Polling every 5 seconds for now
+        enabled: !!conversationId,
+        refetchInterval: 5000,
     });
 
     // Send message mutation
     const sendMessage = useMutation({
         mutationFn: async (text: string) => {
-            const { data } = await api.post("/chat", {
-                receiverId,
-                text,
-                productId, // Include productId if present
+            if (!conversationId) throw new Error("Conversation not initialized");
+            const { data } = await api.post("/chats/message", {
+                conversationId,
+                content: text,
             });
-            return data.message;
+            return data;
         },
         onSuccess: (newMessage) => {
-            queryClient.setQueryData(["chat", receiverId], (old: Message[] = []) => [
+            queryClient.setQueryData(["chat", conversationId], (old: Message[] = []) => [
                 ...old,
                 newMessage,
             ]);
@@ -68,7 +86,7 @@ export default function ChatScreen() {
     });
 
     const handleSend = () => {
-        if (!inputText.trim()) return;
+        if (!inputText.trim() || !conversationId) return;
         sendMessage.mutate(inputText);
     };
 

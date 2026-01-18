@@ -4,12 +4,7 @@ import { User } from "../models/user.model.js";
 
 export const getConversations = async (req, res) => {
     try {
-        const userId = req.auth.userId;
-        const user = await User.findOne({ clerkId: userId });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = req.user;
 
         const conversations = await Conversation.find({
             participants: user._id,
@@ -41,12 +36,11 @@ export const getMessages = async (req, res) => {
 export const startConversation = async (req, res) => {
     try {
         const { participantId } = req.body;
-        const userId = req.auth.userId;
-        const user = await User.findOne({ clerkId: userId });
+        const user = req.user;
         const participant = await User.findById(participantId);
 
-        if (!user || !participant) {
-            return res.status(404).json({ message: "User or participant not found" });
+        if (!participant) {
+            return res.status(404).json({ message: "Participant not found" });
         }
 
         let conversation = await Conversation.findOne({
@@ -72,12 +66,7 @@ export const startConversation = async (req, res) => {
 export const sendMessage = async (req, res) => {
     try {
         const { conversationId, content } = req.body;
-        const userId = req.auth.userId;
-        const user = await User.findOne({ clerkId: userId });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = req.user;
 
         const newMessage = new Message({
             conversationId,

@@ -6,7 +6,14 @@ import useProducts from "@/hooks/useProducts";
 import useWishlist from "@/hooks/useWishlist";
 import { useProductReviews } from "@/hooks/useReviews";
 import { useOrders } from "@/hooks/useOrders";
+import { useAddresses } from "@/hooks/useAddressess";
+import { useStripe } from "@stripe/stripe-react-native";
+import { useApi } from "@/lib/api";
 import ReviewModal from "@/components/ReviewModal";
+import AddressSelectionModal from "@/components/AddressSelectionModal";
+import { Address } from "@/types";
+import { useTranslation } from "react-i18next";
+import * as Sentry from "@sentry/react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -37,7 +44,11 @@ const ProductDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: product, isError, isLoading } = useProduct(id);
   const { data: allProducts } = useProducts();
-  const { addToCart, isAddingToCart } = useCart();
+  const { addToCart, isAddingToCart, clearCart } = useCart();
+  const { addresses } = useAddresses();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const api = useApi();
+  const { t } = useTranslation();
   const { theme } = useTheme();
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
@@ -53,6 +64,8 @@ const ProductDetailScreen = () => {
   const [startingChat, setStartingChat] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   const { data: reviews } = useProductReviews(id);
   const { data: orders } = useOrders();
@@ -114,6 +127,85 @@ const ProductDetailScreen = () => {
     );
   };
 
+  const handleBuyNow = () => {
+    if (!product) return;
+
+    // Check variant selection
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
+      Alert.alert("Selection Required", "Please select all options before buying.");
+      return;
+    }
+
+    // Check addresses
+    if (!addresses || addresses.length === 0) {
+      Alert.alert("Address Required", "Please add a shipping address in your profile before buying.");
+      router.push("/(tabs)/profile");
+      return;
+    }
+
+    setAddressModalVisible(true);
+  };
+
+  const handleProceedWithPayment = async (selectedAddress: Address) => {
+    if (!product) return;
+    setAddressModalVisible(false);
+
+    Sentry.logger.info("Direct Buy initiated", {
+      productId: product._id,
+      variantId: selectedVariant?._id,
+      quantity,
+      total: currentPrice * quantity,
+    });
+
+    try {
+      setPaymentLoading(true);
+
+      const items = [{
+        product: product,
+        quantity,
+        variantId: selectedVariant?._id,
+        selectedOptions
+      }];
+
+      const { data } = await api.post("/payment/create-intent", {
+        cartItems: items,
+        shippingAddress: {
+          fullName: selectedAddress.fullName,
+          streetAddress: selectedAddress.streetAddress,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zipCode: selectedAddress.zipCode,
+          phoneNumber: selectedAddress.phoneNumber,
+        },
+      });
+
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: data.clientSecret,
+        merchantDisplayName: "E-Commerce App",
+      });
+
+      if (initError) {
+        Alert.alert("Error", initError.message);
+        setPaymentLoading(false);
+        return;
+      }
+
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        Alert.alert("Payment cancelled", presentError.message);
+      } else {
+        Alert.alert(t('common.success'), t('common.payment_success'));
+        // Optionally navigate to orders or stay on page
+      }
+    } catch (error) {
+      console.error("Direct buy payment failed:", error);
+      Alert.alert(t('common.error'), t('common.error_desc'));
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   const handleShare = async () => {
     if (!product) return;
     try {
@@ -137,17 +229,16 @@ const ProductDetailScreen = () => {
 
     try {
       setStartingChat(true);
-      const token = await getToken();
-      const response = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/chats`,
-        { participantId: product.vendor }, // Assuming product.vendor is the ID or contains _id
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const { data: conversation } = await api.post("/chats", { participantId: product.vendor });
 
-      const conversation = response.data;
-      router.push(`/chat/${conversation._id}` as any);
+      router.push({
+        pathname: `/chat/${conversation._id}`,
+        params: {
+          productId: product._id,
+          productName: product.name,
+          productImage: product.images[0]
+        }
+      } as any);
     } catch (error) {
       console.error("Error starting chat:", error);
       Alert.alert("Error", "Failed to start chat with vendor");
@@ -519,20 +610,20 @@ const ProductDetailScreen = () => {
         <View className="flex-1 flex-row gap-3">
           {/* Buy Now*/}
           <TouchableOpacity
-            className={`flex-1 rounded-xl py-3.5 flex-row items-center justify-center border ${!inStock
+            className={`flex-1 rounded-xl py-3.5 flex-row items-center justify-center border ${!inStock || paymentLoading
               ? (theme === 'dark' ? "bg-white/5 border-white/5" : "bg-gray-100 border-black/5")
               : (theme === 'dark' ? "bg-white border-white" : "bg-black border-black")}`}
             activeOpacity={0.85}
-            onPress={() => {
-              if (inStock) {
-                Alert.alert("Buy Now", "Proceeding to checkout...");
-              }
-            }}
-            disabled={!inStock}
+            onPress={handleBuyNow}
+            disabled={!inStock || paymentLoading}
           >
-            <Text className={`font-bold text-sm ${!inStock ? "text-text-secondary" : (theme === 'dark' ? "text-black" : "text-white")}`}>
-              {!inStock ? "Sold Out" : "Buy Now"}
-            </Text>
+            {paymentLoading ? (
+              <ActivityIndicator size="small" color={theme === 'dark' ? "black" : "white"} />
+            ) : (
+              <Text className={`font-bold text-sm ${!inStock ? "text-text-secondary" : (theme === 'dark' ? "text-black" : "text-white")}`}>
+                {!inStock ? "Sold Out" : "Buy Now"}
+              </Text>
+            )}
           </TouchableOpacity>
 
           {/* Add to Cart */}
@@ -605,6 +696,13 @@ const ProductDetailScreen = () => {
           productName={product.name}
         />
       )}
+
+      <AddressSelectionModal
+        visible={addressModalVisible}
+        onClose={() => setAddressModalVisible(false)}
+        onProceed={handleProceedWithPayment}
+        isProcessing={paymentLoading}
+      />
     </View>
   );
 };
