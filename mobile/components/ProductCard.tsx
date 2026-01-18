@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -16,6 +16,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
     if (!product) return null;
 
     const scale = useSharedValue(1);
+    const router = useRouter();
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
     const { t } = useTranslation();
     const { theme } = useTheme();
@@ -42,65 +43,76 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
     // Mock sold count based on price (just for visuals)
     const mockSold = Math.floor(product.price * 10 + Math.random() * 100);
 
+    const handlePress = () => {
+        router.push(`/product/${product._id}`);
+    };
+
+    const handleShopPress = (e: any) => {
+        e.stopPropagation();
+        if (typeof product.shop === 'object' && (product.shop as any)?._id) {
+            router.push(`/shop/${(product.shop as any)._id}`);
+        } else if (product.shop) {
+            router.push(`/shop/${product.shop}`);
+        }
+    };
+
     return (
-        <Link href={`/product/${product._id}`} asChild>
-            <Pressable
-                className="flex-1 m-1.5"
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
+        <Pressable
+            className="flex-1 m-1.5"
+            onPress={handlePress}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+        >
+            <Animated.View
+                className="bg-white dark:bg-zinc-900 rounded-lg overflow-hidden shadow-sm border border-black/5 dark:border-white/5 pb-2"
+                style={animatedStyle}
             >
-                <Animated.View
-                    className="bg-white dark:bg-zinc-900 rounded-lg overflow-hidden shadow-sm border border-black/5 dark:border-white/5 pb-2"
-                    style={animatedStyle}
-                >
-                    <View className="relative">
-                        <Image
-                            source={{ uri: product.images[0] }}
-                            className="w-full h-44 bg-gray-100 dark:bg-zinc-800"
-                            resizeMode="cover"
-                        />
+                <View className="relative">
+                    <Image
+                        source={{ uri: product.images[0] }}
+                        className="w-full h-44 bg-gray-100 dark:bg-zinc-800"
+                        resizeMode="cover"
+                    />
+                </View>
+
+                <View className="p-2">
+                    {/* Title */}
+                    <Text
+                        className="text-text-primary text-[13px] font-bold mb-1.5 leading-4"
+                        numberOfLines={2}
+                    >
+                        {t('db.' + product.name, { defaultValue: product.name })}
+                    </Text>
+
+                    {/* Tags (Mock) */}
+                    <View className="flex-row gap-1 mb-2">
+                        <View className="border border-red-500/30 px-1 rounded-[2px]">
+                            <Text className="text-[9px] text-red-500 font-medium">Free Return</Text>
+                        </View>
+                        <View className="border border-orange-500/30 px-1 rounded-[2px]">
+                            <Text className="text-[9px] text-orange-500 font-medium">Fast Ship</Text>
+                        </View>
                     </View>
 
-                    <View className="p-2">
-                        {/* Title */}
-                        <Text
-                            className="text-text-primary text-[13px] font-bold mb-1.5 leading-4"
-                            numberOfLines={2}
-                        >
-                            {t('db.' + product.name, { defaultValue: product.name })}
+                    {/* Price and Sold */}
+                    <View className="flex-row items-end justify-between">
+                        <View className="flex-row items-baseline gap-1">
+                            <Text className="text-red-600 font-black text-xs">¥</Text>
+                            <Text className="text-red-600 font-black text-lg -ml-0.5">{product.price.toFixed(0)}</Text>
+                            <Text className="text-red-600 font-bold text-xs">.{(product.price % 1 * 100).toFixed(0)}</Text>
+                        </View>
+                        <Text className="text-[#9CA3AF] text-[10px] mb-0.5">Sold {mockSold > 1000 ? (mockSold / 1000).toFixed(1) + 'k' : mockSold}</Text>
+                    </View>
+
+                    {/* Shop Name / Avatar Row */}
+                    <Pressable onPress={handleShopPress} className="flex-row items-center mt-2 opacity-70">
+                        <Text className="text-[10px] text-text-tertiary truncate" numberOfLines={1}>
+                            {(typeof product.shop === 'object' ? (product.shop as any).name : "Official Store") || "Official Store"} &gt;
                         </Text>
+                    </Pressable>
 
-                        {/* Tags (Mock) */}
-                        <View className="flex-row gap-1 mb-2">
-                            <View className="border border-red-500/30 px-1 rounded-[2px]">
-                                <Text className="text-[9px] text-red-500 font-medium">Free Return</Text>
-                            </View>
-                            <View className="border border-orange-500/30 px-1 rounded-[2px]">
-                                <Text className="text-[9px] text-orange-500 font-medium">Fast Ship</Text>
-                            </View>
-                        </View>
-
-                        {/* Price and Sold */}
-                        <View className="flex-row items-end justify-between">
-                            <View className="flex-row items-baseline gap-1">
-                                <Text className="text-red-600 font-black text-xs">¥</Text>
-                                <Text className="text-red-600 font-black text-lg -ml-0.5">{product.price.toFixed(0)}</Text>
-                                <Text className="text-red-600 font-bold text-xs">.{(product.price % 1 * 100).toFixed(0)}</Text>
-                            </View>
-                            <Text className="text-[#9CA3AF] text-[10px] mb-0.5">Sold {mockSold > 1000 ? (mockSold / 1000).toFixed(1) + 'k' : mockSold}</Text>
-                        </View>
-
-                        {/* Shop Name / Avatar Row */}
-                        <View className="flex-row items-center mt-2 opacity-70">
-                            {/* <View className="w-4 h-4 rounded-full bg-gray-200 mr-1" /> */}
-                            <Text className="text-[10px] text-text-tertiary truncate" numberOfLines={1}>
-                                {typeof product.shop === 'object' ? product.shop.name : "Official Store"} &gt;
-                            </Text>
-                        </View>
-
-                    </View>
-                </Animated.View>
-            </Pressable>
-        </Link>
+                </View>
+            </Animated.View>
+        </Pressable>
     );
 };

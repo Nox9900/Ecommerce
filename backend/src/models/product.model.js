@@ -74,6 +74,19 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
     },
+    variants: [
+      {
+        name: String,
+        options: {
+          type: Map,
+          of: String,
+        },
+        price: Number,
+        stock: Number,
+        sku: String,
+        image: String,
+      },
+    ],
   },
   { timestamps: true }
 );

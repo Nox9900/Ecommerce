@@ -28,17 +28,35 @@ export async function createPaymentIntent(req, res) {
         return res.status(404).json({ error: `Product ${item.product.name} not found` });
       }
 
-      if (product.stock < item.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+      let price = product.price;
+      let name = product.name;
+      let image = product.images[0];
+
+      if (item.variantId) {
+        const variant = product.variants.find((v) => v._id.toString() === item.variantId);
+        if (!variant) {
+          return res.status(404).json({ error: `Variant not found for ${product.name}` });
+        }
+        if (variant.stock < item.quantity) {
+          return res.status(400).json({ error: `Insufficient stock for ${product.name} (${variant.name})` });
+        }
+        price = variant.price || product.price;
+        name = `${product.name} - ${variant.name}`;
+        if (variant.image) image = variant.image;
+      } else {
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+        }
       }
 
-      subtotal += product.price * item.quantity;
+      subtotal += price * item.quantity;
       validatedItems.push({
         product: product._id.toString(),
-        name: product.name,
-        price: product.price,
+        variantId: item.variantId,
+        name,
+        price,
         quantity: item.quantity,
-        image: product.images[0],
+        image,
         selectedOptions: item.selectedOptions,
       });
     }
@@ -52,12 +70,11 @@ export async function createPaymentIntent(req, res) {
     }
 
     // find or create the stripe customer
+    // ... (lines 55-72 remain same)
     let customer;
     if (user.stripeCustomerId) {
-      // find the customer
       customer = await stripe.customers.retrieve(user.stripeCustomerId);
     } else {
-      // create the customer
       customer = await stripe.customers.create({
         email: user.email,
         name: user.name,
@@ -66,8 +83,6 @@ export async function createPaymentIntent(req, res) {
           userId: user._id.toString(),
         },
       });
-
-      // add the stripe customer ID to the  user object in the DB
       await User.findByIdAndUpdate(user._id, { stripeCustomerId: customer.id });
     }
 
@@ -86,7 +101,6 @@ export async function createPaymentIntent(req, res) {
         shippingAddress: JSON.stringify(shippingAddress),
         totalPrice: total.toFixed(2),
       },
-      // in the webhooks section we will use this metadata
     });
 
     res.status(200).json({ clientSecret: paymentIntent.client_secret });
@@ -115,7 +129,6 @@ export async function handleWebhook(req, res) {
     try {
       const { userId, clerkId, orderItems, shippingAddress, totalPrice } = paymentIntent.metadata;
 
-      // Check if order already exists (prevent duplicates)
       const existingOrder = await Order.findOne({ "paymentResult.id": paymentIntent.id });
       if (existingOrder) {
         console.log("Order already exists for payment:", paymentIntent.id);
@@ -140,17 +153,44 @@ export async function handleWebhook(req, res) {
       for (const item of items) {
         const product = await Product.findById(item.product);
         if (product) {
-          // Update stock
-          product.stock -= item.quantity;
-          await product.save();
+          if (item.variantId) {
+            // Update variant stock
+            const variant = product.variants.find((v) => v._id.toString() === item.variantId);
+            if (variant) {
+              variant.stock -= item.quantity;
+              await product.save();
+            }
+          } else {
+            // Update main product stock
+            product.stock -= item.quantity;
+            await product.save();
+          }
 
-          // Update vendor earnings
+          // Update vendor earnings (simplified)
           const vendor = await Vendor.findById(product.vendor);
           if (vendor) {
             const commissionRate = vendor.commissionRate ?? 0.1;
             const vendorEarnings = item.price * item.quantity * (1 - commissionRate);
             vendor.earnings += vendorEarnings;
             await vendor.save();
+
+            // Handle Stripe Connect Transfer
+            if (vendor.stripeConnectId && vendor.payoutsEnabled) {
+              try {
+                await stripe.transfers.create({
+                  amount: Math.round(vendorEarnings * 100), // convert to cents
+                  currency: "usd",
+                  destination: vendor.stripeConnectId,
+                  metadata: {
+                    orderId: order._id.toString(),
+                    productId: product._id.toString(),
+                  },
+                });
+                console.log(`Transferred $${vendorEarnings.toFixed(2)} to vendor ${vendor.shopName}`);
+              } catch (transferError) {
+                console.error(`Failed to transfer to vendor ${vendor._id}:`, transferError);
+              }
+            }
           }
         }
       }

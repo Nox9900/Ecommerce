@@ -34,6 +34,14 @@ const vendorSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        stripeConnectId: {
+            type: String,
+            default: "",
+        },
+        payoutsEnabled: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );

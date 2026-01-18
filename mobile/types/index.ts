@@ -14,6 +14,15 @@ export interface Product {
   images: string[];
   averageRating: number;
   totalReviews: number;
+  variants?: {
+    _id: string;
+    name: string;
+    options: Record<string, string>;
+    price: number;
+    stock: number;
+    sku?: string;
+    image?: string;
+  }[];
   vendor: string | Vendor;
   shop: string | Shop;
   createdAt: string;
@@ -117,6 +126,7 @@ export interface CartItem {
   _id: string;
   product: Product;
   quantity: number;
+  variantId?: string;
   selectedOptions?: Record<string, string>;
 }
 
