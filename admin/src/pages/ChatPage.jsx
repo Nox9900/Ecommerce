@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import axios from "axios";
 import { io } from "socket.io-client";
 import { Send, User as UserIcon, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
+import { chatApi } from "../lib/api";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -152,21 +152,14 @@ const ChatPage = () => {
         try {
             setLoading(true);
             setError(null);
-            const token = await getToken();
 
-            if (!token) {
-                throw new Error("No authentication token available");
-            }
-
-            const res = await axios.get(`${API_URL}/api/chats`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const data = await chatApi.getConversations();
 
             // Ensure we always set an array
-            if (Array.isArray(res.data)) {
-                setConversations(res.data);
+            if (Array.isArray(data)) {
+                setConversations(data);
             } else {
-                console.error("Invalid response format:", res.data);
+                console.error("Invalid response format:", data);
                 setConversations([]);
                 toast.error("Received invalid data format");
             }
@@ -182,21 +175,13 @@ const ChatPage = () => {
 
     const fetchMessages = async (id) => {
         try {
-            const token = await getToken();
-
-            if (!token) {
-                throw new Error("No authentication token available");
-            }
-
-            const res = await axios.get(`${API_URL}/api/chats/${id}/messages`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const data = await chatApi.getMessages(id);
 
             // Ensure we always set an array
-            if (Array.isArray(res.data)) {
-                setMessages(res.data);
+            if (Array.isArray(data)) {
+                setMessages(data);
             } else {
-                console.error("Invalid messages format:", res.data);
+                console.error("Invalid messages format:", data);
                 setMessages([]);
             }
             scrollToBottom();
@@ -212,18 +197,16 @@ const ChatPage = () => {
         if (!inputText.trim() || !selectedConversation) return;
 
         try {
-            const token = await getToken();
             const content = inputText.trim();
             setInputText("");
 
             // Optimistic update handled by socket return, but we can also push manually if we want instant feedback.
             // waiting for socket is safer for consistency.
 
-            await axios.post(
-                `${API_URL}/api/chats/message`,
-                { conversationId: selectedConversation._id, content },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await chatApi.sendMessage({
+                conversationId: selectedConversation._id,
+                content
+            });
         } catch (error) {
             console.error("Error sending message", error);
             toast.error("Failed to send message");

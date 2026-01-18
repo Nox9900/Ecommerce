@@ -143,3 +143,22 @@ export const shopApi = {
     return data;
   },
 };
+
+export const chatApi = {
+  getConversations: async () => {
+    const { data } = await axiosInstance.get("/chats");
+    return data;
+  },
+  getMessages: async (conversationId) => {
+    const { data } = await axiosInstance.get(`/chats/${conversationId}/messages`);
+    return data;
+  },
+  sendMessage: async (messageData) => {
+    const { data } = await axiosInstance.post("/chats/message", messageData);
+    return data;
+  },
+  startConversation: async (participantId) => {
+    const { data } = await axiosInstance.post("/chats", { participantId });
+    return data;
+  },
+};
