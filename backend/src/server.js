@@ -18,11 +18,11 @@ import reviewRoutes from "./routes/review.route.js";
 import productRoutes from "./routes/product.route.js";
 import cartRoutes from "./routes/cart.route.js";
 import paymentRoutes from "./routes/payment.route.js";
-import heroRoutes from "./routes/hero.route.js";
 import categoryRoutes from "./routes/category.route.js";
 import vendorRoutes from "./routes/vendor.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import shopRoutes from "./routes/shop.route.js";
+import promoBannerRoutes from "./routes/promoBanner.route.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -76,11 +76,11 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/hero", heroRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/shops", shopRoutes);
+app.use("/api/promo-banners", promoBannerRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success inside the server nnow!!!! wooohhhhh" });

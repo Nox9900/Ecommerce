@@ -53,20 +53,6 @@ export const customerApi = {
 };
 
 export const mobileApi = {
-  // Hero
-  getHero: async () => {
-    const { data } = await axiosInstance.get("/hero");
-    return data;
-  },
-  updateHero: async (id, heroData) => {
-    const { data } = await axiosInstance.put(`/hero/${id}`, heroData);
-    return data;
-  },
-  createHero: async (heroData) => {
-    const { data } = await axiosInstance.post("/hero", heroData);
-    return data;
-  },
-
   // Categories
   getCategories: async () => {
     const { data } = await axiosInstance.get("/categories/all");
@@ -86,6 +72,24 @@ export const mobileApi = {
   },
   deleteCategory: async (id) => {
     const { data } = await axiosInstance.delete(`/categories/${id}`);
+    return data;
+  },
+
+  // Promo Banners
+  getPromoBanners: async () => {
+    const { data } = await axiosInstance.get("/promo-banners/all");
+    return data;
+  },
+  createPromoBanner: async (bannerData) => {
+    const { data } = await axiosInstance.post("/promo-banners", bannerData);
+    return data;
+  },
+  updatePromoBanner: async (id, bannerData) => {
+    const { data } = await axiosInstance.put(`/promo-banners/${id}`, bannerData);
+    return data;
+  },
+  deletePromoBanner: async (id) => {
+    const { data } = await axiosInstance.delete(`/promo-banners/${id}`);
     return data;
   },
 };

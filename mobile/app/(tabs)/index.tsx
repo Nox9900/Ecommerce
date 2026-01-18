@@ -28,8 +28,11 @@ const ShopScreen = () => {
   }, [categories, selectedCategoryId]);
 
   const subcategories = useMemo(() => {
-    return activeCategory?.subcategories || undefined;
-  }, [activeCategory]);
+    if (selectedCategoryId === "all") {
+      return categories?.reduce((acc: any[], cat: any) => [...acc, ...(cat.subcategories || [])], []) || [];
+    }
+    return activeCategory?.subcategories || [];
+  }, [categories, activeCategory, selectedCategoryId]);
 
   const handleQuickLinkPress = (link: any) => {
     // If it's a subcategory from the database
@@ -70,8 +73,8 @@ const ShopScreen = () => {
     let filtered = products;
 
     // filtering by category
-    if (selectedCategoryId !== "all") {
-      filtered = filtered.filter((product) => product.category === selectedCategoryId);
+    if (selectedCategoryId !== "all" && activeCategory) {
+      filtered = filtered.filter((product) => product.category === activeCategory.name);
     }
 
     // filtering by searh query (acts as subcategory filter if user clicked subcategory)

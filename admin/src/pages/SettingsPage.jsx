@@ -17,6 +17,8 @@ function SettingsPage() {
     const queryClient = useQueryClient();
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+    const [showBannerModal, setShowBannerModal] = useState(false);
+    const [editingBanner, setEditingBanner] = useState(null);
 
     const [categoryForm, setCategoryForm] = useState({
         name: "",
@@ -34,13 +36,23 @@ function SettingsPage() {
         isActive: true
     });
 
+    const [bannerForm, setBannerForm] = useState({
+        title: "",
+        label: "Official Subsidy",
+        imageUrl: "",
+        price: "",
+        type: "subsidy",
+        isActive: true,
+        displayOrder: 0
+    });
+
     // Subcategory handlers
     const addSubcategory = () => {
         setCategoryForm({
             ...categoryForm,
             subcategories: [
                 ...categoryForm.subcategories,
-                { name: "", icon: "", displayOrder: categoryForm.subcategories.length, isActive: true }
+                { name: "", icon: "", color: "#3B82F6", displayOrder: categoryForm.subcategories.length, isActive: true }
             ]
         });
     };
@@ -58,39 +70,17 @@ function SettingsPage() {
     };
 
     // Fetch Data
-    const { data: heroData, isLoading: heroLoading } = useQuery({
-        queryKey: ["hero"],
-        queryFn: mobileApi.getHero,
-        onSuccess: (data) => {
-            if (data) {
-                setHeroForm({
-                    title: data.title || "",
-                    subtitle: data.subtitle || "",
-                    label: data.label || "",
-                    imageUrl: data.imageUrl || "",
-                    isActive: data.isActive ?? true
-                });
-            }
-        }
-    });
-
     const { data: categories = [], isLoading: categoriesLoading } = useQuery({
         queryKey: ["categories-all"],
         queryFn: mobileApi.getCategories
     });
 
-    // Hero Mutations
-    const updateHeroMutation = useMutation({
-        mutationFn: (data) => heroData?._id
-            ? mobileApi.updateHero(heroData._id, data)
-            : mobileApi.createHero(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["hero"] });
-            alert("Hero section updated successfully!");
-        }
+    const { data: banners = [], isLoading: bannersLoading } = useQuery({
+        queryKey: ["promo-banners-all"],
+        queryFn: mobileApi.getPromoBanners
     });
 
-    // Category Mutations
+    // Mutations
     const createCategoryMutation = useMutation({
         mutationFn: mobileApi.createCategory,
         onSuccess: () => {
@@ -114,18 +104,45 @@ function SettingsPage() {
         }
     });
 
-    // Handlers
-    const handleHeroSubmit = (e) => {
-        e.preventDefault();
-        updateHeroMutation.mutate(heroForm);
-    };
+    const createBannerMutation = useMutation({
+        mutationFn: mobileApi.createPromoBanner,
+        onSuccess: () => {
+            closeBannerModal();
+            queryClient.invalidateQueries({ queryKey: ["promo-banners-all"] });
+        }
+    });
 
+    const updateBannerMutation = useMutation({
+        mutationFn: ({ id, data }) => mobileApi.updatePromoBanner(id, data),
+        onSuccess: () => {
+            closeBannerModal();
+            queryClient.invalidateQueries({ queryKey: ["promo-banners-all"] });
+        }
+    });
+
+    const deleteBannerMutation = useMutation({
+        mutationFn: mobileApi.deletePromoBanner,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["promo-banners-all"] });
+        }
+    });
+
+    // Handlers
     const handleCategorySubmit = (e) => {
         e.preventDefault();
         if (editingCategory) {
             updateCategoryMutation.mutate({ id: editingCategory._id, data: categoryForm });
         } else {
             createCategoryMutation.mutate(categoryForm);
+        }
+    };
+
+    const handleBannerSubmit = (e) => {
+        e.preventDefault();
+        if (editingBanner) {
+            updateBannerMutation.mutate({ id: editingBanner._id, data: bannerForm });
+        } else {
+            createBannerMutation.mutate(bannerForm);
         }
     };
 
@@ -141,6 +158,20 @@ function SettingsPage() {
         setShowCategoryModal(true);
     };
 
+    const handleEditBanner = (banner) => {
+        setEditingBanner(banner);
+        setBannerForm({
+            title: banner.title,
+            label: banner.label,
+            imageUrl: banner.imageUrl,
+            price: banner.price,
+            type: banner.type,
+            isActive: banner.isActive,
+            displayOrder: banner.displayOrder
+        });
+        setShowBannerModal(true);
+    };
+
     const closeCategoryModal = () => {
         setShowCategoryModal(false);
         setEditingCategory(null);
@@ -150,6 +181,20 @@ function SettingsPage() {
             displayOrder: 0,
             isActive: true,
             subcategories: []
+        });
+    };
+
+    const closeBannerModal = () => {
+        setShowBannerModal(false);
+        setEditingBanner(null);
+        setBannerForm({
+            title: "",
+            label: "Official Subsidy",
+            imageUrl: "",
+            price: "",
+            type: "subsidy",
+            isActive: true,
+            displayOrder: 0
         });
     };
 
@@ -163,106 +208,64 @@ function SettingsPage() {
                 <p className="text-base-content/70 mt-1">Configure the look and feel of your mobile application.</p>
             </header>
 
-            {/* Hero Section Management */}
+            {/* Promo Banners Management */}
             <section className="card bg-base-100 shadow-xl border border-base-200">
                 <div className="card-body">
-                    <h2 className="card-title flex items-center gap-2 mb-4">
-                        <LayoutIcon className="w-5 h-5 text-secondary" />
-                        Hero Section
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="card-title flex items-center gap-2">
+                            <LayoutIcon className="w-5 h-5 text-warning" />
+                            Promo Banners
+                        </h2>
+                        <button
+                            onClick={() => setShowBannerModal(true)}
+                            className="btn btn-sm btn-outline btn-warning gap-2"
+                        >
+                            <PlusIcon className="w-4 h-4" />
+                            Add Banner
+                        </button>
+                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <form onSubmit={handleHeroSubmit} className="space-y-4">
-                            <div className="form-control">
-                                <label className="label"><span className="label-text">Label</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. New Collection"
-                                    className="input input-bordered"
-                                    value={heroForm.label}
-                                    onChange={(e) => setHeroForm({ ...heroForm, label: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="form-control">
-                                <label className="label"><span className="label-text">Title</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Summer Sale"
-                                    className="input input-bordered"
-                                    value={heroForm.title}
-                                    onChange={(e) => setHeroForm({ ...heroForm, title: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-control">
-                                <label className="label"><span className="label-text">Subtitle</span></label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Up to 50% off"
-                                    className="input input-bordered"
-                                    value={heroForm.subtitle}
-                                    onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="form-control">
-                                <label className="label"><span className="label-text">Image URL</span></label>
-                                <input
-                                    type="url"
-                                    placeholder="https://..."
-                                    className="input input-bordered"
-                                    value={heroForm.imageUrl}
-                                    onChange={(e) => setHeroForm({ ...heroForm, imageUrl: e.target.value })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-control">
-                                <label className="label cursor-pointer justify-start gap-4">
-                                    <span className="label-text">Active</span>
-                                    <input
-                                        type="checkbox"
-                                        className="toggle toggle-primary"
-                                        checked={heroForm.isActive}
-                                        onChange={(e) => setHeroForm({ ...heroForm, isActive: e.target.checked })}
-                                    />
-                                </label>
-                            </div>
-
-                            <div className="card-actions justify-end mt-4">
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary gap-2"
-                                    disabled={updateHeroMutation.isPending}
-                                >
-                                    {updateHeroMutation.isPending ? <span className="loading loading-spinner"></span> : <SaveIcon className="w-4 h-4" />}
-                                    Save Hero Section
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-semibold opacity-60 uppercase tracking-wider">Preview (Mobile Look)</h3>
-                            <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-lg bg-base-300">
-                                {heroForm.imageUrl ? (
-                                    <img src={heroForm.imageUrl} className="w-full h-full object-cover" alt="Hero Preview" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-base-content/20 italic">No image provided</div>
-                                )}
-                                <div className="absolute inset-0 bg-black/40" />
-                                <div className="absolute bottom-0 left-0 p-4 text-white">
-                                    <div className="bg-primary/90 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full inline-block mb-1">{heroForm.label || "Label"}</div>
-                                    <h4 className="text-xl font-bold">{heroForm.title || "Hero Title"}</h4>
-                                    <p className="text-xs opacity-80">{heroForm.subtitle || "Subtitle message goes here"}</p>
-                                </div>
-                            </div>
-                            <div className="alert bg-base-200 border-none text-xs">
-                                <InfoIcon className="w-4 h-4" />
-                                <span>The mobile app uses a blurred overlay for text readability.</span>
-                            </div>
-                        </div>
+                    <div className="overflow-x-auto">
+                        <table className="table table-zebra w-full text-base-content">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Price</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th className="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bannersLoading ? (
+                                    <tr><td colSpan="5" className="text-center py-10"><span className="loading loading-spinner loading-lg"></span></td></tr>
+                                ) : banners.length === 0 ? (
+                                    <tr><td colSpan="5" className="text-center py-10 opacity-60 italic">No promo banners yet.</td></tr>
+                                ) : banners.map((banner) => (
+                                    <tr key={banner._id}>
+                                        <td className="font-bold">{banner.title}</td>
+                                        <td>{banner.price}</td>
+                                        <td><div className="badge badge-outline text-[10px] uppercase">{banner.type}</div></td>
+                                        <td>
+                                            <div className={`badge badge-sm ${banner.isActive ? 'badge-success' : 'badge-ghost opacity-50'}`}>
+                                                {banner.isActive ? 'Active' : 'Inactive'}
+                                            </div>
+                                        </td>
+                                        <td className="text-right flex justify-end gap-1">
+                                            <button onClick={() => handleEditBanner(banner)} className="btn btn-square btn-ghost btn-xs text-info">
+                                                <PencilIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => window.confirm("Are you sure?") && deleteBannerMutation.mutate(banner._id)}
+                                                className="btn btn-square btn-ghost btn-xs text-error"
+                                            >
+                                                {deleteBannerMutation.isPending ? <span className="loading loading-spinner"></span> : <Trash2Icon className="w-4 h-4" />}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -337,6 +340,98 @@ function SettingsPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Banner Modal */}
+            <input type="checkbox" className="modal-toggle" checked={showBannerModal} readOnly />
+            <div className="modal">
+                <div className="modal-box">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-xl">{editingBanner ? "Edit Banner" : "Add New Banner"}</h3>
+                        <button onClick={closeBannerModal} className="btn btn-sm btn-circle btn-ghost"><XIcon className="w-5 h-5" /></button>
+                    </div>
+
+                    <form onSubmit={handleBannerSubmit} className="space-y-4">
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Title</span></label>
+                            <input
+                                type="text"
+                                className="input input-bordered"
+                                value={bannerForm.title}
+                                onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Label</span></label>
+                            <input
+                                type="text"
+                                className="input input-bordered"
+                                value={bannerForm.label}
+                                onChange={(e) => setBannerForm({ ...bannerForm, label: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Price (e.g. ¥38)</span></label>
+                            <input
+                                type="text"
+                                className="input input-bordered"
+                                value={bannerForm.price}
+                                onChange={(e) => setBannerForm({ ...bannerForm, price: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Image URL</span></label>
+                            <input
+                                type="url"
+                                className="input input-bordered"
+                                value={bannerForm.imageUrl}
+                                onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Type</span></label>
+                            <select
+                                className="select select-bordered"
+                                value={bannerForm.type}
+                                onChange={(e) => setBannerForm({ ...bannerForm, type: e.target.value })}
+                            >
+                                <option value="subsidy">Subsidy (Red)</option>
+                                <option value="fresh">Fresh (Green)</option>
+                            </select>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label cursor-pointer justify-start gap-4">
+                                <span className="label-text">Active</span>
+                                <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-primary"
+                                    checked={bannerForm.isActive}
+                                    onChange={(e) => setBannerForm({ ...bannerForm, isActive: e.target.checked })}
+                                />
+                            </label>
+                        </div>
+
+                        <div className="modal-action">
+                            <button type="button" onClick={closeBannerModal} className="btn">Cancel</button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={createBannerMutation.isPending || updateBannerMutation.isPending}
+                            >
+                                {(createBannerMutation.isPending || updateBannerMutation.isPending) && <span className="loading loading-spinner"></span>}
+                                {editingBanner ? "Update" : "Create"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             {/* Category Modal */}
             <input type="checkbox" className="modal-toggle" checked={showCategoryModal} readOnly />
@@ -431,6 +526,16 @@ function SettingsPage() {
                                             className="input input-sm input-bordered"
                                             value={sub.icon}
                                             onChange={(e) => updateSubcategory(index, "icon", e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-16">
+                                        <label className="label py-1"><span className="label-text text-xs">Color</span></label>
+                                        <input
+                                            type="color"
+                                            className="input input-sm h-8 w-12 p-0 border-none cursor-pointer"
+                                            value={sub.color || "#3B82F6"}
+                                            onChange={(e) => updateSubcategory(index, "color", e.target.value)}
                                         />
                                     </div>
 

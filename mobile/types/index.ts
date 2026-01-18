@@ -124,22 +124,11 @@ export interface Cart {
   updatedAt: string;
 }
 
-export interface Hero {
-  _id: string;
-  title: string;
-  subtitle: string;
-  label: string;
-  imageUrl: string;
-  displayOrder: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface SubCategory {
   _id?: string;
   name: string;
   icon?: string;
+  color?: string;
   displayOrder?: number;
   isActive?: boolean;
 }
@@ -151,6 +140,19 @@ export interface Category {
   displayOrder: number;
   isActive: boolean;
   subcategories?: SubCategory[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromoBanner {
+  _id: string;
+  title: string;
+  label: string;
+  imageUrl: string;
+  price: string;
+  type: "subsidy" | "fresh";
+  isActive: boolean;
+  displayOrder: number;
   createdAt: string;
   updatedAt: string;
 }
