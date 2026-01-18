@@ -90,11 +90,12 @@ export default function ChatScreen() {
 
         // Show date if it's the first message or if significant time passed since last
         const showDate = index === 0 ||
-            (new Date(item.createdAt).getTime() - new Date(messages![index - 1].createdAt).getTime() > 1000 * 60 * 60);
+            (item.createdAt && messages && messages[index - 1]?.createdAt &&
+                new Date(item.createdAt).getTime() - new Date(messages[index - 1].createdAt).getTime() > 1000 * 60 * 60);
 
         return (
             <View>
-                {showDate && (
+                {showDate && item.createdAt && (
                     <View className="items-center my-4">
                         <Text className="text-xs text-text-secondary bg-surface px-2 py-1 rounded-full">
                             {new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
