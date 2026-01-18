@@ -19,6 +19,25 @@ const categorySchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        subcategories: [
+            {
+                name: {
+                    type: String,
+                    required: true,
+                },
+                icon: {
+                    type: String,
+                },
+                displayOrder: {
+                    type: Number,
+                    default: 0,
+                },
+                isActive: {
+                    type: Boolean,
+                    default: true,
+                },
+            },
+        ],
     },
     { timestamps: true }
 );

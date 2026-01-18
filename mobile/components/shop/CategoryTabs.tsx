@@ -33,9 +33,11 @@ export default function CategoryTabs({ selectedCategoryId, onSelectCategory }: C
                             onPress={() => onSelectCategory(category._id)}
                             className="mr-6 items-center relative"
                         >
-                            <View className={`w-12 h-12 rounded-full items-center justify-center mb-2 border ${isActive ? 'bg-primary border-primary' : 'bg-surface-light border-black/5 dark:border-white/10'}`}>
+                            {/* <View className={`w-12 h-12 rounded-full items-center justify-center mb-2 border ${isActive ? 'bg-primary border-primary' : 'bg-surface-light border-black/5 dark:border-white/10'}`}>
                                 {category._id === "all" ? (
-                                    <Ionicons name="apps" size={20} color={isActive ? "white" : (theme === 'dark' ? "#9CA3AF" : "#4B5563")} />
+                                    <Ionicons name="apps" size={20} color={isActive
+                                        ? theme === 'dark' ? "#262626" : "#FAFAFA"
+                                        : theme === 'dark' ? "#A3A3A3" : "#737373"} />
                                 ) : (
                                     <Ionicons
                                         name={category.icon as any}
@@ -48,10 +50,10 @@ export default function CategoryTabs({ selectedCategoryId, onSelectCategory }: C
                                         style={{ marginBottom: 4 }}
                                     />  
                                 )}
-                            </View>
+                            </View> */}
 
                             <Text
-                                className={`text-xs ${isActive
+                                className={`text-m ${isActive
                                     ? "font-bold text-primary"
                                     : "text-text-secondary font-medium"
                                     }`}

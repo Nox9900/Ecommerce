@@ -136,12 +136,21 @@ export interface Hero {
   updatedAt: string;
 }
 
+export interface SubCategory {
+  _id?: string;
+  name: string;
+  icon?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
 export interface Category {
   _id: string;
   name: string;
   icon: string;
   displayOrder: number;
   isActive: boolean;
+  subcategories?: SubCategory[];
   createdAt: string;
   updatedAt: string;
 }

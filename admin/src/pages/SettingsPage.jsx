@@ -22,7 +22,8 @@ function SettingsPage() {
         name: "",
         icon: "",
         displayOrder: 0,
-        isActive: true
+        isActive: true,
+        subcategories: []
     });
 
     const [heroForm, setHeroForm] = useState({
@@ -32,6 +33,29 @@ function SettingsPage() {
         imageUrl: "",
         isActive: true
     });
+
+    // Subcategory handlers
+    const addSubcategory = () => {
+        setCategoryForm({
+            ...categoryForm,
+            subcategories: [
+                ...categoryForm.subcategories,
+                { name: "", icon: "", displayOrder: categoryForm.subcategories.length, isActive: true }
+            ]
+        });
+    };
+
+    const removeSubcategory = (index) => {
+        const newSubcategories = [...categoryForm.subcategories];
+        newSubcategories.splice(index, 1);
+        setCategoryForm({ ...categoryForm, subcategories: newSubcategories });
+    };
+
+    const updateSubcategory = (index, field, value) => {
+        const newSubcategories = [...categoryForm.subcategories];
+        newSubcategories[index] = { ...newSubcategories[index], [field]: value };
+        setCategoryForm({ ...categoryForm, subcategories: newSubcategories });
+    };
 
     // Fetch Data
     const { data: heroData, isLoading: heroLoading } = useQuery({
@@ -111,7 +135,8 @@ function SettingsPage() {
             name: category.name,
             icon: category.icon,
             displayOrder: category.displayOrder,
-            isActive: category.isActive
+            isActive: category.isActive,
+            subcategories: category.subcategories || []
         });
         setShowCategoryModal(true);
     };
@@ -123,7 +148,8 @@ function SettingsPage() {
             name: "",
             icon: "",
             displayOrder: 0,
-            isActive: true
+            isActive: true,
+            subcategories: []
         });
     };
 
@@ -264,21 +290,30 @@ function SettingsPage() {
                                 <tr>
                                     <th>Order</th>
                                     <th>Category Name</th>
-                                    <th>Icon (Ionicons)</th>
+                                    <th>Icon</th>
+                                    <th>Subcategories</th>
                                     <th>Status</th>
                                     <th className="text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {categoriesLoading ? (
-                                    <tr><td colSpan="5" className="text-center py-10"><span className="loading loading-spinner loading-lg"></span></td></tr>
+                                    <tr><td colSpan="6" className="text-center py-10"><span className="loading loading-spinner loading-lg"></span></td></tr>
                                 ) : categories.length === 0 ? (
-                                    <tr><td colSpan="5" className="text-center py-10 opacity-60 italic">No categories managed yet.</td></tr>
+                                    <tr><td colSpan="6" className="text-center py-10 opacity-60 italic">No categories managed yet.</td></tr>
                                 ) : categories.map((cat) => (
                                     <tr key={cat._id}>
                                         <td><div className="badge badge-ghost">{cat.displayOrder}</div></td>
                                         <td className="font-bold">{cat.name}</td>
                                         <td><code className="text-xs opacity-70">{cat.icon}</code></td>
+                                        <td>
+                                            <div className="flex flex-wrap gap-1">
+                                                {cat.subcategories?.map((sub, idx) => (
+                                                    <span key={idx} className="badge badge-sm badge-outline opacity-70">{sub.name}</span>
+                                                ))}
+                                                {!cat.subcategories?.length && <span className="text-xs opacity-40">None</span>}
+                                            </div>
+                                        </td>
                                         <td>
                                             <div className={`badge badge-sm ${cat.isActive ? 'badge-success' : 'badge-ghost opacity-50'}`}>
                                                 {cat.isActive ? 'Active' : 'Inactive'}
@@ -306,61 +341,130 @@ function SettingsPage() {
             {/* Category Modal */}
             <input type="checkbox" className="modal-toggle" checked={showCategoryModal} readOnly />
             <div className="modal">
-                <div className="modal-box">
+                <div className="modal-box max-w-2xl">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="font-bold text-xl">{editingCategory ? "Edit Category" : "Add New Category"}</h3>
                         <button onClick={closeCategoryModal} className="btn btn-sm btn-circle btn-ghost"><XIcon className="w-5 h-5" /></button>
                     </div>
 
-                    <form onSubmit={handleCategorySubmit} className="space-y-4">
-                        <div className="form-control">
-                            <label className="label"><span className="label-text">Category Name</span></label>
-                            <input
-                                type="text"
-                                placeholder="e.g. Electronics"
-                                className="input input-bordered"
-                                value={categoryForm.name}
-                                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Icon Name</span>
-                                <span className="label-text-alt text-xs opacity-60">Uses Ionicons name</span>
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="e.g. laptop-outline"
-                                className="input input-bordered"
-                                value={categoryForm.icon}
-                                onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label"><span className="label-text">Display Order</span></label>
-                            <input
-                                type="number"
-                                className="input input-bordered"
-                                value={categoryForm.displayOrder}
-                                onChange={(e) => setCategoryForm({ ...categoryForm, displayOrder: parseInt(e.target.value) })}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label cursor-pointer justify-start gap-4">
-                                <span className="label-text">Active</span>
+                    <form onSubmit={handleCategorySubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="form-control">
+                                <label className="label"><span className="label-text">Category Name</span></label>
                                 <input
-                                    type="checkbox"
-                                    className="checkbox checkbox-primary"
-                                    checked={categoryForm.isActive}
-                                    onChange={(e) => setCategoryForm({ ...categoryForm, isActive: e.target.checked })}
+                                    type="text"
+                                    placeholder="e.g. Electronics"
+                                    className="input input-bordered"
+                                    value={categoryForm.name}
+                                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                                    required
                                 />
-                            </label>
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Icon Name</span>
+                                    <span className="label-text-alt text-xs opacity-60">Ionicons name</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. laptop-outline"
+                                    className="input input-bordered"
+                                    value={categoryForm.icon}
+                                    onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label"><span className="label-text">Display Order</span></label>
+                                <input
+                                    type="number"
+                                    className="input input-bordered"
+                                    value={categoryForm.displayOrder}
+                                    onChange={(e) => setCategoryForm({ ...categoryForm, displayOrder: parseInt(e.target.value) })}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-control">
+                                <label className="label cursor-pointer justify-start gap-4">
+                                    <span className="label-text">Active</span>
+                                    <input
+                                        type="checkbox"
+                                        className="checkbox checkbox-primary"
+                                        checked={categoryForm.isActive}
+                                        onChange={(e) => setCategoryForm({ ...categoryForm, isActive: e.target.checked })}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="divider">Subcategories</div>
+
+                        <div className="space-y-4">
+                            {categoryForm.subcategories.map((sub, index) => (
+                                <div key={index} className="flex flex-wrap items-end gap-3 p-3 bg-base-200 rounded-lg relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSubcategory(index)}
+                                        className="btn btn-circle btn-xs btn-error absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <XIcon className="w-3 h-3" />
+                                    </button>
+
+                                    <div className="form-control flex-1 min-w-[150px]">
+                                        <label className="label py-1"><span className="label-text text-xs">Name</span></label>
+                                        <input
+                                            type="text"
+                                            className="input input-sm input-bordered"
+                                            value={sub.name}
+                                            onChange={(e) => updateSubcategory(index, "name", e.target.value)}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-24">
+                                        <label className="label py-1"><span className="label-text text-xs">Icon</span></label>
+                                        <input
+                                            type="text"
+                                            className="input input-sm input-bordered"
+                                            value={sub.icon}
+                                            onChange={(e) => updateSubcategory(index, "icon", e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-16">
+                                        <label className="label py-1"><span className="label-text text-xs">Order</span></label>
+                                        <input
+                                            type="number"
+                                            className="input input-sm input-bordered"
+                                            value={sub.displayOrder}
+                                            onChange={(e) => updateSubcategory(index, "displayOrder", parseInt(e.target.value))}
+                                        />
+                                    </div>
+
+                                    <div className="form-control mb-1">
+                                        <label className="label cursor-pointer gap-2 py-1">
+                                            <span className="label-text text-xs">Active</span>
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-xs"
+                                                checked={sub.isActive}
+                                                onChange={(e) => updateSubcategory(index, "isActive", e.target.checked)}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={addSubcategory}
+                                className="btn btn-sm btn-block btn-outline border-dashed gap-2"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                                Add Subcategory
+                            </button>
                         </div>
 
                         <div className="modal-action">
