@@ -10,8 +10,13 @@ function ProductsPage() {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
+    subcategory: "",
+    brand: "",
+    isSubsidy: false,
     price: "",
+    originalPrice: "",
     stock: "",
+    soldCount: "0",
     description: "",
     shop: "",
   });
@@ -69,8 +74,13 @@ function ProductsPage() {
     setFormData({
       name: "",
       category: "",
+      subcategory: "",
+      brand: "",
+      isSubsidy: false,
       price: "",
+      originalPrice: "",
       stock: "",
+      soldCount: "0",
       description: "",
       shop: "",
     });
@@ -84,8 +94,13 @@ function ProductsPage() {
     setFormData({
       name: product.name,
       category: product.category,
+      subcategory: product.subcategory || "",
+      brand: product.brand || "",
+      isSubsidy: product.isSubsidy || false,
       price: product.price.toString(),
+      originalPrice: product.originalPrice ? product.originalPrice.toString() : "",
       stock: product.stock.toString(),
+      soldCount: (product.soldCount || 0).toString(),
       description: product.description,
       shop: product.shop?._id || product.shop || "",
     });
@@ -119,8 +134,13 @@ function ProductsPage() {
     formDataToSend.append("name", formData.name);
     formDataToSend.append("description", formData.description);
     formDataToSend.append("price", formData.price);
+    formDataToSend.append("originalPrice", formData.originalPrice);
     formDataToSend.append("stock", formData.stock);
     formDataToSend.append("category", formData.category);
+    formDataToSend.append("subcategory", formData.subcategory);
+    formDataToSend.append("brand", formData.brand);
+    formDataToSend.append("isSubsidy", formData.isSubsidy);
+    formDataToSend.append("soldCount", formData.soldCount);
     formDataToSend.append("shop", formData.shop);
     formDataToSend.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
 
@@ -252,7 +272,7 @@ function ProductsPage() {
                 <select
                   className="select select-bordered"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value, subcategory: "" })}
                   required
                 >
                   <option value="">Select category</option>
@@ -262,6 +282,114 @@ function ProductsPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span>Subcategory</span>
+                </label>
+                <select
+                  className="select select-bordered"
+                  value={formData.subcategory}
+                  onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                  disabled={!formData.category}
+                >
+                  <option value="">Select subcategory</option>
+                  {categories
+                    .find((c) => c.name === formData.category)
+                    ?.subcategories?.map((sub) => (
+                      <option key={sub.name} value={sub.name}>
+                        {sub.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span>Brand</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Nike, Apple"
+                  className="input input-bordered"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label cursor-pointer justify-start gap-4">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-primary"
+                    checked={formData.isSubsidy}
+                    onChange={(e) => setFormData({ ...formData, isSubsidy: e.target.checked })}
+                  />
+                  <span className="label-text font-bold text-red-500">Enable 10B Subsidy</span>
+                </label>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span>Sold Count (Display)</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  className="input input-bordered"
+                  value={formData.soldCount}
+                  onChange={(e) => setFormData({ ...formData, soldCount: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span>Current Price ($)</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="input input-bordered"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span>Original Price ($)</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="input input-bordered opacity-70"
+                  value={formData.originalPrice}
+                  onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span>Stock</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  className="input input-bordered"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  required
+                />
               </div>
             </div>
 
@@ -281,37 +409,6 @@ function ProductsPage() {
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span>Price ($)</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  className="input input-bordered"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span>Stock</span>
-                </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  className="input input-bordered"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  required
-                />
-              </div>
             </div>
 
             <div className="form-control flex flex-col gap-2">
