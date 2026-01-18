@@ -7,6 +7,12 @@ import {
     getVendorStats,
 } from "../controllers/vendor.controller.js";
 import {
+    createConnectAccount,
+    createAccountLink,
+    getConnectAccountStatus,
+    createLoginLink,
+} from "../controllers/stripe.controller.js";
+import {
     requestWithdrawal,
     getVendorWithdrawals
 } from "../controllers/withdrawal.controller.js";
@@ -22,5 +28,11 @@ router.get("/products", protectRoute, vendorOnly, getVendorProducts);
 router.post("/products", protectRoute, vendorOnly, upload.array("images", 3), createVendorProduct);
 router.post("/withdrawals", protectRoute, vendorOnly, requestWithdrawal);
 router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
+
+// Stripe Connect Routes
+router.post("/connect/account", protectRoute, vendorOnly, createConnectAccount);
+router.post("/connect/account-link", protectRoute, vendorOnly, createAccountLink);
+router.get("/connect/status", protectRoute, vendorOnly, getConnectAccountStatus);
+router.post("/connect/login-link", protectRoute, vendorOnly, createLoginLink);
 
 export default router;

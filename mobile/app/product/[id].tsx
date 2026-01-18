@@ -68,10 +68,43 @@ const ProductDetailScreen = () => {
     );
   }, [orders, id]);
 
+  // Variant Matching Logic
+  const selectedVariant = useMemo(() => {
+    if (!product || !product.variants || product.variants.length === 0) return null;
+
+    // Check if all required attributes have a selected value
+    const attributeNames = product.attributes.map(a => a.name);
+    const allOptionsSelected = attributeNames.every(name => selectedOptions[name]);
+
+    if (!allOptionsSelected) return null;
+
+    // Find variant that matches all selected options
+    return product.variants.find(variant => {
+      return attributeNames.every(name => variant.options[name] === selectedOptions[name]);
+    });
+  }, [product, selectedOptions]);
+
+  const currentPrice = selectedVariant ? selectedVariant.price : product?.price ?? 0;
+  const currentImage = selectedVariant?.image || product?.images[0];
+  const currentStock = selectedVariant ? selectedVariant.stock : product?.stock ?? 0;
+  const inStock = currentStock > 0;
+
   const handleAddToCart = () => {
     if (!product) return;
+
+    // If product has variants but none is selected yet, prompt user
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
+      Alert.alert("Selection Required", "Please select all options before adding to cart.");
+      return;
+    }
+
     addToCart(
-      { productId: product._id, quantity, selectedOptions },
+      {
+        productId: product._id,
+        quantity,
+        selectedOptions,
+        variantId: selectedVariant?._id
+      },
       {
         onSuccess: () => Alert.alert("Success", `${product.name} added to cart!`),
         onError: (error: any) => {
@@ -134,7 +167,6 @@ const ProductDetailScreen = () => {
   if (isLoading) return <LoadingUI />;
   if (isError || !product) return <ErrorUI />;
 
-  const inStock = product.stock > 0;
 
   return (
     <View className="flex-1 bg-background">
@@ -282,7 +314,7 @@ const ProductDetailScreen = () => {
               <Text className="text-text-tertiary text-sm font-medium mb-1">Price</Text>
               <Text className="text-text-primary text-4xl font-black tracking-tight">
                 <Text className="text-2xl text-primary font-bold">$</Text>
-                {product.price.toFixed(2)}
+                {currentPrice.toFixed(2)}
               </Text>
             </View>
 
@@ -292,12 +324,12 @@ const ProductDetailScreen = () => {
                   <View className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2" />
                   <Text className="text-green-600 dark:text-green-400 font-bold text-xs uppercase tracking-wide">In Stock</Text>
                 </View>
-                <Text className="text-text-tertiary text-xs">{product.stock} items left</Text>
+                <Text className="text-text-tertiary text-xs">{currentStock} items left</Text>
               </View>
             ) : (
               <View className="flex-row items-center bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
                 <View className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2" />
-                <Text className="text-red-600 dark:text-red-400 font-bold text-xs uppercase tracking-wide">Sold Out</Text>
+                <Text className="text-red-600 dark:text-green-400 font-bold text-xs uppercase tracking-wide">Sold Out</Text>
               </View>
             )}
           </AnimatedContainer>
@@ -479,7 +511,7 @@ const ProductDetailScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-        
+
         {/* Spacer */}
         <View className="flex-1" />
 
@@ -522,7 +554,7 @@ const ProductDetailScreen = () => {
             )}
           </TouchableOpacity>
         </View>
-      </View> 
+      </View>
 
       {/* Full Screen Image Viewer & Review Modal (Unchanged parts...) */}
       <Modal

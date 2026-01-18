@@ -20,24 +20,24 @@ const useCart = () => {
   });
 
   const addToCartMutation = useMutation({
-    mutationFn: async ({ productId, quantity = 1, selectedOptions }: { productId: string; quantity?: number; selectedOptions?: Record<string, string> }) => {
-      const { data } = await api.post<{ cart: Cart }>("/cart", { productId, quantity, selectedOptions });
+    mutationFn: async ({ productId, quantity = 1, selectedOptions, variantId }: { productId: string; quantity?: number; selectedOptions?: Record<string, string>; variantId?: string }) => {
+      const { data } = await api.post<{ cart: Cart }>("/cart", { productId, quantity, selectedOptions, variantId });
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
   const updateQuantityMutation = useMutation({
-    mutationFn: async ({ productId, quantity }: { productId: string; quantity: number }) => {
-      const { data } = await api.put<{ cart: Cart }>(`/cart/${productId}`, { quantity });
+    mutationFn: async ({ productId, quantity, variantId }: { productId: string; quantity: number; variantId?: string }) => {
+      const { data } = await api.put<{ cart: Cart }>(`/cart/${productId}`, { quantity, variantId });
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
   const removeFromCartMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      const { data } = await api.delete<{ cart: Cart }>(`/cart/${productId}`);
+    mutationFn: async ({ productId, variantId }: { productId: string; variantId?: string }) => {
+      const { data } = await api.delete<{ cart: Cart }>(`/cart/${productId}`, { params: { variantId } } as any);
       return data.cart;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
@@ -52,7 +52,12 @@ const useCart = () => {
   });
 
   const cartTotal =
-    cart?.items.reduce((sum, item) => sum + (item.product?.price ?? 0) * item.quantity, 0) ?? 0;
+    cart?.items.reduce((sum, item) => {
+      const price = item.variantId && item.product?.variants ?
+        (item.product.variants.find(v => v._id === item.variantId)?.price ?? item.product.price) :
+        (item.product?.price ?? 0);
+      return sum + price * item.quantity;
+    }, 0) ?? 0;
 
   const cartItemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 

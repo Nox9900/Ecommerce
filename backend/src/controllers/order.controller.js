@@ -17,8 +17,19 @@ export async function createOrder(req, res) {
       if (!product) {
         return res.status(404).json({ error: `Product ${item.name} not found` });
       }
-      if (product.stock < item.quantity) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+
+      if (item.variantId) {
+        const variant = product.variants.find((v) => v._id.toString() === item.variantId);
+        if (!variant) {
+          return res.status(404).json({ error: `Variant not found for ${product.name}` });
+        }
+        if (variant.stock < item.quantity) {
+          return res.status(400).json({ error: `Insufficient stock for ${product.name} (${variant.name})` });
+        }
+      } else {
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+        }
       }
     }
 
@@ -33,9 +44,18 @@ export async function createOrder(req, res) {
 
     // update product stock
     for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product._id, {
-        $inc: { stock: -item.quantity },
-      });
+      if (item.variantId) {
+        const product = await Product.findById(item.product._id);
+        const variant = product.variants.find((v) => v._id.toString() === item.variantId);
+        if (variant) {
+          variant.stock -= item.quantity;
+          await product.save();
+        }
+      } else {
+        await Product.findByIdAndUpdate(item.product._id, {
+          $inc: { stock: -item.quantity },
+        });
+      }
     }
 
     res.status(201).json({ message: "Order created successfully", order });

@@ -55,19 +55,19 @@ const CartScreen = () => {
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shipping + tax;
 
-  const handleQuantityChange = (productId: string, currentQuantity: number, change: number) => {
+  const handleQuantityChange = (productId: string, currentQuantity: number, change: number, variantId?: string) => {
     const newQuantity = currentQuantity + change;
     if (newQuantity < 1) return;
-    updateQuantity({ productId, quantity: newQuantity });
+    updateQuantity({ productId, quantity: newQuantity, variantId });
   };
 
-  const handleRemoveItem = (productId: string, productName: string) => {
+  const handleRemoveItem = (productId: string, productName: string, variantId?: string) => {
     Alert.alert(t('common.remove_item'), t('common.remove_item_desc', { name: productName }), [
       { text: t('common.cancel'), style: "cancel" },
       {
         text: t('common.remove'),
         style: "destructive",
-        onPress: () => removeFromCart(productId),
+        onPress: () => removeFromCart({ productId, variantId }),
       },
     ]);
   };
@@ -226,12 +226,21 @@ const CartScreen = () => {
                         </View>
                       )}
                       <View className="flex-row items-center mt-2">
-                        <Text className="text-primary font-bold text-2xl">
-                          ${(item.product.price * item.quantity).toFixed(2)}
-                        </Text>
-                        <Text className="text-text-secondary text-sm ml-2">
-                          ${item.product.price.toFixed(2)} {t('common.item')}
-                        </Text>
+                        {(() => {
+                          const itemPrice = item.variantId && item.product.variants ?
+                            (item.product.variants.find(v => v._id === item.variantId)?.price ?? item.product.price) :
+                            item.product.price;
+                          return (
+                            <>
+                              <Text className="text-primary font-bold text-2xl">
+                                ${(itemPrice * item.quantity).toFixed(2)}
+                              </Text>
+                              <Text className="text-text-secondary text-sm ml-2">
+                                ${itemPrice.toFixed(2)} {t('common.item')}
+                              </Text>
+                            </>
+                          );
+                        })()}
                       </View>
                     </View>
 
@@ -240,7 +249,7 @@ const CartScreen = () => {
                         <TouchableOpacity
                           className="bg-surface rounded-xl w-8 h-8 items-center justify-center shadow-sm"
                           activeOpacity={0.7}
-                          onPress={() => handleQuantityChange(item.product._id, item.quantity, -1)}
+                          onPress={() => handleQuantityChange(item.product._id, item.quantity, -1, item.variantId)}
                           disabled={isUpdating}
                         >
                           {isUpdating ? (
@@ -257,7 +266,7 @@ const CartScreen = () => {
                         <TouchableOpacity
                           className="bg-primary rounded-xl w-8 h-8 items-center justify-center shadow-sm"
                           activeOpacity={0.7}
-                          onPress={() => handleQuantityChange(item.product._id, item.quantity, 1)}
+                          onPress={() => handleQuantityChange(item.product._id, item.quantity, 1, item.variantId)}
                           disabled={isUpdating}
                         >
                           {isUpdating ? (
@@ -271,7 +280,7 @@ const CartScreen = () => {
                       <TouchableOpacity
                         className="ml-auto bg-red-500/10 rounded-full w-9 h-9 items-center justify-center"
                         activeOpacity={0.7}
-                        onPress={() => handleRemoveItem(item.product._id, item.product.name)}
+                        onPress={() => handleRemoveItem(item.product._id, item.product.name, item.variantId)}
                         disabled={isRemoving}
                       >
                         <Ionicons name="trash-outline" size={18} color="#EF4444" />

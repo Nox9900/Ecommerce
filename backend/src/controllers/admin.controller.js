@@ -76,13 +76,59 @@ export async function createProduct(req, res) {
   }
 }
 
-export async function getAllProducts(_, res) {
+export async function getAllProducts(req, res) {
   try {
-    // -1 means in desc order: most recent products first
-    const products = await Product.find()
+    const { q, category, subcategory, minPrice, maxPrice, sort } = req.query;
+
+    const query = {};
+
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+        { brand: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    if (category) query.category = category;
+    if (subcategory) query.subcategory = subcategory;
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    let sortOption = { createdAt: -1 }; // default
+
+    if (sort) {
+      switch (sort) {
+        case "price_asc":
+          sortOption = { price: 1 };
+          break;
+        case "price_desc":
+          sortOption = { price: -1 };
+          break;
+        case "latest":
+          sortOption = { createdAt: -1 };
+          break;
+        case "oldest":
+          sortOption = { createdAt: 1 };
+          break;
+        case "popular":
+          sortOption = { soldCount: -1 };
+          break;
+        case "rating":
+          sortOption = { averageRating: -1 };
+          break;
+      }
+    }
+
+    const products = await Product.find(query)
       .populate("vendor", "shopName")
       .populate("shop", "name logoUrl")
-      .sort({ createdAt: -1 });
+      .sort(sortOption);
+
     res.status(200).json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
