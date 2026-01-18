@@ -12,6 +12,7 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import CategoryTabs from "@/components/shop/CategoryTabs";
 import QuickLinksGrid from "@/components/shop/QuickLinksGrid";
 import PromoBanners from "@/components/shop/PromoBanners";
+import SwipeableCategoryView from "@/components/shop/SwipeableCategoryView";
 import useCategories from "@/hooks/useCategories";
 
 const ShopScreen = () => {
@@ -21,6 +22,19 @@ const ShopScreen = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
   const { data: categories } = useCategories();
+
+  // Build all categories including "all"
+  const allCategories = useMemo(() => {
+    return [
+      { _id: "all", name: "All", icon: "" },
+      ...(categories || [])
+    ];
+  }, [categories]);
+
+  // Get current category index for swipe navigation
+  const currentCategoryIndex = useMemo(() => {
+    return allCategories.findIndex(cat => cat._id === selectedCategoryId);
+  }, [allCategories, selectedCategoryId]);
 
   const activeCategory = useMemo(() => {
     if (selectedCategoryId === "all") return null;
@@ -70,26 +84,29 @@ const ShopScreen = () => {
     Alert.alert("Coming Soon", `${link.label} feature is coming soon!`);
   };
 
-  const filteredProducts = useMemo(() => {
+  // Group products by category for swipe navigation
+  const productsByCategory = useMemo(() => {
     if (!products) return [];
 
-    let filtered = products;
+    return allCategories.map(category => {
+      let filtered = products;
 
-    // filtering by category
-    if (selectedCategoryId !== "all" && activeCategory) {
-      filtered = filtered.filter((product) => product.category === activeCategory.name);
-    }
+      // Filter by category (except "all")
+      if (category._id !== "all") {
+        filtered = filtered.filter((product) => product.category === category.name);
+      }
 
-    // filtering by searh query (acts as subcategory filter if user clicked subcategory)
-    if (searchQuery.trim()) {
-      filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+      // Apply search filter if active
+      if (searchQuery.trim()) {
+        filtered = filtered.filter((product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
 
-    return filtered;
-  }, [products, selectedCategoryId, searchQuery]);
+      return filtered;
+    });
+  }, [products, allCategories, searchQuery]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -97,6 +114,57 @@ const ShopScreen = () => {
     setRefreshing(false);
   };
 
+  const handleCategorySwipe = (index: number) => {
+    const newCategoryId = allCategories[index]._id;
+    setSelectedCategoryId(newCategoryId);
+  };
+
+  // If search is active, show single scrollable view with filtered results
+  if (searchQuery.trim()) {
+    const filteredProducts = products?.filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
+
+    return (
+      <SafeScreen>
+        <View className="flex-1 bg-white dark:bg-background">
+          {/* Sticky Header */}
+          <ShopHeader onSearch={setSearchQuery} />
+
+          {/* Sticky Categories */}
+          <CategoryTabs selectedCategoryId={selectedCategoryId} onSelectCategory={(id) => {
+            setSelectedCategoryId(id);
+            setSearchQuery(""); // Reset search when switching categories
+          }} />
+
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={theme === 'dark' ? "#fff" : "#000"}
+              />
+            }
+          >
+            {/* Waterfall Feed */}
+            <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
+              <ProductsGrid
+                products={filteredProducts}
+                isLoading={productsLoading}
+                isError={productsError}
+              />
+            </AnimatedContainer>
+          </ScrollView>
+        </View>
+      </SafeScreen>
+    );
+  }
+
+  // Normal mode with swipeable categories
   return (
     <SafeScreen>
       <View className="flex-1 bg-white dark:bg-background">
@@ -104,49 +172,51 @@ const ShopScreen = () => {
         <ShopHeader onSearch={setSearchQuery} />
 
         {/* Sticky Categories */}
-        <CategoryTabs selectedCategoryId={selectedCategoryId} onSelectCategory={(id) => {
-          setSelectedCategoryId(id);
-          setSearchQuery(""); // Reset search when switching categories
-        }} />
+        <CategoryTabs selectedCategoryId={selectedCategoryId} onSelectCategory={setSelectedCategoryId} />
 
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={theme === 'dark' ? "#fff" : "#000"}
-            />
-          }
+        {/* Swipeable Category Pages */}
+        <SwipeableCategoryView
+          currentIndex={currentCategoryIndex}
+          onIndexChange={handleCategorySwipe}
         >
-          {/* Quick Links Grid */}
-          {!searchQuery && (
-            <AnimatedContainer animation="fadeDown">
-              <QuickLinksGrid
-                items={subcategories}
-                onLinkPress={handleQuickLinkPress}
-              />
-            </AnimatedContainer>
-          )}
+          {allCategories.map((category, index) => (
+            <ScrollView
+              key={category._id}
+              className="flex-1"
+              contentContainerStyle={{ paddingBottom: 100 }}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor={theme === 'dark' ? "#fff" : "#000"}
+                />
+              }
+            >
+              {/* Quick Links Grid */}
+              <AnimatedContainer animation="fadeDown">
+                <QuickLinksGrid
+                  items={index === currentCategoryIndex ? subcategories : []}
+                  onLinkPress={handleQuickLinkPress}
+                />
+              </AnimatedContainer>
 
-          {/* Promo Banners */}
-          {!searchQuery && (
-            <AnimatedContainer animation="fadeDown" delay={100}>
-              <PromoBanners />
-            </AnimatedContainer>
-          )}
+              {/* Promo Banners */}
+              <AnimatedContainer animation="fadeDown" delay={100}>
+                <PromoBanners />
+              </AnimatedContainer>
 
-          {/* Waterfall Feed */}
-          <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
-            <ProductsGrid
-              products={filteredProducts || []}
-              isLoading={productsLoading}
-              isError={productsError}
-            />
-          </AnimatedContainer>
-        </ScrollView>
+              {/* Waterfall Feed */}
+              <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
+                <ProductsGrid
+                  products={productsByCategory[index] || []}
+                  isLoading={productsLoading}
+                  isError={productsError}
+                />
+              </AnimatedContainer>
+            </ScrollView>
+          ))}
+        </SwipeableCategoryView>
       </View>
     </SafeScreen>
   );

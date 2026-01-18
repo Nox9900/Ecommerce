@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import useCategories from "@/hooks/useCategories";
 import { Ionicons } from "@expo/vector-icons";
+import { useRef, useEffect } from "react";
 
 interface CategoryTabsProps {
     selectedCategoryId: string;
@@ -11,15 +12,32 @@ interface CategoryTabsProps {
 export default function CategoryTabs({ selectedCategoryId, onSelectCategory }: CategoryTabsProps) {
     const { theme } = useTheme();
     const { data: categories, isLoading } = useCategories();
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const allCategories = [
         { _id: "all", name: "All", icon: "" },
         ...(categories || [])
     ];
 
+    // Auto-scroll to selected category when it changes (e.g., from swipe)
+    useEffect(() => {
+        const selectedIndex = allCategories.findIndex(cat => cat._id === selectedCategoryId);
+        if (selectedIndex !== -1 && scrollViewRef.current) {
+            // Calculate approximate position (each tab is ~80px wide with margins)
+            const tabWidth = 80;
+            const scrollPosition = Math.max(0, (selectedIndex * tabWidth) - 100);
+
+            scrollViewRef.current.scrollTo({
+                x: scrollPosition,
+                animated: true,
+            });
+        }
+    }, [selectedCategoryId]);
+
     return (
         <View className="bg-white dark:bg-background border-b border-black/5 dark:border-white/5">
             <ScrollView
+                ref={scrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16 }}

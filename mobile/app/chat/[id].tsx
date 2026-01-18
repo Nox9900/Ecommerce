@@ -16,12 +16,17 @@ import {
     ActivityIndicator,
     Image,
 } from "react-native";
+import { useSocket } from "@/context/SocketContext";
 
 interface Message {
     _id: string;
-    sender: string;
-    receiver: string;
-    text: string;
+    sender: {
+        _id: string;
+        clerkId: string;
+        name: string;
+    };
+    content: string;
+    conversationId: string;
     createdAt: string;
 }
 
@@ -35,6 +40,7 @@ export default function ChatScreen() {
     const { user } = useUser();
     const api = useApi();
     const queryClient = useQueryClient();
+    const socket = useSocket();
     const [inputText, setInputText] = useState("");
     const [conversationId] = useState<string>(receiverId);
     const flatListRef = useRef<FlatList>(null);
@@ -48,7 +54,7 @@ export default function ChatScreen() {
             return data;
         },
         enabled: !!conversationId,
-        refetchInterval: 5000,
+        // Removed polling - using Socket.IO for real-time updates
     });
 
     // Send message mutation
@@ -74,6 +80,32 @@ export default function ChatScreen() {
         sendMessage.mutate(inputText);
     };
 
+    // Socket.IO: Join conversation room and listen for new messages
+    useEffect(() => {
+        if (!socket || !conversationId) return;
+
+        console.log("Joining conversation:", conversationId);
+        socket.emit("joinConversation", conversationId);
+
+        const handleNewMessage = (message: Message) => {
+            console.log("Received new message:", message);
+            // Update the query cache with the new message
+            queryClient.setQueryData(["chat", conversationId], (old: Message[] = []) => {
+                // Check if message already exists to avoid duplicates
+                const exists = old.some(m => m._id === message._id);
+                if (exists) return old;
+                return [...old, message];
+            });
+        };
+
+        socket.on("newMessage", handleNewMessage);
+
+        return () => {
+            socket.off("newMessage", handleNewMessage);
+        };
+    }, [socket, conversationId, queryClient]);
+
+    // Auto-scroll when messages change
     useEffect(() => {
         if (messages?.length) {
             setTimeout(() => {
@@ -83,10 +115,8 @@ export default function ChatScreen() {
     }, [messages]);
 
     const renderMessage = ({ item, index }: { item: Message, index: number }) => {
-        // We assume if `item.sender` matches our clerk ID (which we don't know easily without backend help) 
-        // OR more simply, if sender != receiverId, it's us.
-        // The backend stores `sender` as MongoDB _id, `receiverId` passed here is also Mongo _id.
-        const isMe = item.sender !== receiverId;
+        // Check if the message sender is the current user
+        const isMe = item.sender?.clerkId === user?.id;
 
         // Show date if it's the first message or if significant time passed since last
         const showDate = index === 0 ||
@@ -119,7 +149,7 @@ export default function ChatScreen() {
                         <Text
                             className={`${isMe ? "text-background font-medium" : "text-text-primary"} text-base leading-5`}
                         >
-                            {item.text}
+                            {item.content}
                         </Text>
                         <View className="flex-row justify-end mt-1">
                             <Text

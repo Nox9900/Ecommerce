@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTheme } from "@/lib/useTheme";
 import { SubCategory } from "@/types";
+import { useRef, useEffect } from "react";
 
 interface SubcategoryHeaderProps {
     title: string;
@@ -22,6 +23,17 @@ export default function SubcategoryHeader({
     activeColor = "#EF4444"
 }: SubcategoryHeaderProps) {
     const { theme } = useTheme();
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Auto-scroll to current subcategory tab
+    useEffect(() => {
+        const index = subcategories.findIndex(s => s._id === currentSubcategoryId);
+        if (index !== -1 && scrollViewRef.current) {
+            // Estimate position: ~80px per tab
+            const scrollX = Math.max(0, (index * 80) - 100);
+            scrollViewRef.current.scrollTo({ x: scrollX, animated: true });
+        }
+    }, [currentSubcategoryId, subcategories]);
 
     return (
         <View className="bg-white dark:bg-background pt-2 pb-3 px-3 border-b border-gray-100 dark:border-zinc-800">
@@ -56,6 +68,7 @@ export default function SubcategoryHeader({
             {subcategories.length > 0 && (
                 <View className="mt-4 -mx-3">
                     <ScrollView
+                        ref={scrollViewRef}
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ paddingHorizontal: 12, gap: 16 }}
