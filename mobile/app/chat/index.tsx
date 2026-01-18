@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
-import axios from "axios";
+import { useApi } from "@/lib/api";
 import { useRouter } from "expo-router";
 import { format } from "date-fns";
 import { useTheme } from "@/lib/useTheme";
@@ -19,6 +19,7 @@ interface Conversation {
 
 export default function ChatListScreen() {
     const { getToken, userId } = useAuth();
+    const api = useApi();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
@@ -30,15 +31,7 @@ export default function ChatListScreen() {
 
     const fetchConversations = async () => {
         try {
-            const token = await getToken();
-            const response = await axios.get(
-                `${process.env.EXPO_PUBLIC_API_URL}/api/chats`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await api.get("/chats");
             setConversations(response.data);
         } catch (error) {
             console.error("Error fetching conversations:", error);

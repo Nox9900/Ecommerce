@@ -9,17 +9,11 @@ import {
 
 const router = express.Router();
 
-// Middleware to attach auth to request (using Clerk)
-// Adjust based on your actual Clerk middleware setup in server.js.
-// Assuming ClerkExpressRequireAuth or similar is used.
-// If your project uses a custom middleware for user resolution, use that.
-// Looking at package.json, it has @clerk/express.
+import { protectRoute } from "../middleware/auth.middleware.js";
 
-import { requireAuth } from "@clerk/express";
-
-router.get("/", requireAuth(), getConversations);
-router.get("/:conversationId/messages", requireAuth(), getMessages);
-router.post("/", requireAuth(), startConversation);
-router.post("/message", requireAuth(), sendMessage);
+router.get("/", protectRoute, getConversations);
+router.get("/:conversationId/messages", protectRoute, getMessages);
+router.post("/", protectRoute, startConversation);
+router.post("/message", protectRoute, sendMessage);
 
 export default router;

@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import { useApi } from "@/lib/api";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
@@ -26,21 +27,14 @@ interface Conversation {
 export default function ChatScreen() {
     const { getToken, userId } = useAuth();
     const { theme } = useTheme();
+    const api = useApi();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
 
     const fetchConversations = async () => {
         try {
-            const token = await getToken();
-            const response = await axios.get(
-                `${process.env.EXPO_PUBLIC_API_URL}/api/chats`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await api.get("/chats");
             setConversations(response.data);
         } catch (error) {
             console.error("Error fetching conversations:", error);
