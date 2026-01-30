@@ -25,7 +25,7 @@ const TabsLayout = () => {
           position: "absolute",
           backgroundColor: theme === "dark" ? "rgba(0, 0, 0)" : "rgba(255,255,255)",
           borderTopWidth: 0,
-          height: 45 + insets.bottom,
+          height: 62 + insets.bottom,
           paddingTop: 4,
           overflow: "hidden",
         },

@@ -43,7 +43,11 @@ const ShopScreen = () => {
 
   const subcategories = useMemo(() => {
     if (selectedCategoryId === "all") {
-      return categories?.reduce((acc: any[], cat: any) => [...acc, ...(cat.subcategories || [])], []) || [];
+      const allSubcats = categories?.reduce((acc: any[], cat: any) => [...acc, ...(cat.subcategories || [])], []) || [];
+      // Shuffle and pick 15
+      return [...allSubcats]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 15);
     }
     return activeCategory?.subcategories || [];
   }, [categories, activeCategory, selectedCategoryId]);

@@ -305,8 +305,37 @@ const ChatPage = () => {
                                                 {msg.sender?.avatar ? <img src={msg.sender.avatar} /> : <span>{msg.sender?.name?.[0]}</span>}
                                             </div>
                                         </div>
-                                        <div className={`chat-bubble ${isMe ? "chat-bubble-primary" : "chat-bubble-secondary"}`}>
-                                            {msg.content}
+                                        <div className={`chat-bubble ${isMe ? "chat-bubble-primary" : "chat-bubble-secondary"} flex flex-col`}>
+                                            {msg.attachments && msg.attachments.length > 0 && (
+                                                <div className="flex flex-col gap-2 mb-2">
+                                                    {msg.attachments.map((att, idx) => (
+                                                        <div key={idx}>
+                                                            {att.type === "image" ? (
+                                                                <img
+                                                                    src={att.url}
+                                                                    alt="attachment"
+                                                                    className="max-w-[200px] rounded-lg cursor-pointer hover:opacity-90"
+                                                                    onClick={() => window.open(att.url, '_blank')}
+                                                                />
+                                                            ) : att.type === "audio" ? (
+                                                                <div className="bg-base-300 p-2 rounded-lg flex items-center min-w-[200px]">
+                                                                    <AudioPlayer src={att.url} />
+                                                                </div>
+                                                            ) : (
+                                                                <a
+                                                                    href={att.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex items-center gap-2 p-2 bg-base-300 rounded-lg hover:bg-base-200 transition-colors text-base-content"
+                                                                >
+                                                                    <span className="text-xs">📎 {att.name || "Attachment"}</span>
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {msg.content && <span>{msg.content}</span>}
                                         </div>
                                         <div className="chat-footer opacity-50 text-xs mt-1">
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

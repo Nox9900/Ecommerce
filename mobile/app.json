@@ -48,7 +48,9 @@
           "project": "ecommerce-tut",
           "organization": "codesistency-gs"
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
