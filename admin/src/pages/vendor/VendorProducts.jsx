@@ -9,8 +9,25 @@ import toast from "react-hot-toast";
 function VendorProducts() {
     const [searchParams] = useSearchParams();
     const q = searchParams.get("q") || "";
+
     const [showModal, setShowModal] = useState(false);
-    // ... rest
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [formData, setFormData] = useState({
+        name: "",
+        category: "",
+        subcategory: "",
+        brand: "",
+        isSubsidy: false,
+        price: "",
+        originalPrice: "",
+        stock: "",
+        soldCount: "0",
+        description: "",
+        shop: "",
+    });
+    const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
+    const [images, setImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
 
     const queryClient = useQueryClient();
 
@@ -194,7 +211,6 @@ function VendorProducts() {
                 )}
             </div>
 
-            {/* Modal is simplified for brevity but handles same logic as ProductsPage */}
             {showModal && (
                 <div className="modal modal-open">
                     <div className="modal-box max-w-2xl">
