@@ -1,11 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router";
 import { customerApi } from "../lib/api";
 import { formatDate } from "../lib/utils";
 
 function CustomersPage() {
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") || "";
+
   const { data, isLoading } = useQuery({
-    queryKey: ["customers"],
-    queryFn: customerApi.getAll,
+    queryKey: ["customers", q],
+    queryFn: () => customerApi.getAll(q),
   });
 
   const customers = data?.customers || [];

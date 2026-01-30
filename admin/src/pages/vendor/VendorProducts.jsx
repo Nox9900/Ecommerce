@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
@@ -6,30 +7,16 @@ import { getStockStatusBadge } from "../../lib/utils";
 import toast from "react-hot-toast";
 
 function VendorProducts() {
+    const [searchParams] = useSearchParams();
+    const q = searchParams.get("q") || "";
     const [showModal, setShowModal] = useState(false);
-    const [editingProduct, setEditingProduct] = useState(null);
-    const [formData, setFormData] = useState({
-        name: "",
-        category: "",
-        subcategory: "",
-        brand: "",
-        isSubsidy: false,
-        price: "",
-        originalPrice: "",
-        stock: "",
-        soldCount: "0",
-        description: "",
-        shop: "",
-    });
-    const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
-    const [images, setImages] = useState([]);
-    const [imagePreviews, setImagePreviews] = useState([]);
+    // ... rest
 
     const queryClient = useQueryClient();
 
     const { data: products = [], isLoading } = useQuery({
-        queryKey: ["vendor-products"],
-        queryFn: vendorApi.getProducts,
+        queryKey: ["vendor-products", q],
+        queryFn: () => vendorApi.getProducts(q),
     });
 
     const { data: categories = [] } = useQuery({

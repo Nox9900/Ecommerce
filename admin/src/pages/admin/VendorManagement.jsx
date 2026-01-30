@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import axios from "axios";
 import { CheckCircleIcon, XCircleIcon, StoreIcon, TrashIcon } from "lucide-react";
 import toast from "react-hot-toast";
@@ -6,16 +7,21 @@ import toast from "react-hot-toast";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 function VendorManagement() {
+    const [searchParams] = useSearchParams();
+    const q = searchParams.get("q") || "";
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchVendors();
-    }, []);
+        fetchVendors(q);
+    }, [q]);
 
-    const fetchVendors = async () => {
+    const fetchVendors = async (searchQuery = "") => {
         try {
-            const response = await axios.get(`${API_URL}/admin/vendors`, { withCredentials: true });
+            const url = searchQuery
+                ? `${API_URL}/admin/vendors?q=${searchQuery}`
+                : `${API_URL}/admin/vendors`;
+            const response = await axios.get(url, { withCredentials: true });
             setVendors(response.data);
         } catch (error) {
             console.error("Error fetching vendors:", error);

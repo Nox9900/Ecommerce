@@ -1,14 +1,16 @@
 import { orderApi } from "../lib/api";
 import { formatDate } from "../lib/utils";
-
+import { useSearchParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 function OrdersPage() {
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") || "";
   const queryClient = useQueryClient();
 
   const { data: ordersData, isLoading } = useQuery({
-    queryKey: ["orders"],
-    queryFn: orderApi.getAll,
+    queryKey: ["orders", q],
+    queryFn: () => orderApi.getAll(q),
   });
 
   const updateStatusMutation = useMutation({

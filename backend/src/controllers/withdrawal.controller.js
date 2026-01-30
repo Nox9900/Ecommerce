@@ -46,7 +46,17 @@ export const getVendorWithdrawals = async (req, res) => {
 
 export const getAllWithdrawals = async (req, res) => {
     try {
-        const withdrawals = await Withdrawal.find()
+        const { q } = req.query;
+        const query = {};
+
+        if (q) {
+            query.$or = [
+                { status: { $regex: q, $options: "i" } },
+                { _id: q.length === 24 ? q : null },
+            ];
+        }
+
+        const withdrawals = await Withdrawal.find(query)
             .populate({
                 path: "vendor",
                 populate: { path: "owner", select: "name email" }

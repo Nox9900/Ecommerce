@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import axios from "axios";
 import { DollarSignIcon, CheckCircleIcon, XCircleIcon, MessageSquareIcon } from "lucide-react";
 import toast from "react-hot-toast";
@@ -6,18 +7,23 @@ import toast from "react-hot-toast";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 function WithdrawalManagement() {
+    const [searchParams] = useSearchParams();
+    const q = searchParams.get("q") || "";
     const [withdrawals, setWithdrawals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [adminNote, setAdminNote] = useState("");
     const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
 
     useEffect(() => {
-        fetchWithdrawals();
-    }, []);
+        fetchWithdrawals(q);
+    }, [q]);
 
-    const fetchWithdrawals = async () => {
+    const fetchWithdrawals = async (searchQuery = "") => {
         try {
-            const response = await axios.get(`${API_URL}/admin/withdrawals`, { withCredentials: true });
+            const url = searchQuery
+                ? `${API_URL}/admin/withdrawals?q=${searchQuery}`
+                : `${API_URL}/admin/withdrawals`;
+            const response = await axios.get(url, { withCredentials: true });
             setWithdrawals(response.data);
         } catch (error) {
             console.error("Error fetching withdrawals:", error);
@@ -74,7 +80,7 @@ function WithdrawalManagement() {
                                 <td>{new Date(w.createdAt).toLocaleDateString()}</td>
                                 <td>
                                     <div className={`badge ${w.status === "approved" ? "badge-success" :
-                                            w.status === "rejected" ? "badge-error" : "badge-warning"
+                                        w.status === "rejected" ? "badge-error" : "badge-warning"
                                         }`}>
                                         {w.status}
                                     </div>

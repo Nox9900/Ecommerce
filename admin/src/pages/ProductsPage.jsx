@@ -1,35 +1,21 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productApi, mobileApi, shopApi } from "../lib/api";
 import { getStockStatusBadge } from "../lib/utils";
 
 function ProductsPage() {
-  const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    subcategory: "",
-    brand: "",
-    isSubsidy: false,
-    price: "",
-    originalPrice: "",
-    stock: "",
-    soldCount: "0",
-    description: "",
-    shop: "",
-  });
-  const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
-  const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") || "";
 
-  const queryClient = useQueryClient();
+  const [showModal, setShowModal] = useState(false);
+  // ... rest
 
   // fetch some data
   const { data: products = [] } = useQuery({
-    queryKey: ["products"],
-    queryFn: productApi.getAll,
+    queryKey: ["products", q],
+    queryFn: () => productApi.getAll(q),
   });
 
   const { data: categories = [] } = useQuery({

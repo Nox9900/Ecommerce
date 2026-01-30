@@ -191,10 +191,20 @@ export async function updateProduct(req, res) {
   }
 }
 
-export async function getAllOrders(_, res) {
+export async function getAllOrders(req, res) {
   try {
-    const orders = await Order.find()
-      .populate("user", "name email")
+    const { q } = req.query;
+    const query = {};
+
+    if (q) {
+      query.$or = [
+        { _id: q.length === 24 ? q : null },
+        { status: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const orders = await Order.find(query)
+      .populate("user", "name email firstName lastName")
       .populate("orderItems.product")
       .sort({ createdAt: -1 });
 
@@ -248,9 +258,20 @@ export async function updateOrderStatus(req, res) {
   }
 }
 
-export async function getAllCustomers(_, res) {
+export async function getAllCustomers(req, res) {
   try {
-    const customers = await User.find().sort({ createdAt: -1 }); // latest user first
+    const { q } = req.query;
+    const query = {};
+
+    if (q) {
+      query.$or = [
+        { firstName: { $regex: q, $options: "i" } },
+        { lastName: { $regex: q, $options: "i" } },
+        { "emailAddresses.emailAddress": { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const customers = await User.find(query).sort({ createdAt: -1 }); // latest user first
     res.status(200).json({ customers });
   } catch (error) {
     console.error("Error fetching customers:", error);
@@ -319,7 +340,17 @@ export const deleteProduct = async (req, res) => {
 
 export const getAllVendors = async (req, res) => {
   try {
-    const vendors = await Vendor.find().populate("owner", "name email").sort({ createdAt: -1 });
+    const { q } = req.query;
+    const query = {};
+
+    if (q) {
+      query.$or = [
+        { shopName: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const vendors = await Vendor.find(query).populate("owner", "name email").sort({ createdAt: -1 });
     res.status(200).json(vendors);
   } catch (error) {
     console.error("Error fetching vendors:", error);

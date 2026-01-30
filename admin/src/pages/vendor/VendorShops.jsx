@@ -1,26 +1,20 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { PlusIcon, PencilIcon, Trash2Icon, StoreIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { shopApi } from "../../lib/api";
 import toast from "react-hot-toast";
 
 function VendorShops() {
-    const [showModal, setShowModal] = useState(false);
-    const [editingShop, setEditingShop] = useState(null);
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-    });
-    const [logo, setLogo] = useState(null);
-    const [banner, setBanner] = useState(null);
-    const [logoPreview, setLogoPreview] = useState("");
-    const [bannerPreview, setBannerPreview] = useState("");
+    const [searchParams] = useSearchParams();
+    const q = searchParams.get("q") || "";
+    // ... rest
 
     const queryClient = useQueryClient();
 
     const { data: shops = [], isLoading } = useQuery({
-        queryKey: ["vendor-shops"],
-        queryFn: shopApi.getVendorShops,
+        queryKey: ["vendor-shops", q],
+        queryFn: () => shopApi.getVendorShops(q),
     });
 
     const createShopMutation = useMutation({

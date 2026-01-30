@@ -1,8 +1,8 @@
 import axiosInstance from "./axios";
 
 export const productApi = {
-  getAll: async () => {
-    const { data } = await axiosInstance.get("/admin/products");
+  getAll: async (q = "") => {
+    const { data } = await axiosInstance.get(`/admin/products${q ? `?q=${q}` : ""}`);
     return data;
   },
 
@@ -34,8 +34,8 @@ export const searchApi = {
 };
 
 export const orderApi = {
-  getAll: async () => {
-    const { data } = await axiosInstance.get("/admin/orders");
+  getAll: async (q = "") => {
+    const { data } = await axiosInstance.get(`/admin/orders${q ? `?q=${q}` : ""}`);
     return data;
   },
 
@@ -53,8 +53,8 @@ export const statsApi = {
 };
 
 export const customerApi = {
-  getAll: async () => {
-    const { data } = await axiosInstance.get("/admin/customers");
+  getAll: async (q = "") => {
+    const { data } = await axiosInstance.get(`/admin/customers${q ? `?q=${q}` : ""}`);
     return data;
   },
 };
@@ -114,8 +114,8 @@ export const vendorApi = {
     const { data } = await axiosInstance.get("/vendors/stats");
     return data;
   },
-  getProducts: async () => {
-    const { data } = await axiosInstance.get("/vendors/products");
+  getProducts: async (q = "") => {
+    const { data } = await axiosInstance.get(`/vendors/products${q ? `?q=${q}` : ""}`);
     return data;
   },
   createProduct: async (formData) => {
@@ -133,8 +133,8 @@ export const vendorApi = {
 };
 
 export const shopApi = {
-  getVendorShops: async () => {
-    const { data } = await axiosInstance.get("/shops");
+  getVendorShops: async (q = "") => {
+    const { data } = await axiosInstance.get(`/shops${q ? `?q=${q}` : ""}`);
     return data;
   },
   create: async (formData) => {

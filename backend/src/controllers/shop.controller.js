@@ -62,8 +62,18 @@ export const createShop = async (req, res) => {
 
 export const getVendorShops = async (req, res) => {
     try {
+        const { q } = req.query;
         const userId = req.user._id;
-        const shops = await Shop.find({ owner: userId }).sort({ createdAt: -1 });
+        const query = { owner: userId };
+
+        if (q) {
+            query.$or = [
+                { name: { $regex: q, $options: "i" } },
+                { description: { $regex: q, $options: "i" } },
+            ];
+        }
+
+        const shops = await Shop.find(query).sort({ createdAt: -1 });
         res.status(200).json(shops);
     } catch (error) {
         console.error("Error fetching vendor shops:", error);

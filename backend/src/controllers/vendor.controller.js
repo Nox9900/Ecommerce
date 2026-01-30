@@ -101,10 +101,20 @@ export const createVendorProduct = async (req, res) => {
 
 export const getVendorProducts = async (req, res) => {
     try {
+        const { q } = req.query;
         const vendor = await Vendor.findOne({ owner: req.user._id });
         if (!vendor) return res.status(404).json({ message: "Vendor profile not found" });
 
-        const products = await Product.find({ vendor: vendor._id }).sort({ createdAt: -1 });
+        const query = { vendor: vendor._id };
+        if (q) {
+            query.$or = [
+                { name: { $regex: q, $options: "i" } },
+                { brand: { $regex: q, $options: "i" } },
+                { description: { $regex: q, $options: "i" } },
+            ];
+        }
+
+        const products = await Product.find(query).sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching vendor products:", error);
