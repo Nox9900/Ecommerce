@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View, ScrollView, I18nManager } from "react-native";
+import { Text, TouchableOpacity, View, ScrollView, I18nManager, DevSettings, NativeModules } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Updates from "expo-updates";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
@@ -46,7 +46,20 @@ export default function LanguageScreen() {
             // and to avoid race conditions with the current event loop.
             setTimeout(async () => {
                 try {
-                    await Updates.reloadAsync();
+                    if (__DEV__) {
+                        // Use DevSettings in development (Expo Go)
+                        // DevSettings might not be directly exported in some versions, check NativeModules fallback
+                        if (DevSettings && DevSettings.reload) {
+                            DevSettings.reload();
+                        } else if (NativeModules.DevSettings && NativeModules.DevSettings.reload) {
+                            NativeModules.DevSettings.reload();
+                        } else {
+                            // Fallback or error
+                            await Updates.reloadAsync();
+                        }
+                    } else {
+                        await Updates.reloadAsync();
+                    }
                 } catch (reloadError) {
                     console.error("Failed to reload app:", reloadError);
                 }

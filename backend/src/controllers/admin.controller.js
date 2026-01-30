@@ -427,3 +427,54 @@ export const updateSettings = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export async function searchAll(req, res) {
+  try {
+    const { q } = req.query;
+    if (!q) return res.status(200).json({ products: [], orders: [], customers: [], vendors: [] });
+
+    const regex = { $regex: q, $options: "i" };
+
+    const [products, orders, customers, vendors] = await Promise.all([
+      Product.find({
+        $or: [
+          { name: regex },
+          { brand: regex },
+          { description: regex }
+        ]
+      }).limit(5).populate('shop', 'shopName'),
+
+      Order.find({
+        $or: [
+          { _id: q.length === 24 ? q : null }, // Exact ID if valid length
+          { status: regex }
+        ]
+      }).limit(5).populate('user', 'firstName lastName'),
+
+      User.find({
+        $or: [
+          { firstName: regex },
+          { lastName: regex },
+          { "emailAddresses.emailAddress": regex }
+        ]
+      }).limit(5),
+
+      Vendor.find({
+        $or: [
+          { shopName: regex },
+          { description: regex }
+        ]
+      }).limit(5)
+    ]);
+
+    res.status(200).json({
+      products,
+      orders: orders.filter(o => o !== null),
+      customers,
+      vendors
+    });
+  } catch (error) {
+    console.error("Error in searchAll:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

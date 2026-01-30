@@ -14,6 +14,8 @@ import QuickLinksGrid from "@/components/shop/QuickLinksGrid";
 import PromoBanners from "@/components/shop/PromoBanners";
 import SwipeableCategoryView from "@/components/shop/SwipeableCategoryView";
 import useCategories from "@/hooks/useCategories";
+import { getTranslated } from "@/lib/i18n-utils";
+import { useTranslation } from "react-i18next";
 
 const ShopScreen = () => {
   const { theme } = useTheme();
@@ -23,13 +25,19 @@ const ShopScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { data: categories } = useCategories();
 
+  const { t, i18n } = useTranslation();
+
   // Build all categories including "all"
   const allCategories = useMemo(() => {
+    const translatedCategories = (categories || []).map(cat => ({
+      ...cat,
+      name: getTranslated(cat, 'name', i18n.language)
+    }));
     return [
-      { _id: "all", name: "All", icon: "" },
-      ...(categories || [])
+      { _id: "all", name: t('common.all'), icon: "" },
+      ...translatedCategories
     ];
-  }, [categories]);
+  }, [categories, i18n.language]);
 
   // Get current category index for swipe navigation
   const currentCategoryIndex = useMemo(() => {

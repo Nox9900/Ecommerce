@@ -58,6 +58,27 @@ export async function createOrder(req, res) {
       }
     }
 
+    // Create notification for the user
+    await import("../models/notification.model.js").then(async ({ Notification }) => {
+      try {
+        const notification = await Notification.create({
+          recipient: user._id,
+          type: "order",
+          title: "Order Placed Successfully",
+          body: `Your order #${order._id.toString().slice(-6)} has been placed.`,
+          data: { orderId: order._id }
+        });
+
+        const io = req.app.get("io");
+        if (io) {
+          io.to(user._id.toString()).emit("notification:new", notification);
+          // Optionally notify vendors here if needed (complex for multi-vendor orders)
+        }
+      } catch (err) {
+        console.error("Failed to create notification", err);
+      }
+    });
+
     res.status(201).json({ message: "Order created successfully", order });
   } catch (error) {
     console.error("Error in createOrder controller:", error);

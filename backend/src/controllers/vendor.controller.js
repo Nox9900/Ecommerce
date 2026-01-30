@@ -191,3 +191,42 @@ export const updateVendorProduct = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+export const vendorSearch = async (req, res) => {
+    try {
+        const { q } = req.query;
+        const vendor = await Vendor.findOne({ owner: req.user._id });
+        if (!vendor) return res.status(404).json({ message: "Vendor profile not found" });
+
+        if (!q) return res.status(200).json({ products: [], orders: [] });
+
+        const regex = { $regex: q, $options: "i" };
+
+        const [products, orders] = await Promise.all([
+            Product.find({
+                vendor: vendor._id,
+                $or: [
+                    { name: regex },
+                    { brand: regex },
+                    { description: regex }
+                ]
+            }).limit(5),
+
+            Order.find({
+                "items.product": { $in: await Product.find({ vendor: vendor._id }).distinct('_id') },
+                $or: [
+                    { _id: q.length === 24 ? q : null },
+                    { status: regex }
+                ]
+            }).limit(5).populate('user', 'firstName lastName')
+        ]);
+
+        res.status(200).json({
+            products,
+            orders: orders.filter(o => o !== null)
+        });
+    } catch (error) {
+        console.error("Error in vendorSearch:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};

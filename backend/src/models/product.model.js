@@ -87,6 +87,14 @@ const productSchema = new mongoose.Schema(
         image: String,
       },
     ],
+    translations: {
+      type: Map,
+      of: {
+        name: String,
+        description: String,
+      },
+      default: {},
+    },
   },
   { timestamps: true }
 );

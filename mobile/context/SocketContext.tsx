@@ -22,8 +22,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
             newSocket.on("connect", () => {
                 console.log("Socket connected:", newSocket.id);
-                // Optionally join user room for notifications
-                // newSocket.emit("join", userId);
+                newSocket.emit("joinUser", userId);
             });
 
             setSocket(newSocket);

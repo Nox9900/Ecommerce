@@ -6,6 +6,7 @@ import {
     getVendorProducts,
     getVendorStats,
     updateVendorProduct,
+    vendorSearch,
 } from "../controllers/vendor.controller.js";
 import {
     createConnectAccount,
@@ -30,6 +31,7 @@ router.post("/products", protectRoute, vendorOnly, upload.array("images", 3), cr
 router.put("/products/:id", protectRoute, vendorOnly, upload.array("images", 3), updateVendorProduct);
 router.post("/withdrawals", protectRoute, vendorOnly, requestWithdrawal);
 router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
+router.get("/search", protectRoute, vendorOnly, vendorSearch);
 
 // Stripe Connect Routes
 router.post("/connect/account", protectRoute, vendorOnly, createConnectAccount);

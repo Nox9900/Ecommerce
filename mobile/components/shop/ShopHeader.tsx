@@ -5,6 +5,7 @@ import { useTheme } from "@/lib/useTheme";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
+import { useNotifications } from "@/context/NotificationContext";
 
 interface ShopHeaderProps {
     onSearch?: (query: string) => void;
@@ -16,6 +17,7 @@ export default function ShopHeader({ onSearch }: ShopHeaderProps) {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const { t } = useTranslation();
+    const { unreadCount } = useNotifications();
 
     const handleSearchChange = (text: string) => {
         setSearchQuery(text);
@@ -34,8 +36,7 @@ export default function ShopHeader({ onSearch }: ShopHeaderProps) {
 
     return (
         <View
-            className="bg-white dark:bg-background pt-2 pb-2 px-6 border-b border-black/5 dark:border-white/5"
-            style={{ paddingTop: insets.top }}
+            className="bg-white dark:bg-background pt-2 pb-2 px-4 border-b border-black/5 dark:border-white/5"
         >
             <View className="flex-row items-center justify-between h-12">
                 {isSearchActive ? (
@@ -70,13 +71,17 @@ export default function ShopHeader({ onSearch }: ShopHeaderProps) {
                                 <Ionicons name="search-outline" size={22} className="text-text-primary" />
                             </TouchableOpacity>
 
+
                             <TouchableOpacity
                                 onPress={() => router.push("/(profile)/notifications" as any)}
                                 className="w-10 h-10 rounded-full bg-surface-light items-center justify-center border border-black/5 dark:border-white/10"
                             >
                                 <Ionicons name="notifications-outline" size={22} className="text-text-primary" />
-                                {/* Optional notification badge could go here */}
-                                {/* <View className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" /> */}
+                                {unreadCount > 0 && (
+                                    <View className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full items-center justify-center border border-white dark:border-black">
+                                        <Text className="text-[9px] text-white font-bold">{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                                    </View>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </>

@@ -8,6 +8,7 @@ import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
 import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const MENU_ITEMS = [
   {
@@ -72,11 +73,11 @@ export default function ProfileScreen() {
                 {/* Profile Image */}
                 <View className="relative">
                   <View className="shadow-2xl shadow-primary/40 rounded-full">
-                    <Image
-                      source={user?.hasImage ? { uri: user.imageUrl } : require("@/assets/images/default-avatar.png")}
-                      className="w-24 h-24 rounded-full border-4 border-surface dark:border-black/50"
-                      contentFit="cover"
-                      transition={500}
+                    <UserAvatar
+                      source={user?.imageUrl}
+                      name={user?.fullName || "User"}
+                      size={96} // 24 * 4 = 96
+                      className="border-4 border-surface dark:border-black/50"
                     />
                   </View>
                   <TouchableOpacity className="absolute bottom-0 right-0 bg-primary p-2.5 rounded-full border-[3px] border-background shadow-md">
@@ -89,7 +90,7 @@ export default function ProfileScreen() {
                   <Text className="text-2xl font-black text-text-primary tracking-tight">
                     {user?.fullName || "Guest User"}
                   </Text>
-                  <Text className="text-text-tertiary text-sm font-bold opacity-80 mt-1 mb-4">
+                  <Text className="text-text-tertiary text-[10px] font-bold opacity-80 mt-1 mb-4">
                     {user?.primaryEmailAddress?.emailAddress || "Sign in to sync data"}
                   </Text>
 

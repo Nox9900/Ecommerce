@@ -16,7 +16,7 @@ export default function Header({ onAdd, primaryText, secondaryText }: HeaderProp
   const { theme } = useTheme();
 
   return (
-    <View className="px-6  pb-4 border-b border-black/5 dark:border-white/5 flex-row items-center justify-between" style={{ paddingTop: insets.top + 20 }}>
+    <View className="px-2 pb-4 border-b border-black/5 dark:border-white/5 flex-row items-center justify-between" style={{ paddingTop: insets.top + 10 }}>
       <View className="flex-row items-center justify-between gap-36">
         <View className="flex-row items-center gap-2">
           <TouchableOpacity

@@ -41,8 +41,22 @@ const categorySchema = new mongoose.Schema(
                     type: Boolean,
                     default: true,
                 },
+                translations: {
+                    type: Map,
+                    of: {
+                        name: String,
+                    },
+                    default: {},
+                },
             },
         ],
+        translations: {
+            type: Map,
+            of: {
+                name: String,
+            },
+            default: {},
+        },
     },
     { timestamps: true }
 );

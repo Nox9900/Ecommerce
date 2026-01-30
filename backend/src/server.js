@@ -23,6 +23,7 @@ import vendorRoutes from "./routes/vendor.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import shopRoutes from "./routes/shop.route.js";
 import promoBannerRoutes from "./routes/promoBanner.route.js";
+import notificationRoutes from "./routes/notification.route.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -41,6 +42,11 @@ io.on("connection", (socket) => {
   socket.on("joinConversation", (conversationId) => {
     socket.join(conversationId);
     console.log(`User matched socket ${socket.id} joined conversation ${conversationId}`);
+  });
+
+  socket.on("joinUser", (userId) => {
+    socket.join(userId);
+    console.log(`Socket ${socket.id} joined user room ${userId}`);
   });
 
   socket.on("disconnect", () => {
@@ -77,6 +83,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/shops", shopRoutes);

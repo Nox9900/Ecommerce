@@ -13,6 +13,8 @@ import ReviewModal from "@/components/ReviewModal";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
 import { Address } from "@/types";
 import { useTranslation } from "react-i18next";
+import { getTranslated } from "@/lib/i18n-utils";
+import { UserAvatar } from "@/components/UserAvatar";
 import * as Sentry from "@sentry/react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -48,7 +50,7 @@ const ProductDetailScreen = () => {
   const { addresses } = useAddresses();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const api = useApi();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
 
   const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } =
@@ -396,7 +398,9 @@ const ProductDetailScreen = () => {
 
           {/* Product Name */}
           <AnimatedContainer animation="fadeUp" delay={300}>
-            <Text className="text-text-primary text-3xl font-black mb-4 leading-tight tracking-tight">{product.name}</Text>
+            <Text className="text-text-primary text-3xl font-black mb-4 leading-tight tracking-tight">
+              {getTranslated(product, 'name', i18n.language)}
+            </Text>
           </AnimatedContainer>
 
           {/* Price & Stock */}
@@ -479,7 +483,9 @@ const ProductDetailScreen = () => {
           {/* Description */}
           <AnimatedContainer animation="fadeUp" delay={500} className="mb-8">
             <Text className="text-text-primary text-lg font-bold mb-3">Description</Text>
-            <Text className="text-text-secondary text-base leading-7">{product.description}</Text>
+            <Text className="text-text-secondary text-base leading-7">
+              {getTranslated(product, 'description', i18n.language)}
+            </Text>
           </AnimatedContainer>
 
           {/* Reviews & Ratings Section */}
@@ -505,11 +511,12 @@ const ProductDetailScreen = () => {
                   <View key={review._id} className={`w-72 mr-4 p-4 rounded-2xl border ${theme === 'dark' ? "bg-surface-light border-white/5" : "bg-gray-50 border-black/5"}`}>
                     <View className="flex-row items-center justify-between mb-3">
                       <View className="flex-row items-center gap-2">
-                        <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
-                          <Text className="text-primary font-bold text-xs">
-                            {review.userId.name.charAt(0)}
-                          </Text>
-                        </View>
+                        <UserAvatar
+                          source={review.userId.image || review.userId.imageUrl} // Handle different field names if necessary, assuming one of them
+                          name={review.userId.name}
+                          size={32}
+                          className="bg-primary/20"
+                        />
                         <Text className="text-text-primary font-bold text-sm" numberOfLines={1}>{review.userId.name}</Text>
                       </View>
                       <View className="flex-row">

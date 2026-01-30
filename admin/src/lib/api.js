@@ -26,6 +26,13 @@ export const productApi = {
   },
 };
 
+export const searchApi = {
+  searchAll: async (q) => {
+    const { data } = await axiosInstance.get(`/admin/search?q=${q}`);
+    return data;
+  },
+};
+
 export const orderApi = {
   getAll: async () => {
     const { data } = await axiosInstance.get("/admin/orders");
@@ -117,6 +124,10 @@ export const vendorApi = {
   },
   updateProduct: async ({ id, formData }) => {
     const { data } = await axiosInstance.put(`/vendors/products/${id}`, formData);
+    return data;
+  },
+  search: async (q) => {
+    const { data } = await axiosInstance.get(`/vendors/search?q=${q}`);
     return data;
   },
 };

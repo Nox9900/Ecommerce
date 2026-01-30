@@ -6,6 +6,7 @@ import useWishlist from "@/hooks/useWishlist";
 import { Product } from "@/types";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
+import { getTranslated } from "@/lib/i18n-utils";
 
 interface ProductCardProps {
     product: Product;
@@ -18,7 +19,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
     const scale = useSharedValue(1);
     const router = useRouter();
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { theme } = useTheme();
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -81,7 +82,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                         className="text-text-primary text-[13px] font-bold mb-1.5 leading-4"
                         numberOfLines={2}
                     >
-                        {t('db.' + product.name, { defaultValue: product.name })}
+                        {getTranslated(product, 'name', i18n.language)}
                     </Text>
 
                     {/* Tags (Mock) */}

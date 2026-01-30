@@ -14,6 +14,7 @@ import {
   updateSettings,
   deleteVendorRequest,
   getAllShops,
+  searchAll,
 } from "../controllers/admin.controller.js";
 import {
   getAllWithdrawals,
@@ -49,6 +50,7 @@ router.get("/withdrawals", getAllWithdrawals);
 router.patch("/withdrawals/:withdrawalId/status", updateWithdrawalStatus);
 
 router.get("/stats", getDashboardStats);
+router.get("/search", searchAll);
 
 // PUT: Used for full resource replacement, updating the entire resource
 // PATCH: Used for partial resource updates, updating a specific part of the resource

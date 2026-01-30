@@ -137,6 +137,29 @@ export const sendMessage = async (req, res) => {
         const io = req.app.get("io");
         if (io) {
             io.to(conversationId).emit("newMessage", message);
+
+            // Send notification to other participants
+            // Find other participant
+            const otherParticipants = await Conversation.findById(conversationId).select('participants');
+            if (otherParticipants) {
+                const recipients = otherParticipants.participants.filter(p => p.toString() !== user._id.toString());
+                const Notification = (await import("../models/notification.model.js")).Notification;
+
+                for (const recipientId of recipients) {
+                    try {
+                        const notification = await Notification.create({
+                            recipient: recipientId,
+                            type: "message",
+                            title: `New message from ${user.name}`,
+                            body: content || "Sent an attachment",
+                            data: { conversationId: conversationId }
+                        });
+                        io.to(recipientId.toString()).emit("notification:new", notification);
+                    } catch (err) {
+                        console.error("Failed to notifiy recipient", err);
+                    }
+                }
+            }
         }
 
         res.status(201).json(message);

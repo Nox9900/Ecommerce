@@ -8,6 +8,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import * as Sentry from "@sentry/react-native";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { SocketProvider } from "../context/SocketContext";
+import { NotificationProvider } from "../context/NotificationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 Sentry.init({
@@ -72,7 +73,9 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
             <SocketProvider>
-              <Stack screenOptions={{ headerShown: false }} />
+              <NotificationProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+              </NotificationProvider>
             </SocketProvider>
           </StripeProvider>
         </QueryClientProvider>
