@@ -25,6 +25,7 @@ function ProductsPage() {
     shop: "",
   });
   const [attributes, setAttributes] = useState([]); // [{ name: "", values: [""] }]
+  const [variants, setVariants] = useState([]); // [{ name: "", size: "", color: "", price: "", stock: "", sku: "" }]
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
@@ -89,6 +90,7 @@ function ProductsPage() {
       shop: "",
     });
     setAttributes([]);
+    setVariants([]);
     setImages([]);
     setImagePreviews([]);
   };
@@ -109,6 +111,7 @@ function ProductsPage() {
       shop: product.shop?._id || product.shop || "",
     });
     setAttributes(product.attributes || []);
+    setVariants(product.variants || []);
     setImagePreviews(product.images);
     setShowModal(true);
   };
@@ -147,6 +150,7 @@ function ProductsPage() {
     formDataToSend.append("soldCount", formData.soldCount);
     formDataToSend.append("shop", formData.shop);
     formDataToSend.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
+    formDataToSend.append("variants", JSON.stringify(variants.filter(v => v.name)));
 
     // only append new images if they were selected
     if (images.length > 0) images.forEach((image) => formDataToSend.append("images", image));
@@ -511,6 +515,132 @@ function ProductsPage() {
                 ))}
                 {attributes.length === 0 && (
                   <p className="text-center text-xs text-base-content/50 italic">No attributes added yet</p>
+                )}
+              </div>
+            </div>
+
+            {/* PRODUCT VARIANTS */}
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold text-base">Product Variants (Optional)</span>
+                <button
+                  type="button"
+                  onClick={() => setVariants([...variants, { name: "", size: "", color: "", price: formData.price, stock: "0", sku: "" }])}
+                  className="btn btn-xs btn-outline btn-success"
+                >
+                  Add Variant
+                </button>
+              </label>
+
+              <div className="space-y-3 bg-base-200 p-4 rounded-xl">
+                {variants.map((variant, varIndex) => (
+                  <div key={varIndex} className="bg-base-100 p-4 rounded-lg relative">
+                    <button
+                      type="button"
+                      onClick={() => setVariants(variants.filter((_, i) => i !== varIndex))}
+                      className="btn btn-xs btn-circle btn-ghost absolute right-2 top-2 text-error"
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Variant Name */}
+                      <div className="form-control col-span-2">
+                        <input
+                          type="text"
+                          placeholder="Variant Name (e.g. Small - Red, Large - Blue)"
+                          className="input input-sm input-bordered w-full font-semibold"
+                          value={variant.name}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[varIndex].name = e.target.value;
+                            setVariants(newVariants);
+                          }}
+                        />
+                      </div>
+
+                      {/* Size */}
+                      <div className="form-control">
+                        <input
+                          type="text"
+                          placeholder="Size (e.g. S, M, L, XL)"
+                          className="input input-sm input-bordered"
+                          value={variant.size || ""}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[varIndex].size = e.target.value;
+                            newVariants[varIndex].options = { ...newVariants[varIndex].options, size: e.target.value };
+                            setVariants(newVariants);
+                          }}
+                        />
+                      </div>
+
+                      {/* Color */}
+                      <div className="form-control">
+                        <input
+                          type="text"
+                          placeholder="Color (e.g. Red, Blue)"
+                          className="input input-sm input-bordered"
+                          value={variant.color || ""}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[varIndex].color = e.target.value;
+                            newVariants[varIndex].options = { ...newVariants[varIndex].options, color: e.target.value };
+                            setVariants(newVariants);
+                          }}
+                        />
+                      </div>
+
+                      {/* Price */}
+                      <div className="form-control">
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="Price"
+                          className="input input-sm input-bordered"
+                          value={variant.price || formData.price}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[varIndex].price = e.target.value;
+                            setVariants(newVariants);
+                          }}
+                        />
+                      </div>
+
+                      {/* Stock */}
+                      <div className="form-control">
+                        <input
+                          type="number"
+                          placeholder="Stock"
+                          className="input input-sm input-bordered"
+                          value={variant.stock || "0"}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[varIndex].stock = e.target.value;
+                            setVariants(newVariants);
+                          }}
+                        />
+                      </div>
+
+                      {/* SKU */}
+                      <div className="form-control col-span-2">
+                        <input
+                          type="text"
+                          placeholder="SKU (Optional)"
+                          className="input input-sm input-bordered"
+                          value={variant.sku || ""}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[varIndex].sku = e.target.value;
+                            setVariants(newVariants);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {variants.length === 0 && (
+                  <p className="text-center text-xs text-base-content/50 italic">No variants added yet. Add variants for products with different sizes/colors.</p>
                 )}
               </div>
             </div>

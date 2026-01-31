@@ -168,6 +168,7 @@ const ShopScreen = () => {
                 products={filteredProducts}
                 isLoading={productsLoading}
                 isError={productsError}
+                showVendorSlider={true}
               />
             </AnimatedContainer>
           </ScrollView>
@@ -224,6 +225,7 @@ const ShopScreen = () => {
                   products={productsByCategory[index] || []}
                   isLoading={productsLoading}
                   isError={productsError}
+                  showVendorSlider={true}
                 />
               </AnimatedContainer>
             </ScrollView>

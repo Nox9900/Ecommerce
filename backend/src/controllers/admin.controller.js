@@ -9,7 +9,7 @@ import { Shop } from "../models/shop.model.js";
 
 export async function createProduct(req, res) {
   try {
-    const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, shop } = req.body;
+    const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, variants, shop } = req.body;
 
     if (!name || !price || !stock || !category) {
       return res.status(400).json({ message: "Name, price, stock and category are required" });
@@ -52,6 +52,20 @@ export async function createProduct(req, res) {
 
     const imageUrls = uploadResults.map((result) => result.secure_url);
 
+    // Parse and validate variants if provided
+    let parsedVariants = [];
+    if (variants) {
+      const variantsData = JSON.parse(variants);
+      parsedVariants = variantsData.map(v => ({
+        name: v.name,
+        options: v.options || {},
+        price: v.price ? parseFloat(v.price) : parseFloat(price),
+        stock: v.stock ? parseInt(v.stock) : 0,
+        sku: v.sku || '',
+        image: v.image || ''
+      }));
+    }
+
     const product = await Product.create({
       name,
       description,
@@ -64,6 +78,7 @@ export async function createProduct(req, res) {
       isSubsidy: isSubsidy === "true" || isSubsidy === true,
       soldCount: soldCount ? parseInt(soldCount) : 0,
       attributes: attributes ? JSON.parse(attributes) : [],
+      variants: parsedVariants,
       images: imageUrls,
       vendor: vendorId,
       shop: shop || undefined,
@@ -139,11 +154,25 @@ export async function getAllProducts(req, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, shop } = req.body;
+    const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, variants, shop } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Parse and validate variants if provided
+    let parsedVariants = undefined;
+    if (variants) {
+      const variantsData = JSON.parse(variants);
+      parsedVariants = variantsData.map(v => ({
+        name: v.name,
+        options: v.options || {},
+        price: v.price ? parseFloat(v.price) : (price ? parseFloat(price) : product.price),
+        stock: v.stock ? parseInt(v.stock) : 0,
+        sku: v.sku || '',
+        image: v.image || ''
+      }));
     }
 
     const updateData = {
@@ -158,6 +187,7 @@ export async function updateProduct(req, res) {
       isSubsidy: isSubsidy !== undefined ? (isSubsidy === "true" || isSubsidy === true) : undefined,
       soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
       attributes: attributes ? JSON.parse(attributes) : undefined,
+      variants: parsedVariants,
       shop: shop || undefined,
     };
 

@@ -267,7 +267,7 @@ const ProductDetailScreen = () => {
 
       {/* HEADER */}
       <View
-        className={`absolute left-0 right-0 z-50 px-6 flex-row items-center justify-between pb-3 transition-all duration-300 ${isScrolled ? (theme === 'dark' ? "bg-black/90 border-b border-white/10" : "bg-white/90 border-b border-black/5") : "bg-transparent"
+        className={`absolute left-0 right-0 z-50 px-6 flex-row items-center justify-between pb-3 transition-all duration-300 ${isScrolled ? (theme === 'dark' ? "bg-black border-white/10" : "bg-white border-black/5") : "bg-transparent"
           }`}
         style={{ paddingTop: insets.top + 10 }}
       >

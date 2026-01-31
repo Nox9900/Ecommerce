@@ -59,7 +59,6 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
     return (
         <Pressable
-            className="flex-1 m-1.5"
             onPress={handlePress}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
@@ -71,7 +70,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                 <View className="relative">
                     <Image
                         source={{ uri: product.images[0] }}
-                        className="w-full h-44 bg-gray-100 dark:bg-zinc-800"
+                        className="w-full h-52 bg-gray-100 dark:bg-zinc-800"
                         resizeMode="cover"
                     />
                 </View>
