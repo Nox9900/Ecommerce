@@ -12,6 +12,8 @@ import { rateLimit } from "express-rate-limit"; // Added import
 
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
+import { globalErrorHandler } from "./middleware/error.middleware.js";
+import AppError from "./lib/AppError.js";
 
 import adminRoutes from "./routes/admin.route.js";
 import userRoutes from "./routes/user.route.js";
@@ -102,9 +104,15 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/shops", shopRoutes);
 app.use("/api/promo-banners", promoBannerRoutes);
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ message: "Success inside the server nnow!!!! wooohhhhh" });
+
+
+// Handle undefined routes
+app.use((req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
+
+// Global Error Handler
+app.use(globalErrorHandler);
 
 // make our app ready for deployment
 if (ENV.NODE_ENV === "production") {

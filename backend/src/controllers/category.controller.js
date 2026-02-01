@@ -1,70 +1,57 @@
 import { Category } from "../models/category.model.js";
+import AppError from "../lib/AppError.js";
+import { catchAsync } from "../lib/catchAsync.js";
 
 // Public: Get all active categories
-export async function getActiveCategories(req, res) {
-    try {
-        const categories = await Category.find({ isActive: true }).sort({ displayOrder: 1, name: 1 });
-        res.status(200).json(categories);
-    } catch (error) {
-        console.error("Error fetching active categories:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}
+export const getActiveCategories = catchAsync(async (req, res, next) => {
+    const categories = await Category.find({ isActive: true }).sort({ displayOrder: 1, name: 1 });
+    res.status(200).json(categories);
+});
 
 // Admin: Get all categories
-export async function getAllCategories(req, res) {
-    try {
-        const categories = await Category.find().sort({ displayOrder: 1, name: 1 });
-        res.status(200).json(categories);
-    } catch (error) {
-        console.error("Error fetching all categories:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}
+export const getAllCategories = catchAsync(async (req, res, next) => {
+    const categories = await Category.find().sort({ displayOrder: 1, name: 1 });
+    res.status(200).json(categories);
+});
 
 // Admin/Vendor: Create category
-export async function createCategory(req, res) {
-    try {
-        const categoryData = { ...req.body };
+export const createCategory = catchAsync(async (req, res, next) => {
+    const categoryData = { ...req.body };
 
-        // If not admin, force isActive to false for moderation
-        if (req.user.role !== "admin") {
-            categoryData.isActive = false;
-        }
-
-        const category = await Category.create(categoryData);
-        res.status(201).json(category);
-    } catch (error) {
-        console.error("Error creating category:", error);
-        if (error.code === 11000) {
-            return res.status(400).json({ message: "Category name must be unique" });
-        }
-        res.status(500).json({ message: "Internal server error" });
+    // If not admin, force isActive to false for moderation
+    if (req.user.role !== "admin") {
+        categoryData.isActive = false;
     }
-}
+
+    // Handle duplicate key error within the global error handler or here if specific message needed?
+    // Global handler handles code 11000 generically. If specific message "Category name must be unique" is strictly required,
+    // we can check existence first or use try/catch just for this specific case...
+    // BUT cleanest is to let global handler do it or check manually:
+    const existing = await Category.findOne({ name: categoryData.name });
+    if (existing) {
+        return next(new AppError("Category name must be unique", 400));
+    }
+
+    const category = await Category.create(categoryData);
+    res.status(201).json(category);
+});
 
 // Admin: Update category
-export async function updateCategory(req, res) {
-    try {
-        const { id } = req.params;
-        const category = await Category.findByIdAndUpdate(id, req.body, { new: true });
-        if (!category) return res.status(404).json({ message: "Category not found" });
-        res.status(200).json(category);
-    } catch (error) {
-        console.error("Error updating category:", error);
-        res.status(500).json({ message: "Internal server error" });
+export const updateCategory = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const category = await Category.findByIdAndUpdate(id, req.body, { new: true });
+    if (!category) {
+        return next(new AppError("Category not found", 404));
     }
-}
+    res.status(200).json(category);
+});
 
 // Admin: Delete category
-export async function deleteCategory(req, res) {
-    try {
-        const { id } = req.params;
-        const category = await Category.findByIdAndDelete(id);
-        if (!category) return res.status(404).json({ message: "Category not found" });
-        res.status(200).json({ message: "Category deleted successfully" });
-    } catch (error) {
-        console.error("Error deleting category:", error);
-        res.status(500).json({ message: "Internal server error" });
+export const deleteCategory = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const category = await Category.findByIdAndDelete(id);
+    if (!category) {
+        return next(new AppError("Category not found", 404));
     }
-}
+    res.status(200).json({ message: "Category deleted successfully" });
+});

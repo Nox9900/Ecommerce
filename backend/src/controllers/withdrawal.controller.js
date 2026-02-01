@@ -1,109 +1,91 @@
 import { Withdrawal } from "../models/withdrawal.model.js";
 import { Vendor } from "../models/vendor.model.js";
+import AppError from "../lib/AppError.js";
+import { catchAsync } from "../lib/catchAsync.js";
 
-export const requestWithdrawal = async (req, res) => {
-    try {
-        const { amount, bankDetails } = req.body;
-        const vendor = await Vendor.findOne({ owner: req.user._id });
+export const requestWithdrawal = catchAsync(async (req, res, next) => {
+    const { amount, bankDetails } = req.body;
+    const vendor = await Vendor.findOne({ owner: req.user._id });
 
-        if (!vendor || vendor.status !== "approved") {
-            return res.status(403).json({ message: "Only approved vendors can request withdrawals" });
-        }
-
-        if (amount > vendor.earnings) {
-            return res.status(400).json({ message: "Insufficient earnings" });
-        }
-
-        if (amount < 1) {
-            return res.status(400).json({ message: "Minimum withdrawal amount is $1" });
-        }
-
-        const withdrawal = await Withdrawal.create({
-            vendor: vendor._id,
-            amount,
-            bankDetails,
-        });
-
-        res.status(201).json(withdrawal);
-    } catch (error) {
-        console.error("Error requesting withdrawal:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (!vendor || vendor.status !== "approved") {
+        return next(new AppError("Only approved vendors can request withdrawals", 403));
     }
-};
 
-export const getVendorWithdrawals = async (req, res) => {
-    try {
-        const vendor = await Vendor.findOne({ owner: req.user._id });
-        if (!vendor) return res.status(404).json({ message: "Vendor profile not found" });
-
-        const withdrawals = await Withdrawal.find({ vendor: vendor._id }).sort({ createdAt: -1 });
-        res.status(200).json(withdrawals);
-    } catch (error) {
-        console.error("Error fetching vendor withdrawals:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (amount > vendor.earnings) {
+        return next(new AppError("Insufficient earnings", 400));
     }
-};
 
-export const getAllWithdrawals = async (req, res) => {
-    try {
-        const { q } = req.query;
-        const query = {};
-
-        if (q) {
-            query.$or = [
-                { status: { $regex: q, $options: "i" } },
-                { _id: q.length === 24 ? q : null },
-            ];
-        }
-
-        const withdrawals = await Withdrawal.find(query)
-            .populate({
-                path: "vendor",
-                populate: { path: "owner", select: "name email" }
-            })
-            .sort({ createdAt: -1 });
-        res.status(200).json(withdrawals);
-    } catch (error) {
-        console.error("Error fetching all withdrawals:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (amount < 1) {
+        return next(new AppError("Minimum withdrawal amount is $1", 400));
     }
-};
 
-export const updateWithdrawalStatus = async (req, res) => {
-    try {
-        const { withdrawalId } = req.params;
-        const { status, adminNote } = req.body;
+    const withdrawal = await Withdrawal.create({
+        vendor: vendor._id,
+        amount,
+        bankDetails,
+    });
 
-        if (!["approved", "rejected"].includes(status)) {
-            return res.status(400).json({ message: "Invalid status" });
-        }
+    res.status(201).json(withdrawal);
+});
 
-        const withdrawal = await Withdrawal.findById(withdrawalId).populate("vendor");
-        if (!withdrawal) return res.status(404).json({ message: "Withdrawal request not found" });
+export const getVendorWithdrawals = catchAsync(async (req, res, next) => {
+    const vendor = await Vendor.findOne({ owner: req.user._id });
+    if (!vendor) return next(new AppError("Vendor profile not found", 404));
 
-        if (withdrawal.status !== "pending") {
-            return res.status(400).json({ message: "Withdrawal request already processed" });
-        }
+    const withdrawals = await Withdrawal.find({ vendor: vendor._id }).sort({ createdAt: -1 });
+    res.status(200).json(withdrawals);
+});
 
-        if (status === "approved") {
-            const vendor = await Vendor.findById(withdrawal.vendor._id);
-            if (vendor.earnings < withdrawal.amount) {
-                return res.status(400).json({ message: "Vendor has insufficient earnings now" });
-            }
+export const getAllWithdrawals = catchAsync(async (req, res, next) => {
+    const { q } = req.query;
+    const query = {};
 
-            vendor.earnings -= withdrawal.amount;
-            await vendor.save();
-
-            withdrawal.processedAt = new Date();
-        }
-
-        withdrawal.status = status;
-        withdrawal.adminNote = adminNote;
-        await withdrawal.save();
-
-        res.status(200).json(withdrawal);
-    } catch (error) {
-        console.error("Error updating withdrawal status:", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (q) {
+        query.$or = [
+            { status: { $regex: q, $options: "i" } },
+            { _id: q.length === 24 ? q : null },
+        ];
     }
-};
+
+    const withdrawals = await Withdrawal.find(query)
+        .populate({
+            path: "vendor",
+            populate: { path: "owner", select: "name email" },
+        })
+        .sort({ createdAt: -1 });
+    res.status(200).json(withdrawals);
+});
+
+export const updateWithdrawalStatus = catchAsync(async (req, res, next) => {
+    const { withdrawalId } = req.params;
+    const { status, adminNote } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+        return next(new AppError("Invalid status", 400));
+    }
+
+    const withdrawal = await Withdrawal.findById(withdrawalId).populate("vendor");
+    if (!withdrawal) return next(new AppError("Withdrawal request not found", 404));
+
+    if (withdrawal.status !== "pending") {
+        return next(new AppError("Withdrawal request already processed", 400));
+    }
+
+    if (status === "approved") {
+        const vendor = await Vendor.findById(withdrawal.vendor._id);
+        if (vendor.earnings < withdrawal.amount) {
+            return next(new AppError("Vendor has insufficient earnings now", 400));
+        }
+
+        vendor.earnings -= withdrawal.amount;
+        await vendor.save();
+
+        withdrawal.processedAt = new Date();
+    }
+
+    withdrawal.status = status;
+    withdrawal.adminNote = adminNote;
+    await withdrawal.save();
+
+    res.status(200).json(withdrawal);
+});
