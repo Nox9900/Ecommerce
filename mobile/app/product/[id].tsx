@@ -480,6 +480,127 @@ const ProductDetailScreen = () => {
             </AnimatedContainer>
           )}
 
+          {/* PRODUCT VARIANTS */}
+          {product.variants && product.variants.length > 0 && (
+            <AnimatedContainer animation="fadeUp" delay={450} className="mb-8">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-text-primary text-lg font-bold">Available Variants</Text>
+                <View className={`px-3 py-1 rounded-full border ${theme === 'dark' ? "bg-primary/10 border-primary/20" : "bg-primary/5 border-primary/10"}`}>
+                  <Text className="text-primary font-bold text-xs">{product.variants.length} Options</Text>
+                </View>
+              </View>
+
+              <View className="gap-3">
+                {product.variants.map((variant, index) => {
+                  const isSelectedVariant = selectedVariant?._id === variant._id;
+                  const variantInStock = variant.stock > 0;
+
+                  return (
+                    <View
+                      key={variant._id || index}
+                      className={`p-4 rounded-2xl border ${isSelectedVariant
+                          ? "border-primary/50 bg-primary/5"
+                          : theme === 'dark'
+                            ? "bg-surface-light border-white/5"
+                            : "bg-gray-50 border-black/5"
+                        }`}
+                    >
+                      <View className="flex-row items-start justify-between">
+                        {/* Variant Info */}
+                        <View className="flex-1 mr-3">
+                          {/* Variant Name */}
+                          <View className="flex-row items-center mb-2">
+                            {isSelectedVariant && (
+                              <View className="w-2 h-2 bg-primary rounded-full mr-2" />
+                            )}
+                            <Text className="text-text-primary font-bold text-base flex-1">
+                              {variant.name || 'Variant'}
+                            </Text>
+                          </View>
+
+                          {/* Variant Options */}
+                          {variant.options && Object.keys(variant.options).length > 0 && (
+                            <View className="flex-row flex-wrap gap-2 mb-3">
+                              {Object.entries(variant.options).map(([key, value]) => (
+                                <View
+                                  key={key}
+                                  className={`px-2 py-1 rounded-md border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-white border-black/10"}`}
+                                >
+                                  <Text className="text-text-tertiary text-xs">
+                                    <Text className="font-semibold">{key}:</Text> {value}
+                                  </Text>
+                                </View>
+                              ))}
+                            </View>
+                          )}
+
+                          {/* Price & Stock Row */}
+                          <View className="flex-row items-center justify-between">
+                            {/* Price */}
+                            <View className="flex-row items-baseline gap-1">
+                              <Text className="text-primary text-xl font-black">
+                                ${variant.price.toFixed(2)}
+                              </Text>
+                              {variant.price !== product.price && (
+                                <Text className="text-text-tertiary text-sm line-through">
+                                  ${product.price.toFixed(2)}
+                                </Text>
+                              )}
+                            </View>
+
+                            {/* Stock Status */}
+                            <View className={`flex-row items-center px-2 py-1 rounded-full border ${variantInStock
+                                ? "bg-green-500/10 border-green-500/20"
+                                : "bg-red-500/10 border-red-500/20"
+                              }`}>
+                              <View className={`w-1.5 h-1.5 rounded-full mr-1.5 ${variantInStock ? "bg-green-500" : "bg-red-500"
+                                }`} />
+                              <Text className={`text-xs font-semibold ${variantInStock ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                                }`}>
+                                {variantInStock ? `${variant.stock} in stock` : 'Out of stock'}
+                              </Text>
+                            </View>
+                          </View>
+
+                          {/* SKU */}
+                          {variant.sku && (
+                            <Text className="text-text-tertiary text-xs mt-2">
+                              SKU: <Text className="font-mono">{variant.sku}</Text>
+                            </Text>
+                          )}
+                        </View>
+
+                        {/* Variant Image (if available) */}
+                        {variant.image && (
+                          <View className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
+                            <Image
+                              source={variant.image}
+                              style={{ width: '100%', height: '100%' }}
+                              contentFit="cover"
+                              transition={300}
+                            />
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Selected Badge */}
+                      {isSelectedVariant && (
+                        <View className="mt-3 pt-3 border-t border-primary/20">
+                          <View className="flex-row items-center">
+                            <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+                            <Text className="text-primary text-xs font-bold ml-1.5 uppercase tracking-wide">
+                              Currently Selected
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            </AnimatedContainer>
+          )}
+
           {/* Description */}
           <AnimatedContainer animation="fadeUp" delay={500} className="mb-8">
             <Text className="text-text-primary text-lg font-bold mb-3">Description</Text>

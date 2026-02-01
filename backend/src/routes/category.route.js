@@ -7,6 +7,8 @@ import {
     updateCategory,
     deleteCategory,
 } from "../controllers/category.controller.js";
+import { validate } from "../middleware/validate.middleware.js";
+import { createCategorySchema, updateCategorySchema } from "../lib/zod.js";
 
 const router = Router();
 
@@ -15,8 +17,8 @@ router.get("/", getActiveCategories);
 
 // Admin/Vendor routes
 router.get("/all", protectRoute, adminOnly, getAllCategories);
-router.post("/", protectRoute, adminOnly, createCategory);
-router.put("/:id", protectRoute, adminOnly, updateCategory);
+router.post("/", protectRoute, adminOnly, validate(createCategorySchema), createCategory);
+router.put("/:id", protectRoute, adminOnly, validate(updateCategorySchema), updateCategory);
 router.delete("/:id", protectRoute, adminOnly, deleteCategory);
 
 export default router;

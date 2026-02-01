@@ -20,34 +20,41 @@ import {
   getAllWithdrawals,
   updateWithdrawalStatus
 } from "../controllers/withdrawal.controller.js";
+
 import { adminOnly, protectRoute } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
+import { validate } from "../middleware/validate.middleware.js";
+import {
+  createProductSchema,
+  settingsSchema,
+  updateStatusSchema,
+} from "../lib/zod.js";
 
 const router = Router();
 
 // optimization - DRY
 router.use(protectRoute, adminOnly);
 
-router.post("/products", upload.array("images", 3), createProduct);
+router.post("/products", upload.array("images", 3), validate(createProductSchema), createProduct);
 router.get("/products", getAllProducts);
-router.put("/products/:id", upload.array("images", 3), updateProduct);
+router.put("/products/:id", upload.array("images", 3), validate(createProductSchema), updateProduct);
 router.delete("/products/:id", deleteProduct);
 router.get("/shops", getAllShops);
 
 router.get("/orders", getAllOrders);
-router.patch("/orders/:orderId/status", updateOrderStatus);
+router.patch("/orders/:orderId/status", validate(updateStatusSchema), updateOrderStatus);
 
 router.get("/customers", getAllCustomers);
 
 router.get("/vendors", getAllVendors);
-router.patch("/vendors/:vendorId/status", updateVendorStatus);
+router.patch("/vendors/:vendorId/status", validate(updateStatusSchema), updateVendorStatus);
 router.delete("/vendors/:vendorId", deleteVendorRequest);
 
 router.get("/settings", getSettings);
-router.put("/settings", updateSettings);
+router.put("/settings", validate(settingsSchema), updateSettings);
 
 router.get("/withdrawals", getAllWithdrawals);
-router.patch("/withdrawals/:withdrawalId/status", updateWithdrawalStatus);
+router.patch("/withdrawals/:withdrawalId/status", validate(updateStatusSchema), updateWithdrawalStatus);
 
 router.get("/stats", getDashboardStats);
 router.get("/search", searchAll);

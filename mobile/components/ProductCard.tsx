@@ -59,6 +59,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
     return (
         <Pressable
+            className="mb-2"
             onPress={handlePress}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}

@@ -6,6 +6,8 @@ import {
     startConversation,
     sendMessage,
 } from "../controllers/chat.controller.js";
+import { validate } from "../middleware/validate.middleware.js";
+import { startConversationSchema, sendMessageSchema } from "../lib/zod.js";
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ import { upload } from "../middleware/multer.middleware.js";
 
 router.get("/", protectRoute, getConversations);
 router.get("/:conversationId/messages", protectRoute, getMessages);
-router.post("/", protectRoute, startConversation);
-router.post("/message", protectRoute, upload.array("files", 5), sendMessage);
+router.post("/", protectRoute, validate(startConversationSchema), startConversation);
+router.post("/message", protectRoute, upload.array("files", 5), validate(sendMessageSchema), sendMessage);
 
 export default router;
