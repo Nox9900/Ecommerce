@@ -5,110 +5,107 @@ import { Product } from "../models/product.model.js";
 import { Order } from "../models/order.model.js";
 import { Cart } from "../models/cart.model.js";
 import { Vendor } from "../models/vendor.model.js";
+import AppError from "../lib/AppError.js";
+import { catchAsync } from "../lib/catchAsync.js";
 
 const stripe = new Stripe(ENV.STRIPE_SECRET_KEY);
 
-export async function createPaymentIntent(req, res) {
-  try {
-    const { cartItems, shippingAddress } = req.body;
-    const user = req.user;
+export const createPaymentIntent = catchAsync(async (req, res, next) => {
+  const { cartItems, shippingAddress } = req.body;
+  const user = req.user;
 
-    // Validate cart items
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ error: "Cart is empty" });
+  // Validate cart items
+  if (!cartItems || cartItems.length === 0) {
+    return next(new AppError("Cart is empty", 400));
+  }
+
+  // Calculate total from server-side (don't trust client - ever.)
+  let subtotal = 0;
+  const validatedItems = [];
+
+  for (const item of cartItems) {
+    const product = await Product.findById(item.product._id);
+    if (!product) {
+      return next(new AppError(`Product ${item.product.name} not found`, 404));
     }
 
-    // Calculate total from server-side (don't trust client - ever.)
-    let subtotal = 0;
-    const validatedItems = [];
+    let price = product.price;
+    let name = product.name;
+    let image = product.images[0];
 
-    for (const item of cartItems) {
-      const product = await Product.findById(item.product._id);
-      if (!product) {
-        return res.status(404).json({ error: `Product ${item.product.name} not found` });
+    if (item.variantId) {
+      const variant = product.variants.find((v) => v._id.toString() === item.variantId);
+      if (!variant) {
+        return next(new AppError(`Variant not found for ${product.name}`, 404));
       }
-
-      let price = product.price;
-      let name = product.name;
-      let image = product.images[0];
-
-      if (item.variantId) {
-        const variant = product.variants.find((v) => v._id.toString() === item.variantId);
-        if (!variant) {
-          return res.status(404).json({ error: `Variant not found for ${product.name}` });
-        }
-        if (variant.stock < item.quantity) {
-          return res.status(400).json({ error: `Insufficient stock for ${product.name} (${variant.name})` });
-        }
-        price = variant.price || product.price;
-        name = `${product.name} - ${variant.name}`;
-        if (variant.image) image = variant.image;
-      } else {
-        if (product.stock < item.quantity) {
-          return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
-        }
+      if (variant.stock < item.quantity) {
+        return next(new AppError(`Insufficient stock for ${product.name} (${variant.name})`, 400));
       }
-
-      subtotal += price * item.quantity;
-      validatedItems.push({
-        product: product._id.toString(),
-        variantId: item.variantId,
-        name,
-        price,
-        quantity: item.quantity,
-        image,
-        selectedOptions: item.selectedOptions,
-      });
-    }
-
-    const shipping = 10.0; // $10
-    const tax = subtotal * 0.08; // 8%
-    const total = subtotal + shipping + tax;
-
-    if (total <= 0) {
-      return res.status(400).json({ error: "Invalid order total" });
-    }
-
-    // find or create the stripe customer
-    // ... (lines 55-72 remain same)
-    let customer;
-    if (user.stripeCustomerId) {
-      customer = await stripe.customers.retrieve(user.stripeCustomerId);
+      price = variant.price || product.price;
+      name = `${product.name} - ${variant.name}`;
+      if (variant.image) image = variant.image;
     } else {
-      customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-        metadata: {
-          clerkId: user.clerkId,
-          userId: user._id.toString(),
-        },
-      });
-      await User.findByIdAndUpdate(user._id, { stripeCustomerId: customer.id });
+      if (product.stock < item.quantity) {
+        return next(new AppError(`Insufficient stock for ${product.name}`, 400));
+      }
     }
 
-    // create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100), // convert to cents
-      currency: "usd",
-      customer: customer.id,
-      automatic_payment_methods: {
-        enabled: true,
-      },
+    subtotal += price * item.quantity;
+    validatedItems.push({
+      product: product._id.toString(),
+      variantId: item.variantId,
+      name,
+      price,
+      quantity: item.quantity,
+      image,
+      selectedOptions: item.selectedOptions,
+    });
+  }
+
+  const shipping = 10.0; // $10
+  const tax = subtotal * 0.08; // 8%
+  const total = subtotal + shipping + tax;
+
+  if (total <= 0) {
+    return next(new AppError("Invalid order total", 400));
+  }
+
+  // find or create the stripe customer
+  // ... (lines 55-72 remain same)
+  let customer;
+  if (user.stripeCustomerId) {
+    customer = await stripe.customers.retrieve(user.stripeCustomerId);
+  } else {
+    customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name,
       metadata: {
         clerkId: user.clerkId,
         userId: user._id.toString(),
-        orderItems: JSON.stringify(validatedItems),
-        shippingAddress: JSON.stringify(shippingAddress),
-        totalPrice: total.toFixed(2),
       },
     });
-
-    res.status(200).json({ clientSecret: paymentIntent.client_secret });
-  } catch (error) {
-    console.error("Error creating payment intent:", error);
-    res.status(500).json({ error: "Failed to create payment intent" });
+    await User.findByIdAndUpdate(user._id, { stripeCustomerId: customer.id });
   }
-}
+
+  // create payment intent
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(total * 100), // convert to cents
+    currency: "usd",
+    customer: customer.id,
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    metadata: {
+      clerkId: user.clerkId,
+      userId: user._id.toString(),
+      orderItems: JSON.stringify(validatedItems),
+      shippingAddress: JSON.stringify(shippingAddress),
+      totalPrice: total.toFixed(2),
+    },
+  });
+
+  res.status(200).json({ clientSecret: paymentIntent.client_secret });
+});
 
 export async function handleWebhook(req, res) {
   const sig = req.headers["stripe-signature"];
