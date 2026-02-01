@@ -8,6 +8,8 @@ import cors from "cors";
 import http from "http";
 import { functions, inngest } from "./config/inngest.js";
 
+import { rateLimit } from "express-rate-limit"; // Added import
+
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
 
@@ -73,6 +75,17 @@ app.use(
 app.use(express.json());
 app.use(clerkMiddleware()); // adds auth object under the req => req.auth
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true })); // credentials: true allows the browser to send the cookies to the server with the request
+
+// Global Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: "Too many requests from this IP, please try again after 15 minutes",
+});
+
+app.use(limiter);
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
