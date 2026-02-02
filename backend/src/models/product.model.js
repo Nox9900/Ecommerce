@@ -99,4 +99,13 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes for high-traffic queries and sorting
+productSchema.index({ shop: 1, createdAt: -1 });  // Shop product lists
+productSchema.index({ vendor: 1, createdAt: -1 }); // Vendor dashboard
+productSchema.index({ category: 1, createdAt: -1 }); // Category browsing
+productSchema.index({ name: "text" }); // Text search
+productSchema.index({ price: 1 }); // Filtering/Sorting
+productSchema.index({ averageRating: -1 }); // Sorting by rating
+productSchema.index({ soldCount: -1 }); // Sorting by popularity
+
 export const Product = mongoose.model("Product", productSchema);

@@ -79,4 +79,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes
+userSchema.index({ role: 1, createdAt: -1 }); // Admin filtering
+
 export const User = mongoose.model("User", userSchema);

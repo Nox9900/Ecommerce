@@ -46,4 +46,7 @@ const vendorSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+vendorSchema.index({ status: 1 }); // Admin approval queue
+
 export const Vendor = mongoose.model("Vendor", vendorSchema);

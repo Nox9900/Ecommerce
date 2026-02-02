@@ -33,4 +33,9 @@ const shopSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+shopSchema.index({ vendor: 1 }); // Lookup shop by vendor
+shopSchema.index({ owner: 1 }); // Lookup shop by owner
+shopSchema.index({ createdAt: -1 }); // Newest shops lists
+
 export const Shop = mongoose.model("Shop", shopSchema);

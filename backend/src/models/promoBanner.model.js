@@ -35,4 +35,7 @@ const promoBannerSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+promoBannerSchema.index({ isActive: 1, displayOrder: 1 }); // Sorted list of active banners
+
 export const PromoBanner = mongoose.model("PromoBanner", promoBannerSchema);

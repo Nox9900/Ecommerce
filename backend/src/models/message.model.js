@@ -42,4 +42,7 @@ const messageSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+messageSchema.index({ conversationId: 1, createdAt: 1 }); // Chat history (oldest first usually, or newest)
+
 export const Message = mongoose.model("Message", messageSchema);

@@ -61,4 +61,7 @@ const categorySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+categorySchema.index({ isActive: 1, displayOrder: 1 }); // Sorted list of active categories
+
 export const Category = mongoose.model("Category", categorySchema);
