@@ -57,6 +57,7 @@ export const createReview = catchAsync(async (req, res, next) => {
     return next(new AppError("Product not found", 404));
   }
 
+  await review.populate("userId", "name imageUrl");
   res.status(201).json({ message: "Review submitted successfully", review });
 });
 
