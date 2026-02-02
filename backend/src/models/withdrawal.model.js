@@ -33,4 +33,8 @@ const withdrawalSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+withdrawalSchema.index({ vendor: 1, createdAt: -1 }); // Vendor withdrawal history
+withdrawalSchema.index({ status: 1 }); // Admin processing queue
+
 export const Withdrawal = mongoose.model("Withdrawal", withdrawalSchema);

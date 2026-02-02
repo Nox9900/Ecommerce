@@ -34,4 +34,8 @@ const notificationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+notificationSchema.index({ recipient: 1, createdAt: -1 }); // User notification feed
+notificationSchema.index({ read: 1 }); // Filter unread notifications
+
 export const Notification = mongoose.model("Notification", notificationSchema);

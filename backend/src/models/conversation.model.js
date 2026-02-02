@@ -21,4 +21,8 @@ const conversationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Indexes
+conversationSchema.index({ participants: 1 }); // Find conversations for a user
+conversationSchema.index({ lastMessageAt: -1 }); // Sort inbox by latest activity
+
 export const Conversation = mongoose.model("Conversation", conversationSchema);

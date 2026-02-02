@@ -31,4 +31,8 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes
+reviewSchema.index({ productId: 1, createdAt: -1 }); // Reviews for a product, newest first
+reviewSchema.index({ userId: 1, orderId: 1 }); // Ensure unique review per order/user (or quick lookup)
+
 export const Review = mongoose.model("Review", reviewSchema);

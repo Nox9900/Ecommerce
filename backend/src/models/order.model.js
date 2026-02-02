@@ -100,4 +100,9 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes
+orderSchema.index({ user: 1, createdAt: -1 }); // User order history
+orderSchema.index({ clerkId: 1, createdAt: -1 }); // Lookup by clerk ID
+orderSchema.index({ status: 1, createdAt: -1 }); // Filter by status
+
 export const Order = mongoose.model("Order", orderSchema);
