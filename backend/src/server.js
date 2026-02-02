@@ -93,6 +93,10 @@ app.use(limiter);
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "API is running..." });
+});
+
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
