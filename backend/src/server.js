@@ -94,7 +94,8 @@ app.use(limiter);
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "API is running..." });
+  const adminDistPath = path.join(__dirname, "../admin/dist");
+  res.sendFile(path.join(adminDistPath, "index.html"));
 });
 
 app.use("/api/admin", adminRoutes);
@@ -110,23 +111,24 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/shops", shopRoutes);
 app.use("/api/promo-banners", promoBannerRoutes);
 
+// Helper for admin dist path
+const adminDistPath = path.join(__dirname, "../admin/dist");
 
+// Serve static files from the admin frontend app
+app.use(express.static(adminDistPath));
 
-// Handle undefined routes
-app.use((req, res, next) => {
+// Handle undefined API routes
+app.all("/api/*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 // Global Error Handler
 app.use(globalErrorHandler);
 
-// make our app ready for deployment
-if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../admin/dist")));
-  app.get(/^(.*)$/, (req, res) => {
-    res.sendFile(path.join(__dirname, "../admin", "dist", "index.html"));
-  });
-}
+// For any other route, serve the index.html (SPA)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(adminDistPath, "index.html"));
+});
 
 const startServer = async () => {
   await connectDB();
