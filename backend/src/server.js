@@ -9,6 +9,7 @@ import http from "http";
 import { functions, inngest } from "./config/inngest.js";
 
 import { rateLimit } from "express-rate-limit"; // Added import
+import helmet from "helmet";
 
 import { ENV } from "./config/env.js";
 import { connectDB } from "./config/db.js";
@@ -30,6 +31,7 @@ import promoBannerRoutes from "./routes/promoBanner.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 
 const app = express();
+app.use(helmet());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
