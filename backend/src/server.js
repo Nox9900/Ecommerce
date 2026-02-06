@@ -118,7 +118,7 @@ const adminDistPath = path.join(__dirname, "../admin/dist");
 app.use(express.static(adminDistPath));
 
 // Handle undefined API routes
-app.all("/api/(.*)", (req, res, next) => {
+app.all("/api/(*)", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
@@ -126,7 +126,7 @@ app.all("/api/(.*)", (req, res, next) => {
 app.use(globalErrorHandler);
 
 // For any other route, serve the index.html (SPA)
-app.get("(.*)", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(adminDistPath, "index.html"));
 });
 
