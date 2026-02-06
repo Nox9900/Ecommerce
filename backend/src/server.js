@@ -31,7 +31,30 @@ import promoBannerRoutes from "./routes/promoBanner.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 
 const app = express();
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://*.clerk.accounts.dev",
+          "https://challenges.cloudflare.com",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://*.clerk.accounts.dev",
+          "wss://*.clerk.accounts.dev",
+        ],
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        fontSrc: ["'self'", "data:"],
+        frameSrc: ["'self'", "https://challenges.cloudflare.com"],
+      },
+    },
+  })
+);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
