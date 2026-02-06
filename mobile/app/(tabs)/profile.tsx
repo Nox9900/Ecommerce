@@ -41,7 +41,7 @@ const MENU_ITEMS = [
   },
 ] as const;
 
-const VENDOR_PORTAL_URL = "https://dfs-ecommerce-admin.sevalla.app/vendor-onboarding";
+const VENDOR_PORTAL_URL = "https://yaamaan.sevalla.app/vendor-onboarding";
 
 export default function ProfileScreen() {
   const { user } = useUser();
