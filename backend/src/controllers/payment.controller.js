@@ -6,7 +6,6 @@ import { Order } from "../models/order.model.js";
 import { Cart } from "../models/cart.model.js";
 import { Vendor } from "../models/vendor.model.js";
 import { Coupon } from "../models/coupon.model.js";
-import { Vendor } from "../models/vendor.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
