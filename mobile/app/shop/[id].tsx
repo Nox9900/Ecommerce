@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, Image } from "react-native";
 import { useState, useEffect } from "react";
 import { useApi } from "@/lib/api";
-import { Image } from "expo-image";
+// import { Image } from "expo-image"; // Reverted to RN Image for consistency/reliability
 import { Ionicons } from "@expo/vector-icons";
 import SafeScreen from "@/components/SafeScreen";
 import ProductsGrid from "@/components/ProductsGrid";
@@ -17,6 +17,7 @@ interface Shop {
     description: string;
     logoUrl?: string;
     bannerUrl?: string;
+    createdAt: string;
 }
 
 const ShopScreen = () => {
@@ -33,12 +34,9 @@ const ShopScreen = () => {
 
     const fetchShopData = async () => {
         try {
-            const [shopRes, productsRes] = await Promise.all([
-                api.get(`/shops/${id}`),
-                api.get(`/shops/${id}/products`)
-            ]);
-            setShop(shopRes.data.shop);
-            setProducts(shopRes.data.products);
+            const { data } = await api.get(`/shops/${id}`);
+            setShop(data.shop);
+            setProducts(data.products);
         } catch (error) {
             console.error("Error fetching shop data:", error);
         } finally {
@@ -82,6 +80,9 @@ const ShopScreen = () => {
         );
     }
 
+    // Calculate joined year
+    const joinedYear = shop.createdAt ? new Date(shop.createdAt).getFullYear() : new Date().getFullYear();
+
     return (
         <SafeScreen>
             <ScrollView
@@ -89,13 +90,17 @@ const ShopScreen = () => {
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             >
-                {/* Enhanced Banner Section with Gradient */}
-                <View className="relative h-64 w-full bg-gradient-to-b from-indigo-500 to-purple-600">
+                {/* Enhanced Banner Section */}
+                <View className="relative h-72 w-full bg-gray-200">
                     {shop.bannerUrl ? (
                         <>
-                            <Image source={{ uri: shop.bannerUrl }} className="w-full h-full" contentFit="cover" />
+                            <Image
+                                source={{ uri: shop.bannerUrl }}
+                                className="w-full h-full"
+                                resizeMode="cover"
+                            />
                             <LinearGradient
-                                colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
+                                colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)']}
                                 className="absolute inset-0"
                             />
                         </>
@@ -106,95 +111,88 @@ const ShopScreen = () => {
                             end={{ x: 1, y: 1 }}
                             className="w-full h-full items-center justify-center"
                         >
-                            <Ionicons name="storefront" size={64} color="rgba(255,255,255,0.5)" />
+                            <Ionicons name="storefront" size={80} color="rgba(255,255,255,0.3)" />
                         </LinearGradient>
                     )}
 
                     {/* Back Button with Blur Effect */}
                     <TouchableOpacity
-                        className="absolute top-4 left-4 w-11 h-11 rounded-full bg-black/40 items-center justify-center border border-white/20"
-                        style={{ backdropFilter: 'blur(10px)' }}
+                        className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/30 items-center justify-center border border-white/20"
                         onPress={() => router.back()}
                     >
-                        <Ionicons name="chevron-back" size={26} color="#fff" />
+                        <Ionicons name="chevron-back" size={24} color="#fff" />
                     </TouchableOpacity>
                 </View>
 
-                {/* Enhanced Shop Info Card */}
-                <View className="px-4 -mt-16">
-                    <GlassView className="p-5 rounded-3xl shadow-2xl border-2 border-white/10">
-                        <View className="flex-row items-center">
-                            {/* Logo with Premium Shadow */}
-                            <View
-                                className={`w-20 h-20 rounded-3xl border-4 shadow-xl overflow-hidden ${theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-white'
-                                    }`}
-                                style={{ elevation: 10 }}
-                            >
+                {/* Shop Info Card - Redesigned */}
+                <View className="px-4 -mt-20">
+                    <View className={`p-6 rounded-3xl shadow-sm ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`} style={{ elevation: 5 }}>
+                        <View className="flex-row">
+                            {/* Logo */}
+                            <View className={`w-24 h-24 rounded-2xl -mt-12 shadow-md overflow-hidden border-4 ${theme === 'dark' ? 'bg-zinc-800 border-zinc-900' : 'bg-white border-white'}`}>
                                 {shop.logoUrl ? (
-                                    <Image source={{ uri: shop.logoUrl }} className="w-full h-full" contentFit="cover" />
+                                    <Image
+                                        source={{ uri: shop.logoUrl }}
+                                        className="w-full h-full"
+                                        resizeMode="cover"
+                                    />
                                 ) : (
-                                    <View className="w-full h-full items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
-                                        <Text className="text-white text-3xl font-black">{shop.name.charAt(0)}</Text>
+                                    <View className="w-full h-full items-center justify-center bg-indigo-100">
+                                        <Text className="text-indigo-600 text-3xl font-black">{shop.name.charAt(0)}</Text>
                                     </View>
                                 )}
                             </View>
 
-                            {/* Shop Name & Description */}
-                            <View className="ml-4 flex-1">
-                                <Text className="text-text-primary text-xl font-black">{shop.name}</Text>
+                            {/* Name & Desc */}
+                            <View className="flex-1 ml-4 pt-1">
+                                <Text className="text-text-primary text-xl font-black" numberOfLines={1}>{shop.name}</Text>
                                 <Text className="text-text-secondary text-xs mt-1 leading-4" numberOfLines={2}>
                                     {shop.description}
                                 </Text>
                             </View>
                         </View>
 
-                        {/* Compact Stats Section with Colorful Cards */}
-                        <View className="flex-row mt-4 pt-4 border-t border-white/5 gap-2">
-                            {/* Products Stat */}
-                            <View className="flex-1 bg-gradient-to-br from-blue-500/10 to-blue-600/10 p-3 rounded-xl border border-blue-500/20">
-                                <View className="flex-row items-center gap-2 mb-1">
-                                    <View className="bg-blue-500/20 p-1.5 rounded-lg">
-                                        <Ionicons name="cube-outline" size={16} color="#3B82F6" />
-                                    </View>
+                        {/* Stats Row */}
+                        <View className="flex-row mt-6 justify-between gap-3">
+                            {/* Products */}
+                            <View className="flex-1 items-center p-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20">
+                                <View className="bg-blue-100 dark:bg-blue-500/20 p-2 rounded-xl mb-1">
+                                    <Ionicons name="cube-outline" size={20} color="#3B82F6" />
                                 </View>
-                                <Text className="text-blue-500 font-black text-xl">{products.length}</Text>
-                                <Text className="text-text-secondary text-[10px] uppercase tracking-wide mt-0.5">
+                                <Text className="text-text-primary font-black text-lg">{products.length}</Text>
+                                <Text className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
                                     {t('shop.products', 'Products')}
                                 </Text>
                             </View>
 
-                            {/* Rating Stat */}
-                            <View className="flex-1 bg-gradient-to-br from-amber-500/10 to-orange-600/10 p-3 rounded-xl border border-amber-500/20">
-                                <View className="flex-row items-center gap-2 mb-1">
-                                    <View className="bg-amber-500/20 p-1.5 rounded-lg">
-                                        <Ionicons name="star" size={16} color="#F59E0B" />
-                                    </View>
+                            {/* Rating */}
+                            <View className="flex-1 items-center p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20">
+                                <View className="bg-amber-100 dark:bg-amber-500/20 p-2 rounded-xl mb-1">
+                                    <Ionicons name="star" size={20} color="#F59E0B" />
                                 </View>
-                                <Text className="text-amber-500 font-black text-xl">4.8</Text>
-                                <Text className="text-text-secondary text-[10px] uppercase tracking-wide mt-0.5">
+                                <Text className="text-text-primary font-black text-lg">4.8</Text>
+                                <Text className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
                                     {t('shop.rating', 'Rating')}
                                 </Text>
                             </View>
 
-                            {/* Joined Stat */}
-                            <View className="flex-1 bg-gradient-to-br from-green-500/10 to-emerald-600/10 p-3 rounded-xl border border-green-500/20">
-                                <View className="flex-row items-center gap-2 mb-1">
-                                    <View className="bg-green-500/20 p-1.5 rounded-lg">
-                                        <Ionicons name="calendar-outline" size={16} color="#10B981" />
-                                    </View>
+                            {/* Joined */}
+                            <View className="flex-1 items-center p-3 rounded-2xl bg-green-50 dark:bg-green-900/20">
+                                <View className="bg-green-100 dark:bg-green-500/20 p-2 rounded-xl mb-1">
+                                    <Ionicons name="calendar-outline" size={20} color="#10B981" />
                                 </View>
-                                <Text className="text-green-500 font-black text-xl">2y</Text>
-                                <Text className="text-text-secondary text-[10px] uppercase tracking-wide mt-0.5">
+                                <Text className="text-text-primary font-black text-lg">{joinedYear}</Text>
+                                <Text className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
                                     {t('shop.joined', 'Joined')}
                                 </Text>
                             </View>
                         </View>
-                    </GlassView>
+                    </View>
                 </View>
 
-                {/* Products Section with Enhanced Header */}
+                {/* Products Section */}
                 <View className="mt-8 px-4 pb-20">
-                    <View className="flex-row items-center justify-between mb-6 px-2">
+                    <View className="flex-row items-center justify-between mb-6">
                         <View>
                             <Text className="text-text-primary text-2xl font-black">
                                 {t('shop.all_products', 'All Products')}
@@ -203,9 +201,9 @@ const ShopScreen = () => {
                                 {products.length} {products.length === 1 ? 'item' : 'items'} available
                             </Text>
                         </View>
-                        <TouchableOpacity className="flex-row items-center bg-primary/10 px-4 py-2.5 rounded-full border border-primary/20">
-                            <Ionicons name="options-outline" size={18} color="#6366F1" />
-                            <Text className="text-primary font-bold ml-2">{t('common.filter', 'Filter')}</Text>
+                        <TouchableOpacity className="flex-row items-center bg-gray-100 dark:bg-zinc-800 px-5 py-2.5 rounded-full border border-gray-200 dark:border-zinc-700">
+                            <Ionicons name="options-outline" size={18} className="text-text-primary" />
+                            <Text className="text-text-primary font-bold ml-2">{t('common.filter', 'Filter')}</Text>
                         </TouchableOpacity>
                     </View>
 

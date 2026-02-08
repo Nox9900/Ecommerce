@@ -10,6 +10,29 @@ export const getProductById = catchAsync(async (req, res, next) => {
     return next(new AppError("Product not found", 404));
   }
 
+  // Track user behavior if authenticated
+  if (req.user) {
+    try {
+      const { UserBehavior } = await import("../models/userBehavior.model.js");
+      await UserBehavior.findOneAndUpdate(
+        { user: req.user._id },
+        {
+          $push: {
+            viewedProducts: {
+              $each: [{ product: product._id }],
+              $position: 0,
+              $slice: 50, // Keep last 50 views
+            },
+          },
+        },
+        { upsert: true }
+      );
+    } catch (error) {
+      console.error("Error tracking user behavior:", error);
+      // Don't block the response if tracking fails
+    }
+  }
+
   res.status(200).json(product);
 });
 
@@ -20,10 +43,30 @@ export const searchProducts = catchAsync(async (req, res, next) => {
 
   if (q) {
     query.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { description: { $regex: q, $options: "i" } },
       { brand: { $regex: q, $options: "i" } },
     ];
+
+    // Track search query if authenticated
+    if (req.user) {
+      try {
+        const { UserBehavior } = await import("../models/userBehavior.model.js");
+        await UserBehavior.findOneAndUpdate(
+          { user: req.user._id },
+          {
+            $push: {
+              searchQueries: {
+                $each: [{ query: q }],
+                $position: 0,
+                $slice: 50, // Keep last 50 queries
+              },
+            },
+          },
+          { upsert: true }
+        );
+      } catch (error) {
+        console.error("Error tracking search query:", error);
+      }
+    }
   }
 
   if (category && category !== "all") query.category = category;

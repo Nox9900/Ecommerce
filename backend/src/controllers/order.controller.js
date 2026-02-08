@@ -107,11 +107,12 @@ export const createOrder = catchAsync(async (req, res, next) => {
       const variant = product.variants.find((v) => v._id.toString() === item.variantId);
       if (variant) {
         variant.stock -= item.quantity;
+        product.soldCount += item.quantity;
         await product.save();
       }
     } else {
       await Product.findByIdAndUpdate(item.product._id, {
-        $inc: { stock: -item.quantity },
+        $inc: { stock: -item.quantity, soldCount: item.quantity },
       });
     }
   }
