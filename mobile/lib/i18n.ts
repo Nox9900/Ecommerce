@@ -12,13 +12,16 @@ const resources = {
                 get_started: 'Get Started', already_have_account: 'Already have an account?', sign_in: 'Sign In'
             },
             common: {
-                search: 'Search products...', categories: 'Categories', see_all: 'See All', view_all: 'View All',
+                search: 'Search', categories: 'Categories', see_all: 'See All', view_all: 'View All',
                 add_to_cart: 'Add to Cart', total: 'Total', checkout: 'Checkout', featured: 'Featured',
-                discover: 'Discover', discover_desc: 'Explore an infinite range of products', items: 'items', item: 'item',
+                discover: 'Discover', discover_desc: 'Explore products', items: 'items', item: 'item',
                 all: 'All', shops_to_explore: 'Shops to Explore', remove_item: 'Remove Item',
                 remove_item_desc: 'Remove {{name}} from cart?', cancel: 'Cancel', remove: 'Remove',
                 success: 'Success', payment_success: 'Your payment was successful! Your order is being processed.',
-                loading: 'Loading...', error: 'Error', error_desc: 'Something went wrong. Please try again later.'
+                loading: 'Loading...', error: 'Error', error_desc: 'Something went wrong. Please try again later.',
+                filters: 'Filters', sort_by: 'Sort By', price_range: 'Price Range', minimum_rating: 'Minimum Rating',
+                price_low_high: 'Price: Low to High', price_high_low: 'Price: High to Low', recent_searches: 'Recent Searches',
+                clear_all: 'Clear All', latest: 'Latest', popular: 'Popular', rating: 'Rating', reset: 'Reset', apply: 'Apply'
             },
             cart: {
                 title: 'Cart', loading: 'Loading cart...', empty_title: 'Your cart is empty',
@@ -73,7 +76,10 @@ const resources = {
                 all: 'Tout', shops_to_explore: 'Boutiques à explorer', remove_item: 'Supprimer l\'article',
                 remove_item_desc: 'Supprimer {{name}} du panier ?', cancel: 'Annuler', remove: 'Supprimer',
                 success: 'Succès', payment_success: 'Votre paiement a réussi ! Votre commande est en cours de traitement.',
-                loading: 'Chargement...', error: 'Erreur', error_desc: 'Une erreur s\'est produite. Veuillez réessayer plus tard.'
+                loading: 'Chargement...', error: 'Erreur', error_desc: 'Une erreur s\'est produite. Veuillez réessayer plus tard.',
+                filters: 'Filtres', sort_by: 'Trier par', price_range: 'Plage de prix', minimum_rating: 'Note minimale',
+                price_low_high: 'Prix: croi.', price_high_low: 'Prix: decroi.', recent_searches: 'Recherches récentes',
+                clear_all: 'Tout effacer', latest: 'Récent', popular: 'Populaire', rating: 'Note', reset: 'Réinitialiser', apply: 'Appliquer'
             },
             cart: {
                 title: 'Panier', loading: 'Chargement du panier...', empty_title: 'Votre panier est vide',
@@ -128,7 +134,10 @@ const resources = {
                 all: 'Todo', shops_to_explore: 'Tiendas para explorar', remove_item: 'Eliminar artículo',
                 remove_item_desc: '¿Eliminar {{name}} del carrito?', cancel: 'Cancelar', remove: 'Eliminar',
                 success: 'Éxito', payment_success: '¡Su pago fue exitoso! Su pedido está siendo procesado.',
-                loading: 'Cargando...', error: 'Error', error_desc: 'Algo salió mal. Por favor, inténtelo de nuevo más tarde.'
+                loading: 'Cargando...', error: 'Error', error_desc: 'Algo salió mal. Por favor, inténtelo de nuevo más tarde.',
+                filters: 'Filtros', sort_by: 'Ordenar por', price_range: 'Rango de precios', minimum_rating: 'Calificación mínima',
+                price_low_high: 'Precio: bajo a alto', price_high_low: 'Precio: alto a bajo', recent_searches: 'Búsquedas recientes',
+                clear_all: 'Borrar todo', latest: 'Más reciente', popular: 'Popular', rating: 'Calificación', reset: 'Restablecer', apply: 'Aplicar'
             },
             cart: {
                 title: 'Carrito', loading: 'Cargando carrito...', empty_title: 'Tu carrito está vacío',
@@ -183,7 +192,10 @@ const resources = {
                 all: 'الكل', shops_to_explore: 'متاجر للاستكشاف', remove_item: 'إزالة المنتج',
                 remove_item_desc: 'إزالة {{name}} من السلة؟', cancel: 'إلغاء', remove: 'إزالة',
                 success: 'نجاح', payment_success: 'تمت عملية الدفع بنجاح! طلبك قيد المعالجة.',
-                loading: 'جاري التحميل...', error: 'خطأ', error_desc: 'حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقاً.'
+                loading: 'جاري التحميل...', error: 'خطأ', error_desc: 'حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقاً.',
+                filters: 'مرشحات', sort_by: 'ترتيب حسب', price_range: 'نطاق السعر', minimum_rating: 'الحد الأدنى للتقييم',
+                price_low_high: 'السعر: من الأقل للأعلى', price_high_low: 'السعر: من الأعلى للأقل', recent_searches: 'عمليات البحث الأخيرة',
+                clear_all: 'مسح الكل', latest: 'الأحدث', popular: 'الأكثر شعبية', rating: 'التقييم', reset: 'إعادة تعيين', apply: 'تطبيق'
             },
             cart: {
                 title: 'السلة', loading: 'جاري تحميل السلة...', empty_title: 'سلتك فارغة',
@@ -238,7 +250,10 @@ const resources = {
                 all: '全部', shops_to_explore: '探索店铺', remove_item: '移除商品',
                 remove_item_desc: '从购物车中移除 {{name}}？', cancel: '取消', remove: '移除',
                 success: '成功', payment_success: '支付成功！您的订单正在处理中。',
-                loading: '加载中...', error: '错误', error_desc: '出错。请稍后再试。'
+                loading: '加载中...', error: '错误', error_desc: '出错。请稍后再试。',
+                filters: '筛选', sort_by: '排序方式', price_range: '价格范围', minimum_rating: '最低评分',
+                price_low_high: '价格：从低到高', price_high_low: '价格：从高到低', recent_searches: '最近搜索',
+                clear_all: '清除全部', latest: '最新', popular: '热门', rating: '评分', reset: '重置', apply: '应用'
             },
             cart: {
                 title: '购物车', loading: '正在加载购物车...', empty_title: '您的购物车是空的',
@@ -293,7 +308,10 @@ const resources = {
                 all: 'Все', shops_to_explore: 'Магазины', remove_item: 'Удалить товар',
                 remove_item_desc: 'Удалить {{name}} из корзины?', cancel: 'Отмена', remove: 'Удалить',
                 success: 'Успех', payment_success: 'Оплата прошла успешно! Ваш заказ обрабатывается.',
-                loading: 'Загрузка...', error: 'Ошибка', error_desc: 'Что-то пошло не так. Пожалуйста, попробуйте позже.'
+                loading: 'Загрузка...', error: 'Ошибка', error_desc: 'Что-то пошло не так. Пожалуйста, попробуйте позже.',
+                filters: 'Фильтры', sort_by: 'Сортировка', price_range: 'Диапазон цен', minimum_rating: 'Минимальный рейтинг',
+                price_low_high: 'Цена: по возрастанию', price_high_low: 'Цена: по убыванию', recent_searches: 'Недавние поиски',
+                clear_all: 'Очистить все', latest: 'Новинки', popular: 'Популярное', rating: 'Рейтинг', reset: 'Сброс', apply: 'Применить'
             },
             cart: {
                 title: 'Корзина', loading: 'Загрузка корзины...', empty_title: 'Ваша корзина пуста',
