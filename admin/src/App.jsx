@@ -16,6 +16,7 @@ import VendorOnboarding from "./pages/vendor/VendorOnboarding";
 import VendorProducts from "./pages/vendor/VendorProducts";
 import VendorShops from "./pages/vendor/VendorShops";
 import ChatPage from "./pages/ChatPage";
+import CouponsPage from "./pages/CouponsPage";
 
 import PageLoader from "./components/PageLoader";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -54,6 +55,7 @@ function App() {
         <Route path="withdrawals" element={<ProtectedRoute allowedRoles={["admin"]}><WithdrawalManagement /></ProtectedRoute>} />
         <Route path="global-settings" element={<ProtectedRoute allowedRoles={["admin"]}><GlobalSettings /></ProtectedRoute>} />
         <Route path="mobile-app" element={<ProtectedRoute allowedRoles={["admin"]}><SettingsPage /></ProtectedRoute>} />
+        <Route path="coupons" element={<ProtectedRoute allowedRoles={["admin"]}><CouponsPage /></ProtectedRoute>} />
         <Route path="chat" element={<ProtectedRoute allowedRoles={["admin", "vendor"]}><ChatPage /></ProtectedRoute>} />
 
         {/* Vendor Only Routes */}

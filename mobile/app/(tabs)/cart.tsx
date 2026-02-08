@@ -9,6 +9,7 @@ import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import OrderSummary from "@/components/OrderSummary";
+import CouponInput from "@/components/CouponInput";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
@@ -24,6 +25,13 @@ const CartScreen = () => {
     cart,
     cartItemCount,
     cartTotal,
+    discountAmount,
+    grandTotal,
+    couponCode,
+    applyCoupon,
+    removeCoupon,
+    isApplyingCoupon,
+    isRemovingCoupon,
     clearCart,
     isError,
     isLoading,
@@ -51,9 +59,9 @@ const CartScreen = () => {
 
   const cartItems = (cart?.items || []).filter((item) => item.product != null);
   const subtotal = cartTotal;
-  const shipping = 10.0; // $10 shipping fee
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + shipping + tax;
+  const shipping = 10;
+  const tax = cartTotal * 0.1;
+  const total = grandTotal + shipping + tax;
 
   const handleQuantityChange = (productId: string, currentQuantity: number, change: number, variantId?: string) => {
     const newQuantity = currentQuantity + change;
@@ -113,6 +121,7 @@ const CartScreen = () => {
           zipCode: selectedAddress.zipCode,
           phoneNumber: selectedAddress.phoneNumber,
         },
+        couponCode,
       });
 
       const { error: initError } = await initPaymentSheet({
@@ -293,8 +302,18 @@ const CartScreen = () => {
           ))}
         </View>
 
+        <View className="px-6 mt-6">
+          <CouponInput
+            onApply={applyCoupon}
+            onRemove={removeCoupon}
+            isApplying={isApplyingCoupon}
+            isRemoving={isRemovingCoupon}
+            appliedCouponCode={couponCode}
+          />
+        </View>
+
         <AnimatedContainer animation="fadeUp" delay={400}>
-          <OrderSummary subtotal={subtotal} shipping={shipping} tax={tax} total={total} />
+          <OrderSummary subtotal={cartTotal} shipping={shipping} tax={tax} discount={discountAmount} total={total} />
         </AnimatedContainer>
       </ScrollView>
 

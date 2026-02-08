@@ -137,6 +137,16 @@ export interface Cart {
   items: CartItem[];
   createdAt: string;
   updatedAt: string;
+  coupon?: string | null;
+  subtotal?: number;
+  discountAmount?: number;
+  totalPrice?: number;
+  couponDetails?: {
+    code: string;
+    type: "percentage" | "fixed";
+    value: number;
+    discountAmount: number;
+  } | null;
 }
 
 export interface SubCategory {
@@ -171,4 +181,20 @@ export interface PromoBanner {
   displayOrder: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Coupon {
+  _id: string;
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  minOrderValue?: number;
+  maxDiscount?: number;
+  usageLimit?: number;
+  usedCount: number;
+  validFrom?: Date;
+  validUntil?: Date;
+  isActive: boolean;
+  vendor?: string;
+  description?: string;
 }

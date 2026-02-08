@@ -4,10 +4,11 @@ interface OrderSummaryProps {
   subtotal: number;
   shipping: number;
   tax: number;
+  discount?: number;
   total: number;
 }
 
-export default function OrderSummary({ subtotal, shipping, tax, total }: OrderSummaryProps) {
+export default function OrderSummary({ subtotal, shipping, tax, discount = 0, total }: OrderSummaryProps) {
   return (
     <View className="px-6 mt-6">
       <View className="bg-surface rounded-3xl p-5">
@@ -20,6 +21,15 @@ export default function OrderSummary({ subtotal, shipping, tax, total }: OrderSu
               ${subtotal.toFixed(2)}
             </Text>
           </View>
+
+          {discount > 0 && (
+            <View className="flex-row justify-between items-center">
+              <Text className="text-green-500 text-base">Discount</Text>
+              <Text className="text-green-500 font-semibold text-base">
+                -${discount.toFixed(2)}
+              </Text>
+            </View>
+          )}
 
           <View className="flex-row justify-between items-center">
             <Text className="text-text-secondary text-base">Shipping</Text>

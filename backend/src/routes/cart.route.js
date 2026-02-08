@@ -4,8 +4,10 @@ import { validate } from "../middleware/validate.middleware.js";
 import { addToCartSchema, updateCartItemSchema } from "../lib/zod.js";
 import {
   addToCart,
+  applyCoupon,
   clearCart,
   getCart,
+  removeCoupon,
   removeFromCart,
   updateCartItem,
 } from "../controllers/cart.controller.js";
@@ -19,5 +21,8 @@ router.post("/", validate(addToCartSchema), addToCart);
 router.put("/:productId", validate(updateCartItemSchema), updateCartItem);
 router.delete("/:productId", removeFromCart);
 router.delete("/", clearCart);
+
+router.post("/coupon", applyCoupon);
+router.delete("/coupon", removeCoupon);
 
 export default router;

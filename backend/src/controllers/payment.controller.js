@@ -5,6 +5,8 @@ import { Product } from "../models/product.model.js";
 import { Order } from "../models/order.model.js";
 import { Cart } from "../models/cart.model.js";
 import { Vendor } from "../models/vendor.model.js";
+import { Coupon } from "../models/coupon.model.js";
+import { Vendor } from "../models/vendor.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
@@ -63,8 +65,35 @@ export const createPaymentIntent = catchAsync(async (req, res, next) => {
   }
 
   const shipping = 10.0; // $10
+
+  // Coupon Logic
+  let discountAmount = 0;
+  if (req.body.couponCode) {
+    const coupon = await Coupon.findOne({ code: req.body.couponCode.toUpperCase(), isActive: true });
+    if (coupon) {
+      const now = new Date();
+      if (now >= coupon.validFrom && now <= coupon.validUntil &&
+        (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit) &&
+        (!coupon.minOrderValue || subtotal >= coupon.minOrderValue)) {
+
+        const userUsage = coupon.usedBy.find(u => u.userId.toString() === user._id.toString());
+        if (!coupon.usageLimitPerUser || !userUsage || userUsage.count < coupon.usageLimitPerUser) {
+          if (coupon.type === "percentage") {
+            discountAmount = (subtotal * coupon.value) / 100;
+            if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+              discountAmount = coupon.maxDiscount;
+            }
+          } else if (coupon.type === "fixed") {
+            discountAmount = coupon.value;
+          }
+          if (discountAmount > subtotal) discountAmount = subtotal;
+        }
+      }
+    }
+  }
+
   const tax = subtotal * 0.08; // 8%
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping + tax - discountAmount;
 
   if (total <= 0) {
     return next(new AppError("Invalid order total", 400));
@@ -101,6 +130,8 @@ export const createPaymentIntent = catchAsync(async (req, res, next) => {
       orderItems: JSON.stringify(validatedItems),
       shippingAddress: JSON.stringify(shippingAddress),
       totalPrice: total.toFixed(2),
+      couponCode: req.body.couponCode || "",
+      discountAmount: discountAmount.toFixed(2),
     },
   });
 
@@ -143,7 +174,24 @@ export async function handleWebhook(req, res) {
           status: "succeeded",
         },
         totalPrice: parseFloat(totalPrice),
+        couponCode: paymentIntent.metadata.couponCode,
+        discountAmount: parseFloat(paymentIntent.metadata.discountAmount || "0"),
       });
+
+      // Update coupon usage
+      if (paymentIntent.metadata.couponCode) {
+        const coupon = await Coupon.findOne({ code: paymentIntent.metadata.couponCode });
+        if (coupon) {
+          coupon.usedCount += 1;
+          const userUsage = coupon.usedBy.find(u => u.userId.toString() === userId);
+          if (userUsage) {
+            userUsage.count += 1;
+          } else {
+            coupon.usedBy.push({ userId: userId, count: 1 });
+          }
+          await coupon.save();
+        }
+      }
 
       // update product stock and vendor earnings
       const items = JSON.parse(orderItems);

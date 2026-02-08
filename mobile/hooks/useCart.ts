@@ -51,13 +51,33 @@ const useCart = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
-  const cartTotal =
-    cart?.items.reduce((sum, item) => {
+  const applyCouponMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const { data } = await api.post<{ message: string; cart: Cart }>("/cart/coupon", { code });
+      return data.cart;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+  });
+
+  const removeCouponMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.delete<{ message: string; cart: Cart }>("/cart/coupon");
+      return data.cart;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+  });
+
+  const cartTotal = (cart?.subtotal !== undefined) ? cart.subtotal :
+    (cart?.items.reduce((sum, item) => {
       const price = item.variantId && item.product?.variants ?
         (item.product.variants.find(v => v._id === item.variantId)?.price ?? item.product?.price ?? 0) :
         (item.product?.price ?? 0);
       return sum + price * item.quantity;
-    }, 0) ?? 0;
+    }, 0) ?? 0);
+
+  const discountAmount = cart?.discountAmount ?? 0;
+  const grandTotal = cart?.totalPrice ?? cartTotal;
+  const couponCode = cart?.coupon;
 
   const cartItemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
@@ -67,6 +87,9 @@ const useCart = () => {
     isError,
     refetch,
     cartTotal,
+    discountAmount,
+    grandTotal,
+    couponCode,
     cartItemCount,
     addToCart: addToCartMutation.mutate,
     updateQuantity: updateQuantityMutation.mutate,
@@ -76,6 +99,10 @@ const useCart = () => {
     isUpdating: updateQuantityMutation.isPending,
     isRemoving: removeFromCartMutation.isPending,
     isClearing: clearCartMutation.isPending,
+    applyCoupon: applyCouponMutation.mutateAsync,
+    removeCoupon: removeCouponMutation.mutateAsync,
+    isApplyingCoupon: applyCouponMutation.isPending,
+    isRemovingCoupon: removeCouponMutation.isPending,
   };
 };
 export default useCart;
