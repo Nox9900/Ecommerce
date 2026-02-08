@@ -8,7 +8,13 @@ import toast from "react-hot-toast";
 function VendorShops() {
     const [searchParams] = useSearchParams();
     const q = searchParams.get("q") || "";
-    // ... rest
+    const [showModal, setShowModal] = useState(false);
+    const [editingShop, setEditingShop] = useState(null);
+    const [formData, setFormData] = useState({ name: "", description: "" });
+    const [logo, setLogo] = useState(null);
+    const [banner, setBanner] = useState(null);
+    const [logoPreview, setLogoPreview] = useState("");
+    const [bannerPreview, setBannerPreview] = useState("");
 
     const queryClient = useQueryClient();
 

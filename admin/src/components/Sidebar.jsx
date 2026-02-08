@@ -50,6 +50,7 @@ function Sidebar() {
               "/withdrawals",
               "/global-settings",
               "/mobile-app",
+              "/coupons",
               "/chat",
             ];
             const vendorPages = ["/vendor-dashboard", "/vendor-products", "/vendor-shops", "/chat"];

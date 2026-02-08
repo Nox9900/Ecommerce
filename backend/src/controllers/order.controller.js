@@ -1,16 +1,19 @@
 import { Order } from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
+import { Coupon } from "../models/coupon.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
 export const createOrder = catchAsync(async (req, res, next) => {
   const user = req.user;
-  const { orderItems, shippingAddress, paymentResult, totalPrice } = req.body;
+  const { orderItems, shippingAddress, paymentResult, totalPrice, couponCode } = req.body;
 
   if (!orderItems || orderItems.length === 0) {
     return next(new AppError("No order items", 400));
   }
+
+  let calculatedSubtotal = 0;
 
   // validate products and stock
   for (const item of orderItems) {
@@ -18,6 +21,8 @@ export const createOrder = catchAsync(async (req, res, next) => {
     if (!product) {
       return next(new AppError(`Product ${item.name} not found`, 404));
     }
+
+    let price = product.price;
 
     if (item.variantId) {
       const variant = product.variants.find((v) => v._id.toString() === item.variantId);
@@ -27,11 +32,60 @@ export const createOrder = catchAsync(async (req, res, next) => {
       if (variant.stock < item.quantity) {
         return next(new AppError(`Insufficient stock for ${product.name} (${variant.name})`, 400));
       }
+      price = variant.price;
     } else {
       if (product.stock < item.quantity) {
         return next(new AppError(`Insufficient stock for ${product.name}`, 400));
       }
     }
+
+    calculatedSubtotal += price * item.quantity;
+  }
+
+  // Coupon Logic
+  let discountAmount = 0;
+  if (couponCode) {
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+
+    if (!coupon) {
+      return next(new AppError("Invalid coupon code", 400));
+    }
+
+    // Validate coupon
+    if (new Date() < coupon.validFrom || new Date() > coupon.validUntil) {
+      return next(new AppError("Coupon is not active", 400));
+    }
+    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+      return next(new AppError("Coupon usage limit reached", 400));
+    }
+    const userUsage = coupon.usedBy.find(u => u.userId.toString() === user._id.toString());
+    if (coupon.usageLimitPerUser && userUsage && userUsage.count >= coupon.usageLimitPerUser) {
+      return next(new AppError("You have already used this coupon", 400));
+    }
+    if (coupon.minOrderValue && calculatedSubtotal < coupon.minOrderValue) {
+      return next(new AppError(`Minimum order value of $${coupon.minOrderValue} required`, 400));
+    }
+
+    // Calculate discount
+    if (coupon.type === "percentage") {
+      discountAmount = (calculatedSubtotal * coupon.value) / 100;
+      if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+        discountAmount = coupon.maxDiscount;
+      }
+    } else if (coupon.type === "fixed") {
+      discountAmount = coupon.value;
+    }
+
+    if (discountAmount > calculatedSubtotal) discountAmount = calculatedSubtotal;
+
+    // Increment usage
+    coupon.usedCount += 1;
+    if (userUsage) {
+      userUsage.count += 1;
+    } else {
+      coupon.usedBy.push({ userId: user._id, count: 1 });
+    }
+    await coupon.save();
   }
 
   const order = await Order.create({
@@ -41,6 +95,9 @@ export const createOrder = catchAsync(async (req, res, next) => {
     shippingAddress,
     paymentResult,
     totalPrice,
+    couponCode,
+    discountAmount,
+    subtotalBeforeDiscount: calculatedSubtotal
   });
 
   // update product stock

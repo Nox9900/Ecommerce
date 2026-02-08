@@ -2,10 +2,10 @@ import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
 import { View, Text, ScrollView, RefreshControl, Alert } from "react-native";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "@/lib/useTheme";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 // New Components
 import ShopHeader from "@/components/shop/ShopHeader";
@@ -16,18 +16,63 @@ import SwipeableCategoryView from "@/components/shop/SwipeableCategoryView";
 import useCategories from "@/hooks/useCategories";
 import { getTranslated } from "@/lib/i18n-utils";
 import { useTranslation } from "react-i18next";
+import FilterModal from "@/components/shop/FilterModal";
 
 const ShopScreen = () => {
   const { theme } = useTheme();
-  const { data: products, isLoading: productsLoading, isError: productsError, refetch: refetchProducts } = useProducts();
+  const params = useLocalSearchParams();
+
+  // State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [filterParams, setFilterParams] = useState({
+    minPrice: "",
+    maxPrice: "",
+    minRating: 0,
+    sort: "latest"
+  });
+
+  // Sync params.q to searchQuery
+  useEffect(() => {
+    if (typeof params.q === 'string') {
+      setSearchQuery(params.q);
+    } else if (params.q === undefined && searchQuery !== "") {
+      // Optional: clear search if param is removed? 
+      // Usually navigation back preserves params or clears them.
+      // If we want to support clearing via back button?
+      // Let's assume explicit clear sets param to empty string or we handle it in updated params.
+    }
+  }, [params.q]);
+
+  // Hooks
+  const { t, i18n } = useTranslation();
   const { data: categories } = useCategories();
 
-  const { t, i18n } = useTranslation();
+  // Derived State
+  const activeCategory = useMemo(() => {
+    if (selectedCategoryId === "all") return null;
+    return categories?.find((c) => c._id === selectedCategoryId);
+  }, [categories, selectedCategoryId]);
 
-  // Build all categories including "all"
+  // Determine effective query params
+  const queryParams = useMemo(() => {
+    const params: any = {};
+    if (searchQuery) params.q = searchQuery;
+    if (selectedCategoryId !== "all" && activeCategory) params.category = activeCategory.name;
+
+    if (filterParams.minPrice) params.minPrice = parseFloat(filterParams.minPrice);
+    if (filterParams.maxPrice) params.maxPrice = parseFloat(filterParams.maxPrice);
+    if (filterParams.minRating > 0) params.minRating = filterParams.minRating;
+    if (filterParams.sort) params.sort = filterParams.sort;
+
+    return params;
+  }, [searchQuery, selectedCategoryId, activeCategory, filterParams]);
+
+  const { data: products, isLoading: productsLoading, isError: productsError, refetch: refetchProducts } = useProducts(queryParams);
+
+  // Categories Setup
   const allCategories = useMemo(() => {
     const translatedCategories = (categories || []).map(cat => ({
       ...cat,
@@ -39,29 +84,20 @@ const ShopScreen = () => {
     ];
   }, [categories, i18n.language]);
 
-  // Get current category index for swipe navigation
   const currentCategoryIndex = useMemo(() => {
     return allCategories.findIndex(cat => cat._id === selectedCategoryId);
   }, [allCategories, selectedCategoryId]);
 
-  const activeCategory = useMemo(() => {
-    if (selectedCategoryId === "all") return null;
-    return categories?.find((c) => c._id === selectedCategoryId);
-  }, [categories, selectedCategoryId]);
-
   const subcategories = useMemo(() => {
     if (selectedCategoryId === "all") {
       const allSubcats = categories?.reduce((acc: any[], cat: any) => [...acc, ...(cat.subcategories || [])], []) || [];
-      // Shuffle and pick 15
-      return [...allSubcats]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 15);
+      return [...allSubcats].sort(() => Math.random() - 0.5).slice(0, 15);
     }
     return activeCategory?.subcategories || [];
   }, [categories, activeCategory, selectedCategoryId]);
 
+  // Handlers
   const handleQuickLinkPress = (link: any) => {
-    // If it's a subcategory from the database
     if (link.name) {
       router.push({
         pathname: "/subcategory/[id]",
@@ -69,56 +105,23 @@ const ShopScreen = () => {
       });
       return;
     }
-
-    // 1. Search Logic
     if (link.label === "9.9 Sale" || link.label === "Limited") {
       setSearchQuery(link.label === "9.9 Sale" ? "sale" : "limited");
       return;
     }
-
-    // 2. Category Logic
     const matchingCategory = categories?.find(
       (c) => c.name.toLowerCase() === link.label.toLowerCase()
     );
-
     if (matchingCategory) {
       setSelectedCategoryId(matchingCategory._id);
       return;
     }
-
-    // 3. Specials / Utilities
     if (link.label === "More") {
       setSelectedCategoryId("all");
       return;
     }
-
-    // placeholder for others
     Alert.alert("Coming Soon", `${link.label} feature is coming soon!`);
   };
-
-  // Group products by category for swipe navigation
-  const productsByCategory = useMemo(() => {
-    if (!products) return [];
-
-    return allCategories.map(category => {
-      let filtered = products;
-
-      // Filter by category (except "all")
-      if (category._id !== "all") {
-        filtered = filtered.filter((product) => product.category === category.name);
-      }
-
-      // Apply search filter if active
-      if (searchQuery.trim()) {
-        filtered = filtered.filter((product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-
-      return filtered;
-    });
-  }, [products, allCategories, searchQuery]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -129,108 +132,93 @@ const ShopScreen = () => {
   const handleCategorySwipe = (index: number) => {
     const newCategoryId = allCategories[index]._id;
     setSelectedCategoryId(newCategoryId);
+    if (searchQuery) setSearchQuery("");
   };
 
-  // If search is active, show single scrollable view with filtered results
-  if (searchQuery.trim()) {
-    const filteredProducts = products?.filter((product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+  const handleApplyFilters = (newFilters: any) => {
+    setFilterParams(newFilters);
+  };
 
-    return (
-      <SafeScreen>
-        <View className="flex-1 bg-white dark:bg-background">
-          {/* Sticky Header */}
-          <ShopHeader onSearch={setSearchQuery} />
+  // Render logic
+  const isFiltering = !!(searchQuery || filterParams.minPrice || filterParams.maxPrice || filterParams.minRating > 0 || filterParams.sort !== "latest");
 
-          {/* Sticky Categories */}
-          <CategoryTabs selectedCategoryId={selectedCategoryId} onSelectCategory={(id) => {
-            setSelectedCategoryId(id);
-            setSearchQuery(""); // Reset search when switching categories
-          }} />
+  return (
+    <SafeScreen>
+      <View className="flex-1 bg-white dark:bg-background">
+        <ShopHeader
+          searchQuery={searchQuery}
+          onSearch={setSearchQuery}
+          onFilterPress={() => setIsFilterModalVisible(true)}
+        />
 
+        <CategoryTabs selectedCategoryId={selectedCategoryId} onSelectCategory={(id) => {
+          setSelectedCategoryId(id);
+          setSearchQuery("");
+        }} />
+
+        {isFiltering ? (
           <ScrollView
             className="flex-1"
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={theme === 'dark' ? "#fff" : "#000"}
-              />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme === 'dark' ? "#fff" : "#000"} />
             }
           >
-            {/* Waterfall Feed */}
             <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
               <ProductsGrid
-                products={filteredProducts}
+                products={products || []}
                 isLoading={productsLoading}
                 isError={productsError}
-                showVendorSlider={true}
+                showVendorSlider={false}
               />
             </AnimatedContainer>
           </ScrollView>
-        </View>
-      </SafeScreen>
-    );
-  }
+        ) : (
+          <SwipeableCategoryView
+            currentIndex={currentCategoryIndex}
+            onIndexChange={handleCategorySwipe}
+          >
+            {allCategories.map((category, index) => (
+              <ScrollView
+                key={category._id}
+                className="flex-1"
+                contentContainerStyle={{ paddingBottom: 100 }}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                  <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme === 'dark' ? "#fff" : "#000"} />
+                }
+              >
+                <AnimatedContainer animation="fadeDown">
+                  <QuickLinksGrid
+                    items={category._id === selectedCategoryId ? subcategories : []}
+                    onLinkPress={handleQuickLinkPress}
+                  />
+                </AnimatedContainer>
 
-  // Normal mode with swipeable categories
-  return (
-    <SafeScreen>
-      <View className="flex-1 bg-white dark:bg-background">
-        {/* Sticky Header */}
-        <ShopHeader onSearch={setSearchQuery} />
+                <AnimatedContainer animation="fadeDown" delay={100}>
+                  <PromoBanners />
+                </AnimatedContainer>
 
-        {/* Sticky Categories */}
-        <CategoryTabs selectedCategoryId={selectedCategoryId} onSelectCategory={setSelectedCategoryId} />
+                <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
+                  <ProductsGrid
+                    products={products || []}
+                    isLoading={productsLoading}
+                    isError={productsError}
+                    showVendorSlider={true}
+                  />
+                </AnimatedContainer>
+              </ScrollView>
+            ))}
+          </SwipeableCategoryView>
+        )}
 
-        {/* Swipeable Category Pages */}
-        <SwipeableCategoryView
-          currentIndex={currentCategoryIndex}
-          onIndexChange={handleCategorySwipe}
-        >
-          {allCategories.map((category, index) => (
-            <ScrollView
-              key={category._id}
-              className="flex-1"
-              contentContainerStyle={{ paddingBottom: 100 }}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  tintColor={theme === 'dark' ? "#fff" : "#000"}
-                />
-              }
-            >
-              {/* Quick Links Grid */}
-              <AnimatedContainer animation="fadeDown">
-                <QuickLinksGrid
-                  items={index === currentCategoryIndex ? subcategories : []}
-                  onLinkPress={handleQuickLinkPress}
-                />
-              </AnimatedContainer>
-
-              {/* Promo Banners */}
-              <AnimatedContainer animation="fadeDown" delay={100}>
-                <PromoBanners />
-              </AnimatedContainer>
-
-              {/* Waterfall Feed */}
-              <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
-                <ProductsGrid
-                  products={productsByCategory[index] || []}
-                  isLoading={productsLoading}
-                  isError={productsError}
-                  showVendorSlider={true}
-                />
-              </AnimatedContainer>
-            </ScrollView>
-          ))}
-        </SwipeableCategoryView>
+        <FilterModal
+          visible={isFilterModalVisible}
+          onClose={() => setIsFilterModalVisible(false)}
+          onApply={handleApplyFilters}
+          initialFilters={filterParams}
+        />
       </View>
     </SafeScreen>
   );

@@ -1,5 +1,6 @@
 import { Cart } from "../models/cart.model.js";
 import { Product } from "../models/product.model.js";
+import { Coupon } from "../models/coupon.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
@@ -8,15 +9,82 @@ export const getCart = catchAsync(async (req, res, next) => {
 
   if (!cart) {
     const user = req.user;
-
     cart = await Cart.create({
       user: user._id,
       clerkId: user.clerkId,
       items: [],
+      coupon: null,
     });
   }
 
-  res.status(200).json({ cart });
+  // Calculate totals
+  let subtotal = 0;
+  const cartItems = cart.items.filter(item => item.product); // Filter out null products
+
+  for (const item of cartItems) {
+    const product = item.product;
+    let price = product.price;
+
+    if (item.variantId) {
+      const variant = product.variants.find((v) => v._id.toString() === item.variantId);
+      if (variant) {
+        price = variant.price;
+      }
+    }
+    subtotal += price * item.quantity;
+  }
+
+  let discountAmount = 0;
+  let couponDetails = null;
+
+  if (cart.coupon) {
+    const coupon = await Coupon.findOne({ code: cart.coupon, isActive: true });
+
+    // Validate coupon validity
+    if (coupon) {
+      const now = new Date();
+      if (now >= coupon.validFrom && now <= coupon.validUntil &&
+        (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit) &&
+        (!coupon.minOrderValue || subtotal >= coupon.minOrderValue)) {
+
+        // Check per user limit
+        const userUsage = coupon.usedBy.find(u => u.userId.toString() === req.user._id.toString());
+        if (!coupon.usageLimitPerUser || !userUsage || userUsage.count < coupon.usageLimitPerUser) {
+
+          if (coupon.type === "percentage") {
+            discountAmount = (subtotal * coupon.value) / 100;
+            if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+              discountAmount = coupon.maxDiscount;
+            }
+          } else if (coupon.type === "fixed") {
+            discountAmount = coupon.value;
+          }
+
+          if (discountAmount > subtotal) discountAmount = subtotal;
+
+          couponDetails = {
+            code: coupon.code,
+            type: coupon.type,
+            value: coupon.value,
+            discountAmount
+          };
+        }
+      }
+    } else {
+      // Invalid/expired coupon, maybe remove it?
+      // For now, just don't apply discount.
+    }
+  }
+
+  // Need to convert mongoose doc to object to add custom fields?
+  // .toJSON() or .toObject() is needed if we want to append fields to the root that aren't in schema
+  const cartObj = cart.toObject();
+  cartObj.subtotal = subtotal;
+  cartObj.discountAmount = discountAmount;
+  cartObj.totalPrice = subtotal - discountAmount;
+  cartObj.couponDetails = couponDetails;
+
+  res.status(200).json({ cart: cartObj });
 });
 
 export const addToCart = catchAsync(async (req, res, next) => {
@@ -142,4 +210,45 @@ export const clearCart = catchAsync(async (req, res, next) => {
   await cart.save();
 
   res.status(200).json({ message: "Cart cleared", cart });
+});
+
+export const applyCoupon = catchAsync(async (req, res, next) => {
+  const { code } = req.body;
+  if (!code) return next(new AppError("Coupon code is required", 400));
+
+  const cart = await Cart.findOne({ clerkId: req.user.clerkId });
+  if (!cart) return next(new AppError("Cart not found", 404));
+
+  const coupon = await Coupon.findOne({ code: code.toUpperCase(), isActive: true });
+  if (!coupon) return next(new AppError("Invalid or expired coupon", 404));
+
+  // Basic validation (expiry, limits)
+  const now = new Date();
+  if (now < coupon.validFrom || now > coupon.validUntil) {
+    return next(new AppError("Coupon is not active", 400));
+  }
+  if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+    return next(new AppError("Coupon usage limit reached", 400));
+  }
+
+  // Check user limit
+  const userUsage = coupon.usedBy.find(u => u.userId.toString() === req.user._id.toString());
+  if (coupon.usageLimitPerUser && userUsage && userUsage.count >= coupon.usageLimitPerUser) {
+    return next(new AppError("You have already used this coupon", 400));
+  }
+
+  cart.coupon = coupon.code;
+  await cart.save();
+
+  res.status(200).json({ message: "Coupon applied", cart });
+});
+
+export const removeCoupon = catchAsync(async (req, res, next) => {
+  const cart = await Cart.findOne({ clerkId: req.user.clerkId });
+  if (!cart) return next(new AppError("Cart not found", 404));
+
+  cart.coupon = null;
+  await cart.save();
+
+  res.status(200).json({ message: "Coupon removed", cart });
 });
