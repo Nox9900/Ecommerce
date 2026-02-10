@@ -10,6 +10,7 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 import { SocketProvider } from "../context/SocketContext";
 import { NotificationProvider } from "../context/NotificationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ToastProvider } from "../context/ToastContext";
 
 Sentry.init({
   dsn: "https://371fb9cd74d8726bfce0c169a82865ea@o4510599048658944.ingest.de.sentry.io/4510599050035280",
@@ -71,13 +72,15 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
         <QueryClientProvider client={queryClient}>
-          <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
-            <SocketProvider>
-              <NotificationProvider>
-                <Stack screenOptions={{ headerShown: false }} />
-              </NotificationProvider>
-            </SocketProvider>
-          </StripeProvider>
+          <ToastProvider>
+            <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
+              <SocketProvider>
+                <NotificationProvider>
+                  <Stack screenOptions={{ headerShown: false }} />
+                </NotificationProvider>
+              </SocketProvider>
+            </StripeProvider>
+          </ToastProvider>
         </QueryClientProvider>
       </ClerkProvider>
     </GestureHandlerRootView>

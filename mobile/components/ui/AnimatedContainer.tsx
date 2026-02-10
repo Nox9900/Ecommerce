@@ -54,7 +54,6 @@ export const AnimatedContainer: React.FC<AnimatedContainerProps> = ({
         <Animated.View
             entering={entering || defaultEntering}
             exiting={exiting}
-            layout={Layout.springify()}
             style={style}
             className={className}
         >

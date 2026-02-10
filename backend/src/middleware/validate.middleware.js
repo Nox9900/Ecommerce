@@ -21,8 +21,13 @@ export const validate = (schema) => async (req, res, next) => {
         next();
     } catch (error) {
         if (error instanceof z.ZodError) {
+            const errorMessages = error.errors.map((e) => {
+                const field = e.path[e.path.length - 1];
+                return `${field}: ${e.message}`;
+            }).join(". ");
+
             return res.status(400).json({
-                message: "Validation failed",
+                message: `Validation Error - ${errorMessages}`,
                 errors: error.errors.map((e) => ({
                     path: e.path.join("."),
                     message: e.message,

@@ -37,7 +37,7 @@ export const getProductById = catchAsync(async (req, res, next) => {
 });
 
 export const searchProducts = catchAsync(async (req, res, next) => {
-  const { q, category, subcategory, minPrice, maxPrice, sort, minRating, page = 1, limit = 20 } = req.query;
+  const { q, category, subcategory, minPrice, maxPrice, sort, minRating, page = 1, limit = 20, vendor } = req.query;
 
   const query = {};
 
@@ -71,6 +71,7 @@ export const searchProducts = catchAsync(async (req, res, next) => {
 
   if (category && category !== "all") query.category = category;
   if (subcategory) query.subcategory = subcategory;
+  if (vendor) query.vendor = vendor;
 
   if (minPrice || maxPrice) {
     query.price = {};

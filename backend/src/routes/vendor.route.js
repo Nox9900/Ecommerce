@@ -7,6 +7,7 @@ import {
     getVendorStats,
     updateVendorProduct,
     vendorSearch,
+    getPublicVendorProfile,
 } from "../controllers/vendor.controller.js";
 import {
     createConnectAccount,
@@ -44,5 +45,8 @@ router.post("/connect/account", protectRoute, vendorOnly, createConnectAccount);
 router.post("/connect/account-link", protectRoute, vendorOnly, createAccountLink);
 router.get("/connect/status", protectRoute, vendorOnly, getConnectAccountStatus);
 router.post("/connect/login-link", protectRoute, vendorOnly, createLoginLink);
+
+// Public Vendor Profile - Must be last to avoid conflict with other routes
+router.get("/:id", getPublicVendorProfile);
 
 export default router;

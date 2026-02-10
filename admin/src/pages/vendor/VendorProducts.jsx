@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
+import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api";
 import { getStockStatusBadge } from "../../lib/utils";
 import toast from "react-hot-toast";
+import { CardSkeleton } from "../../components/common/Skeleton";
 
 function VendorProducts() {
     const [searchParams] = useSearchParams();
@@ -217,7 +218,11 @@ function VendorProducts() {
 
             <div className="grid grid-cols-1 gap-4">
                 {isLoading ? (
-                    <div className="flex justify-center p-10"><span className="loading loading-spinner loading-lg"></span></div>
+                    <>
+                        <CardSkeleton />
+                        <CardSkeleton />
+                        <CardSkeleton />
+                    </>
                 ) : (
                     products.map((product) => (
                         <div key={product._id} className="card bg-base-100 shadow-sm border border-base-200">

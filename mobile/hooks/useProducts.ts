@@ -10,6 +10,7 @@ const useProducts = (params?: {
   sort?: string;
   minRating?: number;
   limit?: number;
+  vendor?: string;
 }) => {
   const api = useApi();
 

@@ -11,6 +11,7 @@ import {
 import { ProductCard } from "./ProductCard";
 import VendorShopSlider from "./shop/VendorShopSlider";
 import { useMemo } from "react";
+import { ProductCardSkeleton } from "./common/Skeleton";
 
 interface ProductsGridProps {
   isLoading: boolean;
@@ -102,9 +103,11 @@ const ProductsGrid = ({
 
   if (isLoading) {
     return (
-      <View className="py-20 items-center justify-center">
-        <ActivityIndicator size="large" color="#6366F1" />
-        <Text className="text-text-secondary mt-4">Loading products...</Text>
+      <View className="flex-row flex-wrap justify-between px-2">
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
       </View>
     );
   }

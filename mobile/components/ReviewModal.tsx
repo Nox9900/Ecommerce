@@ -61,7 +61,7 @@ const ReviewModal = ({
                     <View className="flex-row items-center justify-between mb-8">
                         <Text className="text-text-primary text-xl font-bold">Write Review</Text>
                         <TouchableOpacity onPress={onClose} className="p-1">
-                            <Ionicons name="close" size={24} color="var(--color-text-primary)" />
+                            <Ionicons name="close" size={24} color="#A1A1AA" />
                         </TouchableOpacity>
                     </View>
 
@@ -80,7 +80,7 @@ const ReviewModal = ({
                                         <Ionicons
                                             name={star <= rating ? "star" : "star-outline"}
                                             size={40}
-                                            color="var(--color-accent-warning)"
+                                            color="#F59E0B"
                                         />
                                     </TouchableOpacity>
                                 ))}
@@ -92,7 +92,7 @@ const ReviewModal = ({
                             <TextInput
                                 className="bg-surface-light border border-white/5 rounded-2xl p-4 text-text-primary min-h-[120px] text-base"
                                 placeholder="Tell us what you think about the product..."
-                                placeholderTextColor="var(--color-text-tertiary)"
+                                placeholderTextColor="#71717A"
                                 multiline
                                 textAlignVertical="top"
                                 value={comment}

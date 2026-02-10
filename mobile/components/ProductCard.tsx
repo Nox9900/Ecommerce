@@ -1,4 +1,4 @@
-import { Link, useRouter } from "expo-router";
+import { Link, router } from "expo-router";
 import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -17,7 +17,6 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
     if (!product) return null;
 
     const scale = useSharedValue(1);
-    const router = useRouter();
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
     const { t, i18n } = useTranslation();
     const { theme } = useTheme();

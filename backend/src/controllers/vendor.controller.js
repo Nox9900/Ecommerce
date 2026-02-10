@@ -266,3 +266,29 @@ export const vendorSearch = catchAsync(async (req, res, next) => {
         orders: orders.filter((o) => o !== null),
     });
 });
+
+export const getPublicVendorProfile = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const vendor = await Vendor.findById(id).populate("owner", "firstName lastName imageUrl avatar");
+
+    if (!vendor) {
+        return next(new AppError("Vendor not found", 404));
+    }
+
+    // Only return public info
+    const publicProfile = {
+        _id: vendor._id,
+        shopName: vendor.shopName,
+        description: vendor.description,
+        logoUrl: vendor.logoUrl || "https://ui-avatars.com/api/?name=" + vendor.shopName,
+        owner: {
+            name: `${vendor.owner.firstName} ${vendor.owner.lastName}`,
+            avatar: vendor.owner.imageUrl || vendor.owner.avatar
+        },
+        bannerUrl: vendor.bannerUrl, // Assuming we might add this later or if it exists
+        rating: 4.5, // Placeholder or calculate real rating
+        joinedAt: vendor.createdAt
+    };
+
+    res.status(200).json(publicProfile);
+});
