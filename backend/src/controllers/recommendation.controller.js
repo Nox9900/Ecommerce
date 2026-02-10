@@ -8,7 +8,8 @@ const fetchTrendingProducts = async (limit = 10) => {
     return await Product.find({})
         .sort({ soldCount: -1 })
         .limit(limit)
-        .select("name price images averageRating soldCount category subcategory");
+        .select("name price images averageRating soldCount category subcategory shop")
+        .populate("shop", "name logoUrl");
 };
 
 export const getTrendingProducts = catchAsync(async (req, res, next) => {
@@ -45,7 +46,8 @@ export const getFrequentlyBoughtTogether = catchAsync(async (req, res, next) => 
     let products = [];
     if (sortedProductIds.length > 0) {
         products = await Product.find({ _id: { $in: sortedProductIds } })
-            .select("name price images averageRating soldCount category subcategory");
+            .select("name price images averageRating soldCount category subcategory shop")
+            .populate("shop", "name logoUrl");
     }
 
     // If not enough data, fallback to trending or related in same category (optional, but let's just return what we have or empty)
@@ -100,7 +102,8 @@ export const getPersonalizedRecommendations = catchAsync(async (req, res, next) 
     })
         .sort({ soldCount: -1, averageRating: -1 }) // Sort by popularity within relevant categories
         .limit(10)
-        .select("name price images averageRating soldCount category subcategory");
+        .select("name price images averageRating soldCount category subcategory shop")
+        .populate("shop", "name logoUrl");
 
     // If we don't have enough recommendations, fill with trending products
     if (recommendations.length < 10) {

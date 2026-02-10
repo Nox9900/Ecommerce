@@ -3,6 +3,7 @@ import { View, Pressable, Image, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import useWishlist from "@/hooks/useWishlist";
+import { useComparison } from "@/context/ComparisonContext";
 import { Product } from "@/types";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
@@ -19,6 +20,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
 
     const scale = useSharedValue(1);
     const { isInWishlist, toggleWishlist, isAddingToWishlist, isRemovingFromWishlist } = useWishlist();
+    const { addToCompare, removeFromCompare, isInComparison } = useComparison();
     const { t, i18n } = useTranslation();
     const { theme } = useTheme();
 
@@ -79,6 +81,23 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                         resizeMode="cover"
                         accessibilityLabel={productName}
                     />
+
+                    {/* Compare Button */}
+                    <Pressable
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            isInComparison(product._id)
+                                ? removeFromCompare(product._id)
+                                : addToCompare(product);
+                        }}
+                        className="absolute top-2 right-2 bg-white/80 dark:bg-black/60 p-2 rounded-full"
+                    >
+                        <Ionicons
+                            name={isInComparison(product._id) ? "layers" : "layers-outline"}
+                            size={18}
+                            color={isInComparison(product._id) ? "#ef4444" : theme === 'dark' ? "white" : "black"}
+                        />
+                    </Pressable>
                 </View>
 
                 <View className="p-2">
@@ -107,8 +126,8 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                             <AppText className="text-red-600 font-black text-lg -ml-0.5">{product.price.toFixed(0)}</AppText>
                             <AppText className="text-red-600 font-bold text-xs">.{(product.price % 1 * 100).toFixed(0)}</AppText>
                         </View>
-                        <AppText className="text-[#9CA3AF] text-[10px] mb-0.5" accessibilityLabel={`Sold: ${mockSold}`}>
-                            Sold {mockSold > 1000 ? (mockSold / 1000).toFixed(1) + 'k' : mockSold}
+                        <AppText className="text-[#9CA3AF] text-[10px] mb-0.5" accessibilityLabel={`Sold: ${product.soldCount || mockSold}`}>
+                            Sold {(product.soldCount || mockSold) > 1000 ? ((product.soldCount || mockSold) / 1000).toFixed(1) + 'k' : (product.soldCount || mockSold)}
                         </AppText>
                     </View>
 

@@ -17,6 +17,10 @@ import useCategories from "@/hooks/useCategories";
 import { getTranslated } from "@/lib/i18n-utils";
 import { useTranslation } from "react-i18next";
 import FilterModal from "@/components/shop/FilterModal";
+import { ProductSection } from "@/components/shop/ProductSection";
+import { useTrendingProducts, usePersonalizedRecommendations } from "@/hooks/useRecommendations";
+import { ComparisonTray } from "@/components/ComparisonTray";
+import { useAuth } from "@clerk/clerk-expo";
 
 const ShopScreen = () => {
   const { theme } = useTheme();
@@ -48,7 +52,13 @@ const ShopScreen = () => {
 
   // Hooks
   const { t, i18n } = useTranslation();
+  const { isSignedIn } = useAuth();
   const { data: categories } = useCategories();
+
+  // Discovery Hooks
+  const { data: trendingProducts, isLoading: trendingLoading } = useTrendingProducts();
+  const { data: personalizedProducts, isLoading: personalizedLoading } = usePersonalizedRecommendations(!!isSignedIn);
+  const { data: newArrivals, isLoading: newArrivalsLoading } = useProducts({ sort: "latest", limit: 10 });
 
   // Derived State
   const activeCategory = useMemo(() => {
@@ -200,6 +210,30 @@ const ShopScreen = () => {
                   <PromoBanners />
                 </AnimatedContainer>
 
+                {category._id === "all" && (
+                  <AnimatedContainer animation="fadeUp" delay={150}>
+                    {isSignedIn && personalizedProducts && (
+                      <ProductSection
+                        title="For You"
+                        products={personalizedProducts}
+                        isLoading={personalizedLoading}
+                      />
+                    )}
+
+                    <ProductSection
+                      title="Trending Now"
+                      products={trendingProducts || []}
+                      isLoading={trendingLoading}
+                    />
+
+                    <ProductSection
+                      title="New Arrivals"
+                      products={newArrivals || []}
+                      isLoading={newArrivalsLoading}
+                    />
+                  </AnimatedContainer>
+                )}
+
                 <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
                   <ProductsGrid
                     products={products || []}
@@ -219,6 +253,8 @@ const ShopScreen = () => {
           onApply={handleApplyFilters}
           initialFilters={filterParams}
         />
+
+        <ComparisonTray />
       </View>
     </SafeScreen>
   );

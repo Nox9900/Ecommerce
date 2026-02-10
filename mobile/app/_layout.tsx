@@ -12,6 +12,7 @@ import { NotificationProvider } from "../context/NotificationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ToastProvider } from "../context/ToastContext";
 import { FontSizeProvider } from "../context/FontSizeContext";
+import { ComparisonProvider } from "../context/ComparisonContext";
 
 Sentry.init({
   dsn: "https://371fb9cd74d8726bfce0c169a82865ea@o4510599048658944.ingest.de.sentry.io/4510599050035280",
@@ -78,7 +79,9 @@ export default function RootLayout() {
               <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
                 <SocketProvider>
                   <NotificationProvider>
-                    <Stack screenOptions={{ headerShown: false }} />
+                    <ComparisonProvider>
+                      <Stack screenOptions={{ headerShown: false }} />
+                    </ComparisonProvider>
                   </NotificationProvider>
                 </SocketProvider>
               </StripeProvider>
