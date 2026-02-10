@@ -36,7 +36,7 @@ export default function PublicWishlistScreen() {
                 title="Wishlist not found"
                 subtitle="This wishlist might be private or does not exist."
                 buttonTitle="Go Home"
-                buttonAction={() => router.replace("/(tabs)/")}
+                buttonAction={() => router.replace("/(tabs)")}
             />
         );
 
@@ -51,7 +51,7 @@ export default function PublicWishlistScreen() {
                     title="Empty Wishlist"
                     subtitle="This user hasn't added any items yet."
                     buttonTitle="Go Home"
-                    buttonAction={() => router.replace("/(tabs)/")}
+                    buttonAction={() => router.replace("/(tabs)")}
                 />
             ) : (
                 <ScrollView
