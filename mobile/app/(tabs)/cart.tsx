@@ -3,11 +3,13 @@ import { useAddresses } from "@/hooks/useAddressess";
 import useCart from "@/hooks/useCart";
 import { useApi } from "@/lib/api";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, RefreshControl } from "react-native";
+import EmptyUI from "@/components/ui/Empty";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useState } from "react";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import OrderSummary from "@/components/OrderSummary";
 import CouponInput from "@/components/CouponInput";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
@@ -180,7 +182,19 @@ const CartScreen = () => {
 
   if (isLoading) return <LoadingUI />;
   if (isError) return <ErrorUI />;
-  if (cartItems.length === 0) return <EmptyUI />;
+  if (cartItems.length === 0) {
+    return (
+      <SafeScreen>
+        <EmptyUI
+          title={t('cart.empty_title')}
+          subtitle={t('cart.empty_desc')}
+          buttonTitle={t('cart.start_shopping')}
+          buttonAction={() => router.push("/(tabs)")}
+          icon="bag-handle-outline"
+        />
+      </SafeScreen>
+    );
+  }
 
   return (
     <SafeScreen>
@@ -392,20 +406,3 @@ function ErrorUI() {
   );
 }
 
-function EmptyUI() {
-  const { t } = useTranslation();
-  return (
-    <View className="flex-1 bg-background">
-      <View className="px-6 pt-16 pb-5">
-        <Text className="text-text-primary text-3xl font-bold tracking-tight">{t('cart.title')}</Text>
-      </View>
-      <View className="flex-1 items-center justify-center px-6">
-        <Ionicons name="cart-outline" size={80} color="#666" />
-        <Text className="text-text-primary font-semibold text-xl mt-4">{t('cart.empty_title')}</Text>
-        <Text className="text-text-secondary text-center mt-2">
-          {t('cart.empty_desc')}
-        </Text>
-      </View>
-    </View>
-  );
-}

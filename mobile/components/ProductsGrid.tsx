@@ -12,6 +12,7 @@ import { ProductCard } from "./ProductCard";
 import VendorShopSlider from "./shop/VendorShopSlider";
 import { useMemo } from "react";
 import { ProductCardSkeleton } from "./common/Skeleton";
+import EmptyUI from "./ui/Empty";
 
 interface ProductsGridProps {
   isLoading: boolean;
@@ -136,12 +137,14 @@ const ProductsGrid = ({
 
 export default ProductsGrid;
 
+
+// ...
 function NoProductsFound() {
   return (
-    <View className="py-20 items-center justify-center">
-      <Ionicons name="search-outline" size={48} color={"#666"} />
-      <Text className="text-text-primary font-semibold mt-4">No products found</Text>
-      <Text className="text-text-secondary text-sm mt-2">Try adjusting your filters</Text>
-    </View>
+    <EmptyUI
+      title="No products found"
+      subtitle="Try adjusting your filters or search for something else."
+      icon="search-outline"
+    />
   );
 }

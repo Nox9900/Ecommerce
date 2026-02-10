@@ -6,6 +6,8 @@ import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api";
 import { getStockStatusBadge } from "../../lib/utils";
 import toast from "react-hot-toast";
 import { CardSkeleton } from "../../components/common/Skeleton";
+import EmptyState from "../../components/common/EmptyState";
+import { PackageOpenIcon } from "lucide-react";
 
 function VendorProducts() {
     const [searchParams] = useSearchParams();
@@ -51,22 +53,38 @@ function VendorProducts() {
 
     // Generate variants when attributes change
     const generateVariants = () => {
-        const validAttributes = attributes.filter(attr => attr.name && attr.values.length > 0 && attr.values[0] !== "");
+        // Filter out empty attributes and values
+        const validAttributes = attributes
+            .map(attr => ({
+                ...attr,
+                values: attr.values.filter(v => v && v.trim() !== "")
+            }))
+            .filter(attr => attr.name && attr.name.trim() !== "" && attr.values.length > 0);
+
         if (validAttributes.length === 0) {
-            setVariants([]);
+            toast.error("Add at least one attribute with values first");
             return;
         }
 
-        const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
-        const combinations = cartesian(...validAttributes.map(attr => attr.values.filter(v => v !== "")));
+        const cartesian = (...arrays) => {
+            return arrays.reduce((acc, curr) => {
+                return acc.flatMap(d => curr.map(e => [...(Array.isArray(d) ? d : [d]), e]));
+            });
+        };
+
+        const attrValues = validAttributes.map(attr => attr.values);
+        let combinations = [];
+
+        if (attrValues.length === 1) {
+            combinations = attrValues[0].map(v => [v]);
+        } else {
+            combinations = cartesian(...attrValues);
+        }
 
         const newVariants = combinations.map(combo => {
-            // If only one attribute, combo is just the value string, not array
-            const comboArray = Array.isArray(combo) ? combo : [combo];
-
             const options = {};
             validAttributes.forEach((attr, index) => {
-                options[attr.name] = comboArray[index];
+                options[attr.name] = combo[index];
             });
 
             // Check if this variant already exists to preserve its data/image
@@ -77,16 +95,18 @@ function VendorProducts() {
             if (existingVariant) return existingVariant;
 
             return {
-                name: comboArray.join(" / "),
+                name: combo.join(" / "),
                 options,
                 price: parseFloat(formData.price) || 0,
                 stock: parseInt(formData.stock) || 0,
                 sku: "",
                 image: "",
-                imageFile: null // For frontend handling
+                imageFile: null
             };
         });
+
         setVariants(newVariants);
+        toast.success(`Generated ${newVariants.length} variants`);
     };
 
     const createProductMutation = useMutation({
@@ -268,7 +288,13 @@ function VendorProducts() {
                     ))
                 )}
                 {!isLoading && products.length === 0 && (
-                    <div className="text-center p-10 opacity-50">No products found. Start by adding one!</div>
+                    <EmptyState
+                        title="No products found"
+                        description={q ? `We couldn't find any products matching "${q}".` : "Your shop inventory is currently empty. Start by adding your first product!"}
+                        icon={PackageOpenIcon}
+                        buttonText={q ? null : "Add Product"}
+                        onButtonClick={q ? null : () => setShowModal(true)}
+                    />
                 )}
             </div>
 
@@ -423,8 +449,9 @@ function VendorProducts() {
                                                     className="input input-sm input-bordered w-full font-semibold"
                                                     value={attr.name}
                                                     onChange={(e) => {
-                                                        const newAttrs = [...attributes];
-                                                        newAttrs[attrIndex].name = e.target.value;
+                                                        const newAttrs = attributes.map((a, i) =>
+                                                            i === attrIndex ? { ...a, name: e.target.value } : a
+                                                        );
                                                         setAttributes(newAttrs);
                                                     }}
                                                 />
@@ -438,19 +465,28 @@ function VendorProducts() {
                                                                 className="input input-xs input-bordered w-24"
                                                                 value={val}
                                                                 onChange={(e) => {
-                                                                    const newAttrs = [...attributes];
-                                                                    newAttrs[attrIndex].values[valIndex] = e.target.value;
+                                                                    const newAttrs = attributes.map((a, i) => {
+                                                                        if (i === attrIndex) {
+                                                                            const newVals = [...a.values];
+                                                                            newVals[valIndex] = e.target.value;
+                                                                            return { ...a, values: newVals };
+                                                                        }
+                                                                        return a;
+                                                                    });
                                                                     setAttributes(newAttrs);
                                                                 }}
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    const newAttrs = [...attributes];
-                                                                    newAttrs[attrIndex].values = attr.values.filter((_, i) => i !== valIndex);
-                                                                    if (newAttrs[attrIndex].values.length === 0) {
-                                                                        newAttrs[attrIndex].values = [""];
-                                                                    }
+                                                                    const newAttrs = attributes.map((a, i) => {
+                                                                        if (i === attrIndex) {
+                                                                            let newVals = a.values.filter((_, j) => j !== valIndex);
+                                                                            if (newVals.length === 0) newVals = [""];
+                                                                            return { ...a, values: newVals };
+                                                                        }
+                                                                        return a;
+                                                                    });
                                                                     setAttributes(newAttrs);
                                                                 }}
                                                                 className="btn btn-xs btn-circle btn-ghost text-error"
@@ -462,8 +498,12 @@ function VendorProducts() {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const newAttrs = [...attributes];
-                                                            newAttrs[attrIndex].values.push("");
+                                                            const newAttrs = attributes.map((a, i) => {
+                                                                if (i === attrIndex) {
+                                                                    return { ...a, values: [...a.values, ""] };
+                                                                }
+                                                                return a;
+                                                            });
                                                             setAttributes(newAttrs);
                                                         }}
                                                         className="btn btn-xs btn-ghost btn-circle"
