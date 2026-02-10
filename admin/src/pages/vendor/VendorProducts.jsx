@@ -46,6 +46,48 @@ function VendorProducts() {
         queryFn: shopApi.getVendorShops,
     });
 
+    const [variants, setVariants] = useState([]);
+
+    // Generate variants when attributes change
+    const generateVariants = () => {
+        const validAttributes = attributes.filter(attr => attr.name && attr.values.length > 0 && attr.values[0] !== "");
+        if (validAttributes.length === 0) {
+            setVariants([]);
+            return;
+        }
+
+        const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+        const combinations = cartesian(...validAttributes.map(attr => attr.values.filter(v => v !== "")));
+
+        const newVariants = combinations.map(combo => {
+            // If only one attribute, combo is just the value string, not array
+            const comboArray = Array.isArray(combo) ? combo : [combo];
+
+            const options = {};
+            validAttributes.forEach((attr, index) => {
+                options[attr.name] = comboArray[index];
+            });
+
+            // Check if this variant already exists to preserve its data/image
+            const existingVariant = variants.find(v =>
+                JSON.stringify(v.options) === JSON.stringify(options)
+            );
+
+            if (existingVariant) return existingVariant;
+
+            return {
+                name: comboArray.join(" / "),
+                options,
+                price: parseFloat(formData.price) || 0,
+                stock: parseInt(formData.stock) || 0,
+                sku: "",
+                image: "",
+                imageFile: null // For frontend handling
+            };
+        });
+        setVariants(newVariants);
+    };
+
     const createProductMutation = useMutation({
         mutationFn: vendorApi.createProduct,
         onSuccess: () => {
@@ -92,6 +134,7 @@ function VendorProducts() {
             shop: "",
         });
         setAttributes([]);
+        setVariants([]);
         setImages([]);
         setImagePreviews([]);
     };
@@ -111,7 +154,9 @@ function VendorProducts() {
             description: product.description,
             shop: product.shop?._id || product.shop || "",
         });
+
         setAttributes(product.attributes || []);
+        setVariants(product.variants || []);
         setImagePreviews(product.images);
         setShowModal(true);
     };
@@ -138,7 +183,18 @@ function VendorProducts() {
         data.append("soldCount", formData.soldCount);
         data.append("shop", formData.shop);
         data.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
+        data.append("variants", JSON.stringify(variants));
+
         images.forEach(image => data.append("images", image));
+
+        // Append variant images from state/refs (needs a way to store them)
+        // Ideally we store files in `variants` state but File objects don't JSON stringify well for the `variants` field.
+        // So we append them separately.
+        variants.forEach((variant, index) => {
+            if (variant.imageFile) {
+                data.append(`variant_image_${index}`, variant.imageFile);
+            }
+        });
 
         if (editingProduct) {
             updateProductMutation.mutate({ id: editingProduct._id, formData: data });
@@ -416,6 +472,107 @@ function VendorProducts() {
                                     {attributes.length === 0 && (
                                         <p className="text-center text-xs opacity-50 italic">No attributes added yet</p>
                                     )}
+                                </div>
+                            </div>
+
+                            {/* VARIANTS SECTION */}
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-semibold flex items-center justify-between w-full">
+                                        Variants
+                                        <button
+                                            type="button"
+                                            onClick={generateVariants}
+                                            className="btn btn-xs btn-outline btn-secondary ml-2"
+                                        >
+                                            Generate / Refresh Variants
+                                        </button>
+                                    </span>
+                                </label>
+
+                                <div className="space-y-4 bg-base-200 p-4 rounded-xl max-h-96 overflow-y-auto">
+                                    {variants.length === 0 && (
+                                        <p className="text-center text-xs opacity-50 italic">
+                                            Add attributes above and click "Generate" to create variants.
+                                        </p>
+                                    )}
+
+                                    {variants.map((variant, index) => (
+                                        <div key={index} className="bg-base-100 p-4 rounded-lg flex flex-col gap-3">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-bold text-sm bg-base-200 px-2 py-1 rounded">
+                                                    {Object.values(variant.options).join(" / ")}
+                                                </h4>
+
+                                                {/* Variant Image Upload */}
+                                                <div className="flex items-center gap-2">
+                                                    {(variant.image || variant.imagePreview) && (
+                                                        <div className="avatar">
+                                                            <div className="w-8 h-8 rounded">
+                                                                <img src={variant.imagePreview || variant.image} alt="Variant" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        className="file-input file-input-bordered file-input-xs w-full max-w-xs"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                const newVariants = [...variants];
+                                                                newVariants[index].imageFile = file;
+                                                                newVariants[index].imagePreview = URL.createObjectURL(file);
+                                                                setVariants(newVariants);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div className="form-control">
+                                                    <label className="label py-0"><span className="label-text-alt">Price</span></label>
+                                                    <input
+                                                        type="number"
+                                                        className="input input-sm input-bordered"
+                                                        value={variant.price}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].price = parseFloat(e.target.value);
+                                                            setVariants(newVariants);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label py-0"><span className="label-text-alt">Stock</span></label>
+                                                    <input
+                                                        type="number"
+                                                        className="input input-sm input-bordered"
+                                                        value={variant.stock}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].stock = parseInt(e.target.value);
+                                                            setVariants(newVariants);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label py-0"><span className="label-text-alt">SKU</span></label>
+                                                    <input
+                                                        type="text"
+                                                        className="input input-sm input-bordered"
+                                                        value={variant.sku || ""}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].sku = e.target.value;
+                                                            setVariants(newVariants);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 

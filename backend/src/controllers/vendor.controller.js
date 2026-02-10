@@ -54,10 +54,17 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
     }
 
     if (!req.files || req.files.length === 0) {
-        return next(new AppError("At least one image is required", 400));
+        // We need to check if main images are present, but since we use upload.any(), 
+        // req.files includes everything. We will filter later.
     }
 
-    const uploadPromises = req.files.map((file) => {
+    const productImages = req.files.filter(file => file.fieldname === "images");
+
+    if (productImages.length === 0) {
+        return next(new AppError("At least one product image is required", 400));
+    }
+
+    const uploadPromises = productImages.map((file) => {
         return cloudinary.uploader.upload(file.path, {
             folder: "products",
         });
@@ -65,6 +72,29 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
 
     const uploadResults = await Promise.all(uploadPromises);
     const imageUrls = uploadResults.map((result) => result.secure_url);
+
+    // Handle variant images
+    let parsedVariants = [];
+    if (req.body.variants) {
+        parsedVariants = JSON.parse(req.body.variants);
+
+        // Upload variant images
+        const variantImagePromises = parsedVariants.map(async (variant, index) => {
+            const variantImageFile = req.files.find(
+                (file) => file.fieldname === `variant_image_${index}`
+            );
+
+            if (variantImageFile) {
+                const result = await cloudinary.uploader.upload(variantImageFile.path, {
+                    folder: "products/variants",
+                });
+                variant.image = result.secure_url;
+            }
+            return variant;
+        });
+
+        parsedVariants = await Promise.all(variantImagePromises);
+    }
 
     const product = await Product.create({
         name,
@@ -79,6 +109,7 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
         soldCount: req.body.soldCount ? parseInt(req.body.soldCount) : 0,
         attributes: attributes ? JSON.parse(attributes) : [],
         images: imageUrls,
+        variants: parsedVariants,
         vendor: vendor._id,
         shop: shop || undefined,
     });
@@ -148,6 +179,28 @@ export const updateVendorProduct = catchAsync(async (req, res, next) => {
         shop: shop || undefined,
     };
 
+    // Handle variants update
+    if (req.body.variants) {
+        let parsedVariants = JSON.parse(req.body.variants);
+
+        // Upload new variant images
+        const variantImagePromises = parsedVariants.map(async (variant, index) => {
+            const variantImageFile = req.files.find(
+                (file) => file.fieldname === `variant_image_${index}`
+            );
+
+            if (variantImageFile) {
+                const result = await cloudinary.uploader.upload(variantImageFile.path, {
+                    folder: "products/variants",
+                });
+                variant.image = result.secure_url;
+            }
+            return variant;
+        });
+
+        updateData.variants = await Promise.all(variantImagePromises);
+    }
+
     // Remove undefined fields
     Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
 
@@ -156,18 +209,22 @@ export const updateVendorProduct = catchAsync(async (req, res, next) => {
 
     // handle image updates
     if (req.files && req.files.length > 0) {
-        if (req.files.length > 3) {
-            return next(new AppError("Maximum 3 images allowed", 400));
-        }
+        const productImages = req.files.filter(file => file.fieldname === "images");
 
-        const uploadPromises = req.files.map((file) => {
-            return cloudinary.uploader.upload(file.path, {
-                folder: "products",
+        if (productImages.length > 0) {
+            if (productImages.length > 3) {
+                return next(new AppError("Maximum 3 images allowed", 400));
+            }
+
+            const uploadPromises = productImages.map((file) => {
+                return cloudinary.uploader.upload(file.path, {
+                    folder: "products",
+                });
             });
-        });
 
-        const uploadResults = await Promise.all(uploadPromises);
-        product.images = uploadResults.map((result) => result.secure_url);
+            const uploadResults = await Promise.all(uploadPromises);
+            product.images = uploadResults.map((result) => result.secure_url);
+        }
     }
 
     await product.save();

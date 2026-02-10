@@ -496,13 +496,15 @@ const ProductDetailScreen = () => {
                   const variantInStock = variant.stock > 0;
 
                   return (
-                    <View
+                    <TouchableOpacity
                       key={variant._id || index}
+                      activeOpacity={0.7}
+                      onPress={() => setSelectedOptions(variant.options)}
                       className={`p-4 rounded-2xl border ${isSelectedVariant
-                          ? "border-primary/50 bg-primary/5"
-                          : theme === 'dark'
-                            ? "bg-surface-light border-white/5"
-                            : "bg-gray-50 border-black/5"
+                        ? "border-primary/50 bg-primary/5"
+                        : theme === 'dark'
+                          ? "bg-surface-light border-white/5"
+                          : "bg-gray-50 border-black/5"
                         }`}
                     >
                       <View className="flex-row items-start justify-between">
@@ -550,8 +552,8 @@ const ProductDetailScreen = () => {
 
                             {/* Stock Status */}
                             <View className={`flex-row items-center px-2 py-1 rounded-full border ${variantInStock
-                                ? "bg-green-500/10 border-green-500/20"
-                                : "bg-red-500/10 border-red-500/20"
+                              ? "bg-green-500/10 border-green-500/20"
+                              : "bg-red-500/10 border-red-500/20"
                               }`}>
                               <View className={`w-1.5 h-1.5 rounded-full mr-1.5 ${variantInStock ? "bg-green-500" : "bg-red-500"
                                 }`} />
@@ -594,7 +596,7 @@ const ProductDetailScreen = () => {
                           </View>
                         </View>
                       )}
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>

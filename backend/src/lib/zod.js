@@ -60,6 +60,16 @@ export const createProductSchema = z.object({
             (val) => (val ? parseFloat(val) : undefined),
             z.number().positive("Original price must be positive").optional()
         ),
+        variants: z.preprocess(
+            (val) => (typeof val === 'string' ? JSON.parse(val) : val),
+            z.array(z.object({
+                name: z.string().optional(),
+                options: z.record(z.string()).optional(),
+                price: z.number().positive("Variant price must be positive"),
+                stock: z.number().int().min(0, "Variant stock cannot be negative"),
+                sku: z.string().optional(),
+            })).optional()
+        ),
     }),
 });
 

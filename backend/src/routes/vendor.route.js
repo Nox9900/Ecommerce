@@ -33,8 +33,8 @@ router.post("/register", protectRoute, validate(registerVendorSchema), registerV
 router.get("/profile", protectRoute, vendorOnly, getVendorProfile);
 router.get("/stats", protectRoute, vendorOnly, getVendorStats);
 router.get("/products", protectRoute, vendorOnly, getVendorProducts);
-router.post("/products", protectRoute, vendorOnly, upload.array("images", 3), validate(createProductSchema), createVendorProduct);
-router.put("/products/:id", protectRoute, vendorOnly, upload.array("images", 3), validate(createProductSchema), updateVendorProduct);
+router.post("/products", protectRoute, vendorOnly, upload.any(), validate(createProductSchema), createVendorProduct);
+router.put("/products/:id", protectRoute, vendorOnly, upload.any(), validate(createProductSchema), updateVendorProduct);
 router.post("/withdrawals", protectRoute, vendorOnly, validate(requestWithdrawalSchema), requestWithdrawal);
 router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
 router.get("/search", protectRoute, vendorOnly, vendorSearch);
