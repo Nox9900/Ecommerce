@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { GlassView } from "./ui/GlassView";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/useTheme";
+import { AppText } from "./ui/AppText";
 
 interface HeaderProps {
   onAdd?: () => void;
@@ -30,10 +30,10 @@ export default function Header({ onAdd, primaryText, secondaryText, rightCompone
             <Ionicons name="arrow-back" size={20} className="text-text-primary" />
           </TouchableOpacity>
           <View className="ml-2">
-            <Text className="text-text-primary text-xl font-bold">{primaryText}</Text>
-            <Text className="text-text-tertiary text-[10px] font-bold uppercase tracking-widest">
+            <AppText className="text-text-primary text-xl font-bold">{primaryText}</AppText>
+            <AppText className="text-text-tertiary text-[10px] font-bold uppercase tracking-widest">
               {secondaryText}
-            </Text>
+            </AppText>
           </View>
         </View>
 

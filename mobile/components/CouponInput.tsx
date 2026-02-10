@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import {
     ActivityIndicator,
-    Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { AppText } from "./ui/AppText";
 
 interface CouponInputProps {
     onApply: (code: string) => Promise<any>;
@@ -55,12 +55,12 @@ const CouponInput = ({
                         <Ionicons name="pricetag" size={16} color="white" />
                     </View>
                     <View>
-                        <Text className="text-text-primary font-bold text-base">
+                        <AppText className="text-text-primary font-bold text-base">
                             {appliedCouponCode}
-                        </Text>
-                        <Text className="text-green-500 text-xs font-medium">
+                        </AppText>
+                        <AppText className="text-green-500 text-xs font-medium">
                             {t("cart.coupon_applied", "Coupon applied")}
-                        </Text>
+                        </AppText>
                     </View>
                 </View>
                 <TouchableOpacity
@@ -80,9 +80,9 @@ const CouponInput = ({
 
     return (
         <View className="bg-surface p-4 rounded-3xl border border-white/5 space-y-2">
-            <Text className="text-text-primary font-bold text-lg">
+            <AppText className="text-text-primary font-bold text-lg">
                 {t("cart.have_coupon", "Have a coupon?")}
-            </Text>
+            </AppText>
             <View className="flex-row gap-3">
                 <TextInput
                     className="flex-1 bg-background-lighter h-12 rounded-xl px-4 text-text-primary font-medium border border-white/5"
@@ -104,14 +104,14 @@ const CouponInput = ({
                     {isApplying ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text className="text-white font-bold">
+                        <AppText className="text-white font-bold">
                             {t("common.apply", "Apply")}
-                        </Text>
+                        </AppText>
                     )}
                 </TouchableOpacity>
             </View>
             {error && (
-                <Text className="text-red-500 text-sm ml-1 font-medium">{error}</Text>
+                <AppText className="text-red-500 text-sm ml-1 font-medium">{error}</AppText>
             )}
         </View>
     );

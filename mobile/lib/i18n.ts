@@ -38,7 +38,8 @@ const resources = {
             profile: {
                 title: 'Profile', my_addresses: 'My Addresses', my_orders: 'My Orders', wishlist: 'Wishlist',
                 privacy_security: 'Privacy & Security', appearance: 'Appearance', dark_mode: 'Dark Mode',
-                account: 'Account', settings: 'Settings', language: 'Language', become_vendor: 'Become a Vendor',
+                account: 'Account', settings: 'Settings', language: 'Language', font_size: 'Font Size',
+                select_font_size: 'Select Font Size', become_vendor: 'Become a Vendor',
                 become_vendor_desc: 'Start your own business today', sign_out: 'Sign Out', cancel: 'Cancel',
                 continue: 'Continue', select_language: 'Select Language', choose_language: 'Choose your preferred language',
                 logout_error: 'Failed to sign out', version: 'Version'
@@ -96,7 +97,8 @@ const resources = {
             profile: {
                 title: 'Profil', my_addresses: 'Mes adresses', my_orders: 'Mes commandes', wishlist: 'Liste de souhaits',
                 privacy_security: 'Confidentialité et sécurité', appearance: 'Apparence', dark_mode: 'Mode sombre',
-                account: 'Compte', settings: 'Paramètres', language: 'Langue', become_vendor: 'Devenir vendeur',
+                account: 'Compte', settings: 'Paramètres', language: 'Langue', font_size: 'Taille de la police',
+                select_font_size: 'Choisir la taille', become_vendor: 'Devenir vendeur',
                 become_vendor_desc: 'Lancez votre propre entreprise dès aujourd\'hui', sign_out: 'Déconnexion', cancel: 'Annuler',
                 continue: 'Continuer', select_language: 'Choisir la langue', choose_language: 'Choisissez votre langue préférée',
                 logout_error: 'Échec de la déconnexion', version: 'Version'
@@ -154,7 +156,8 @@ const resources = {
             profile: {
                 title: 'Perfil', my_addresses: 'Mis direcciones', my_orders: 'Mis pedidos', wishlist: 'Lista de deseos',
                 privacy_security: 'Privacidad y seguridad', appearance: 'Apariencia', dark_mode: 'Modo oscuro',
-                account: 'Cuenta', settings: 'Ajustes', language: 'Idioma', become_vendor: 'Ser vendedor',
+                account: 'Cuenta', settings: 'Ajustes', language: 'Idioma', font_size: 'Tamaño de fuente',
+                select_font_size: 'Seleccionar tamaño', become_vendor: 'Ser vendedor',
                 become_vendor_desc: 'Comienza tu propio negocio hoy', sign_out: 'Cerrar sesión', cancel: 'Cancelar',
                 continue: 'Continuar', select_language: 'Seleccionar idioma', choose_language: 'Elige tu idioma preferido',
                 logout_error: 'Error al cerrar sesión', version: 'Versión'
@@ -212,7 +215,8 @@ const resources = {
             profile: {
                 title: 'الملف الشخصي', my_addresses: 'عناويني', my_orders: 'طلباتي', wishlist: 'قائمة الأمنيات',
                 privacy_security: 'الخصوصية والأمان', appearance: 'المظهر', dark_mode: 'الوضع الداكن',
-                account: 'الحساب', settings: 'الإعدادات', language: 'اللغة', become_vendor: 'كن بائعاً',
+                account: 'الحساب', settings: 'الإعدادات', language: 'اللغة', font_size: 'حجم الخط',
+                select_font_size: 'اختر حجم الخط', become_vendor: 'كن بائعاً',
                 become_vendor_desc: 'ابدأ عملك الخاص اليوم', sign_out: 'تسجيل الخروج', cancel: 'إلغاء',
                 continue: 'استمرار', select_language: 'اختر اللغة', choose_language: 'اختر لغتك المفضلة',
                 logout_error: 'فشل تسجيل الخروج', version: 'الإصدار'
@@ -270,7 +274,8 @@ const resources = {
             profile: {
                 title: '个人资料', my_addresses: '我的地址', my_orders: '我的订单', wishlist: '心愿单',
                 privacy_security: '隐私与安全', appearance: '外观', dark_mode: '深色模式',
-                account: '账户', settings: '设置', language: '语言', become_vendor: '成为卖家',
+                account: '账户', settings: '设置', language: '语言', font_size: '字体大小',
+                select_font_size: '选择字体大小', become_vendor: '成为卖家',
                 become_vendor_desc: '今天就开始您的生意', sign_out: '退出登录', cancel: '取消',
                 continue: '继续', select_language: '选择语言', choose_language: '选择您偏好的语言',
                 logout_error: '退出登录失败', version: '版本'
@@ -328,7 +333,8 @@ const resources = {
             profile: {
                 title: 'Профиль', my_addresses: 'Мои адреса', my_orders: 'Мои заказы', wishlist: 'Список желаний',
                 privacy_security: 'Конфиденциальность', appearance: 'Внешний вид', dark_mode: 'Темная тема',
-                account: 'Аккаунт', settings: 'Настройки', language: 'Язык', become_vendor: 'Стать продавцом',
+                account: 'Аккаунт', settings: 'Настройки', language: 'Язык', font_size: 'Размер шрифта',
+                select_font_size: 'Выберите размер', become_vendor: 'Стать продавцом',
                 become_vendor_desc: 'Начните свой бизнес сегодня', sign_out: 'Выйти', cancel: 'Отмена',
                 continue: 'Продолжить', select_language: 'Выбрать язык', choose_language: 'Выберите предпочитаемый язык',
                 logout_error: 'Ошибка при выходе из системы', version: 'Версия'

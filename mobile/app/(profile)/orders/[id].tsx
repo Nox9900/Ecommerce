@@ -8,7 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useMemo } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function OrderDetailsScreen() {
@@ -80,7 +81,7 @@ export default function OrderDetailsScreen() {
                     </TouchableOpacity>
                 </View>
                 <View className="flex-1 items-center justify-center">
-                    <Text className="text-text-primary font-bold text-lg">Order not found</Text>
+                    <AppText className="text-text-primary font-bold text-lg">Order not found</AppText>
                 </View>
             </View>
         );
@@ -99,7 +100,7 @@ export default function OrderDetailsScreen() {
                     <Ionicons name="arrow-back" size={20} className="text-text-primary" />
                 </TouchableOpacity>
                 <View className="flex-1 justify-center">
-                    <Text className="text-text-primary text-xl font-bold">Order Details</Text>
+                    <AppText className="text-text-primary text-xl font-bold">Order Details</AppText>
                 </View>
             </GlassView>
 
@@ -108,8 +109,8 @@ export default function OrderDetailsScreen() {
                 <View className="p-6 border-b border-black/5 dark:border-white/5">
                     <View className="flex-row justify-between items-start mb-4">
                         <View>
-                            <Text className="text-text-primary font-black text-2xl mb-1">#{order._id.slice(-8).toUpperCase()}</Text>
-                            <Text className="text-text-tertiary text-xs font-bold uppercase tracking-widest">{formatDate(order.createdAt)}</Text>
+                            <AppText className="text-text-primary font-black text-2xl mb-1">#{order._id.slice(-8).toUpperCase()}</AppText>
+                            <AppText className="text-text-tertiary text-xs font-bold uppercase tracking-widest">{formatDate(order.createdAt)}</AppText>
                         </View>
                         <View
                             className="px-4 py-2 rounded-xl border"
@@ -118,48 +119,48 @@ export default function OrderDetailsScreen() {
                                 borderColor: getStatusColor(order.status) + "30"
                             }}
                         >
-                            <Text
+                            <AppText
                                 className="text-xs font-black uppercase tracking-wider"
                                 style={{ color: getStatusColor(order.status) }}
                             >
                                 {order.status}
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                 </View>
 
                 {/* Shipping Address */}
                 <View className="p-6 border-b border-black/5 dark:border-white/5">
-                    <Text className="text-text-primary font-bold text-lg mb-4">Shipping Details</Text>
+                    <AppText className="text-text-primary font-bold text-lg mb-4">Shipping Details</AppText>
                     <View className="bg-surface-light p-4 rounded-2xl border border-black/5 dark:border-white/5">
-                        <Text className="text-text-primary font-bold text-base mb-1">{order.shippingAddress.fullName}</Text>
-                        <Text className="text-text-secondary text-sm mb-1">{order.shippingAddress.streetAddress}</Text>
-                        <Text className="text-text-secondary text-sm mb-1">{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</Text>
-                        <Text className="text-text-tertiary text-xs font-bold uppercase tracking-widest mt-2">{order.shippingAddress.phoneNumber}</Text>
+                        <AppText className="text-text-primary font-bold text-base mb-1">{order.shippingAddress.fullName}</AppText>
+                        <AppText className="text-text-secondary text-sm mb-1">{order.shippingAddress.streetAddress}</AppText>
+                        <AppText className="text-text-secondary text-sm mb-1">{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</AppText>
+                        <AppText className="text-text-tertiary text-xs font-bold uppercase tracking-widest mt-2">{order.shippingAddress.phoneNumber}</AppText>
                     </View>
                 </View>
 
                 {/* Order Items */}
                 <View className="p-6">
-                    <Text className="text-text-primary font-bold text-lg mb-4">Items ({totalItems})</Text>
+                    <AppText className="text-text-primary font-bold text-lg mb-4">Items ({totalItems})</AppText>
                     <View className="gap-4">
                         {order.orderItems.map((item) => (
                             <View key={item._id} className="flex-row gap-4 bg-surface-light p-4 rounded-2xl border border-black/5 dark:border-white/5">
                                 <Image source={item.image} style={{ width: 80, height: 80, borderRadius: 12 }} contentFit="cover" />
                                 <View className="flex-1 justify-center">
-                                    <Text className="text-text-primary font-bold text-base mb-1" numberOfLines={1}>{item.name}</Text>
+                                    <AppText className="text-text-primary font-bold text-base mb-1" numberOfLines={1}>{item.name}</AppText>
                                     {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
-                                        <Text className="text-[10px] text-text-tertiary uppercase font-black tracking-tighter mb-2">
+                                        <AppText className="text-[10px] text-text-tertiary uppercase font-black tracking-tighter mb-2">
                                             {Object.entries(item.selectedOptions)
                                                 .map(([key, value]) => `${key}: ${value}`)
                                                 .join(" • ")}
-                                        </Text>
+                                        </AppText>
                                     )}
                                     <View className="flex-row justify-between items-end">
-                                        <Text className="text-text-secondary text-sm font-bold">Qty: {item.quantity}</Text>
-                                        <Text className="text-text-primary font-black text-lg">
-                                            <Text className="text-primary text-xs">$</Text>{item.price.toFixed(2)}
-                                        </Text>
+                                        <AppText className="text-text-secondary text-sm font-bold">Qty: {item.quantity}</AppText>
+                                        <AppText className="text-text-primary font-black text-lg">
+                                            <AppText className="text-primary text-xs">$</AppText>{item.price.toFixed(2)}
+                                        </AppText>
                                     </View>
                                 </View>
                             </View>
@@ -170,17 +171,17 @@ export default function OrderDetailsScreen() {
                 {/* Payment Summary */}
                 <View className="mx-6 bg-surface-light p-6 rounded-3xl border border-black/5 dark:border-white/5 mb-6">
                     <View className="flex-row justify-between mb-2">
-                        <Text className="text-text-secondary text-sm">Subtotal</Text>
-                        <Text className="text-text-primary font-bold text-sm">${order.totalPrice.toFixed(2)}</Text>
+                        <AppText className="text-text-secondary text-sm">Subtotal</AppText>
+                        <AppText className="text-text-primary font-bold text-sm">${order.totalPrice.toFixed(2)}</AppText>
                     </View>
                     <View className="flex-row justify-between mb-4">
-                        <Text className="text-text-secondary text-sm">Shipping</Text>
-                        <Text className="text-text-primary font-bold text-sm">Free</Text>
+                        <AppText className="text-text-secondary text-sm">Shipping</AppText>
+                        <AppText className="text-text-primary font-bold text-sm">Free</AppText>
                     </View>
                     <View className="h-[1px] bg-black/5 dark:bg-white/5 w-full mb-4" />
                     <View className="flex-row justify-between items-center">
-                        <Text className="text-text-primary font-black text-lg">Total</Text>
-                        <Text className="text-primary font-black text-2xl">${order.totalPrice.toFixed(2)}</Text>
+                        <AppText className="text-text-primary font-black text-lg">Total</AppText>
+                        <AppText className="text-primary font-black text-2xl">${order.totalPrice.toFixed(2)}</AppText>
                     </View>
                 </View>
 
@@ -193,9 +194,9 @@ export default function OrderDetailsScreen() {
                             onPress={handleOpenRating}
                         >
                             <Ionicons name="star" size={20} color="white" />
-                            <Text className="text-white font-black text-base ml-2 uppercase tracking-tight">
+                            <AppText className="text-white font-black text-base ml-2 uppercase tracking-tight">
                                 Rate Order
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -204,7 +205,7 @@ export default function OrderDetailsScreen() {
                     <View className="px-6 pb-6 items-center">
                         <View className="bg-green-500/10 px-6 py-3 rounded-2xl flex-row items-center border border-green-500/20">
                             <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                            <Text className="text-green-500 font-bold text-sm ml-2">Order Reviewed</Text>
+                            <AppText className="text-green-500 font-bold text-sm ml-2">Order Reviewed</AppText>
                         </View>
                     </View>
                 )}

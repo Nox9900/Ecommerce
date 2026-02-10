@@ -1,8 +1,9 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Image, TouchableOpacity } from "react-native";
 import { Shop } from "@/types";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/useTheme";
+import { AppText } from "./ui/AppText";
 
 interface ShopCardProps {
     shop: Shop;
@@ -15,8 +16,8 @@ const ShopCard = ({ shop }: ShopCardProps) => {
         <Link href={{ pathname: "/shop/[id]", params: { id: shop._id } } as any} asChild>
             <TouchableOpacity
                 className={`mr-3 w-72 rounded-3xl overflow-hidden ${theme === "dark"
-                        ? "bg-zinc-900 border-2 border-white/10 shadow-xl shadow-black/60"
-                        : "bg-white border-2 border-black/5 shadow-lg shadow-black/10"
+                    ? "bg-zinc-900 border-2 border-white/10 shadow-xl shadow-black/60"
+                    : "bg-white border-2 border-black/5 shadow-lg shadow-black/10"
                     }`}
                 activeOpacity={0.9}
                 style={{ elevation: 8 }}
@@ -42,25 +43,25 @@ const ShopCard = ({ shop }: ShopCardProps) => {
 
                         {/* Shop Info */}
                         <View className="flex-1 pb-1">
-                            <Text className="text-text-primary text-lg font-black truncate" numberOfLines={1}>
+                            <AppText className="text-text-primary text-lg font-black truncate" numberOfLines={1}>
                                 {shop.name}
-                            </Text>
+                            </AppText>
                             <View className="flex-row items-center mt-0.5">
                                 <Ionicons name="star" size={14} color="#F59E0B" />
-                                <Text className="text-text-secondary text-xs ml-1.5 font-semibold">
+                                <AppText className="text-text-secondary text-xs ml-1.5 font-semibold">
                                     4.8
-                                </Text>
-                                <Text className="text-text-tertiary text-xs ml-1">
+                                </AppText>
+                                <AppText className="text-text-tertiary text-xs ml-1">
                                     (120+ sold)
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                     </View>
 
                     {/* Description */}
-                    <Text className="text-text-secondary text-sm line-clamp-2 leading-5" numberOfLines={2}>
+                    <AppText className="text-text-secondary text-sm line-clamp-2 leading-5" numberOfLines={2}>
                         {shop.description}
-                    </Text>
+                    </AppText>
                 </View>
             </TouchableOpacity>
         </Link>

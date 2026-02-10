@@ -1,10 +1,11 @@
 import { Link } from "expo-router";
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Pressable, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { Product } from "@/types";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
+import { AppText } from "../ui/AppText";
 
 interface ProductListRowProps {
     product: Product;
@@ -57,9 +58,9 @@ export default function ProductListRow({ product, index }: ProductListRowProps) 
                         {/* Status Label (Dynamic based on sold count) */}
                         {soldCount > 100 && (
                             <View className="absolute bottom-0 left-0 right-0 bg-red-500/80 py-0.5 items-center">
-                                <Text className="text-white text-[9px] font-bold flex-row items-center">
+                                <AppText className="text-white text-[9px] font-bold flex-row items-center">
                                     🔥 {soldCount > 1000 ? 'Top Seller' : 'Hot Selling Right Now'}
-                                </Text>
+                                </AppText>
                             </View>
                         )}
                     </View>
@@ -70,32 +71,32 @@ export default function ProductListRow({ product, index }: ProductListRowProps) 
                             {/* Tags */}
                             <View className="flex-row items-center gap-1 mb-1.5 flex-wrap">
                                 <View className="bg-black dark:bg-white px-1 py-0.5 rounded-sm">
-                                    <Text className="text-[9px] text-white dark:text-black font-bold uppercase">{brandName}</Text>
+                                    <AppText className="text-[9px] text-white dark:text-black font-bold uppercase">{brandName}</AppText>
                                 </View>
                                 {product.isSubsidy !== false && (
                                     <>
                                         <View className="bg-red-500 px-1 py-0.5 rounded-sm">
-                                            <Text className="text-[9px] text-white font-bold">10B Subsidy</Text>
+                                            <AppText className="text-[9px] text-white font-bold">10B Subsidy</AppText>
                                         </View>
                                         <View className="border border-red-500 px-1 py-0.5 rounded-sm">
-                                            <Text className="text-[9px] text-red-500 font-bold">Price Match</Text>
+                                            <AppText className="text-[9px] text-red-500 font-bold">Price Match</AppText>
                                         </View>
                                     </>
                                 )}
                             </View>
 
                             {/* Title */}
-                            <Text
+                            <AppText
                                 className="text-text-primary text-[14px] font-semibold leading-5"
                                 numberOfLines={2}
                             >
                                 {product.name}
-                            </Text>
+                            </AppText>
 
                             {/* Trust Badge */}
                             <View className="flex-row items-center mt-1.5 opacity-60">
                                 <Ionicons name="shield-checkmark" size={12} color="#D97706" />
-                                <Text className="text-[10px] text-orange-600 font-medium ml-0.5">Official 100% Genuine</Text>
+                                <AppText className="text-[10px] text-orange-600 font-medium ml-0.5">Official 100% Genuine</AppText>
                             </View>
                         </View>
 
@@ -103,21 +104,21 @@ export default function ProductListRow({ product, index }: ProductListRowProps) 
                             {/* Price Section */}
                             <View className="flex-row items-baseline gap-1">
                                 <Ionicons name="flash" size={14} color="#EF4444" />
-                                <Text className="text-red-500 text-xs font-bold">Low Price ¥</Text>
-                                <Text className="text-red-500 text-2xl font-black -ml-1">{product.price.toFixed(0)}</Text>
-                                <Text className="text-red-500 text-sm font-bold -ml-1">.{(product.price % 1 * 100).toFixed(0)}</Text>
+                                <AppText className="text-red-500 text-xs font-bold">Low Price ¥</AppText>
+                                <AppText className="text-red-500 text-2xl font-black -ml-1">{product.price.toFixed(0)}</AppText>
+                                <AppText className="text-red-500 text-sm font-bold -ml-1">.{(product.price % 1 * 100).toFixed(0)}</AppText>
                                 {parseFloat(subsidyAmount) > 0 && (
-                                    <Text className="text-gray-400 text-[10px] ml-1">Subsidy ¥{subsidyAmount}</Text>
+                                    <AppText className="text-gray-400 text-[10px] ml-1">Subsidy ¥{subsidyAmount}</AppText>
                                 )}
                             </View>
 
                             {/* Stats */}
                             <View className="flex-row items-center justify-between mt-1">
-                                <Text className="text-[#9CA3AF] text-[10px]">
+                                <AppText className="text-[#9CA3AF] text-[10px]">
                                     Total {soldCount > 10000 ? (soldCount / 10000).toFixed(1) + 'w' : soldCount}+ Sold
-                                </Text>
+                                </AppText>
                                 <View className="flex-row items-center">
-                                    <Text className="text-[#9CA3AF] text-[10px]">Net Low ¥{originalPrice.toFixed(0)}</Text>
+                                    <AppText className="text-[#9CA3AF] text-[10px]">Net Low ¥{originalPrice.toFixed(0)}</AppText>
                                 </View>
                             </View>
                         </View>

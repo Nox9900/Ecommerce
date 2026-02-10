@@ -1,7 +1,8 @@
 import SafeScreen from "@/components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { ScrollView, Text, TouchableOpacity, View, RefreshControl, ActivityIndicator } from "react-native";
+import { ScrollView, TouchableOpacity, View, RefreshControl, ActivityIndicator } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
@@ -58,10 +59,10 @@ export default function NotificationsScreen() {
                             <View className="w-24 h-24 rounded-full bg-surface-light items-center justify-center mb-6 border border-black/5 dark:border-white/5">
                                 <Ionicons name="notifications-off-outline" size={48} color="#475569" />
                             </View>
-                            <Text className="text-text-primary font-bold text-xl mb-2 text-center">{t('notifications.empty')}</Text>
-                            <Text className="text-text-secondary text-center text-base opacity-70">
+                            <AppText className="text-text-primary font-bold text-xl mb-2 text-center">{t('notifications.empty')}</AppText>
+                            <AppText className="text-text-secondary text-center text-base opacity-70">
                                 You're all caught up! No new notifications at the moment.
-                            </Text>
+                            </AppText>
                         </AnimatedContainer>
                     ) : (
                         <View className="px-6 py-6">
@@ -80,16 +81,16 @@ export default function NotificationsScreen() {
 
                                             <View className="flex-1">
                                                 <View className="flex-row justify-between items-start mb-1">
-                                                    <Text className={`text-text-primary font-bold text-base flex-1 mr-2 leading-tight ${!item.read ? 'font-extrabold' : ''}`} numberOfLines={1}>
+                                                    <AppText className={`text-text-primary font-bold text-base flex-1 mr-2 leading-tight ${!item.read ? 'font-extrabold' : ''}`} numberOfLines={1}>
                                                         {item.translationKey ? t(item.translationKey, item.translationParams || {}) : item.title}
-                                                    </Text>
-                                                    <Text className="text-text-tertiary text-[10px] font-bold uppercase tracking-tighter mt-1">
+                                                    </AppText>
+                                                    <AppText className="text-text-tertiary text-[10px] font-bold uppercase tracking-tighter mt-1">
                                                         {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                                                    </Text>
+                                                    </AppText>
                                                 </View>
-                                                <Text className={`text-text-secondary text-sm opacity-80 leading-5 ${!item.read ? 'text-text-primary' : ''}`} numberOfLines={2}>
+                                                <AppText className={`text-text-secondary text-sm opacity-80 leading-5 ${!item.read ? 'text-text-primary' : ''}`} numberOfLines={2}>
                                                     {item.translationKey ? t(item.translationKey + '_body', item.translationParams || {}) : item.body}
-                                                </Text>
+                                                </AppText>
                                             </View>
 
                                             {!item.read && (
@@ -105,7 +106,7 @@ export default function NotificationsScreen() {
                                     className="bg-surface-light px-6 py-3 rounded-full border border-white/10"
                                     onPress={() => markAllAsRead()}
                                 >
-                                    <Text className="text-text-tertiary font-bold text-xs uppercase tracking-widest">Mark all as read</Text>
+                                    <AppText className="text-text-tertiary font-bold text-xs uppercase tracking-widest">Mark all as read</AppText>
                                 </TouchableOpacity>
                             </AnimatedContainer>
                         </View>

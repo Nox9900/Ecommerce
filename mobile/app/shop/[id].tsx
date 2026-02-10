@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, Image } from "react-native";
+import { View, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity, Image } from "react-native";
 import { useState, useEffect } from "react";
 import { useApi } from "@/lib/api";
 // import { Image } from "expo-image"; // Reverted to RN Image for consistency/reliability
@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { GlassView } from "@/components/ui/GlassView";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/lib/useTheme";
+import { AppText } from "@/components/ui/AppText";
 
 interface Shop {
     _id: string;
@@ -67,13 +68,13 @@ const ShopScreen = () => {
             <SafeScreen>
                 <View className="flex-1 items-center justify-center px-6">
                     <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-                    <Text className="text-text-primary text-xl font-bold mt-4">{t('common.error')}</Text>
-                    <Text className="text-text-secondary text-center mt-2">{t('common.error_desc')}</Text>
+                    <AppText className="text-text-primary text-xl font-bold mt-4">{t('common.error')}</AppText>
+                    <AppText className="text-text-secondary text-center mt-2">{t('common.error_desc')}</AppText>
                     <TouchableOpacity
                         className="mt-6 bg-primary px-8 py-3 rounded-full"
                         onPress={() => router.back()}
                     >
-                        <Text className="text-white font-bold">{t('common.go_back')}</Text>
+                        <AppText className="text-white font-bold">{t('common.go_back')}</AppText>
                     </TouchableOpacity>
                 </View>
             </SafeScreen>
@@ -138,17 +139,17 @@ const ShopScreen = () => {
                                     />
                                 ) : (
                                     <View className="w-full h-full items-center justify-center bg-indigo-100">
-                                        <Text className="text-indigo-600 text-3xl font-black">{shop.name.charAt(0)}</Text>
+                                        <AppText className="text-indigo-600 text-3xl font-black">{shop.name.charAt(0)}</AppText>
                                     </View>
                                 )}
                             </View>
 
                             {/* Name & Desc */}
                             <View className="flex-1 ml-4 pt-1">
-                                <Text className="text-text-primary text-xl font-black" numberOfLines={1}>{shop.name}</Text>
-                                <Text className="text-text-secondary text-xs mt-1 leading-4" numberOfLines={2}>
+                                <AppText className="text-text-primary text-xl font-black" numberOfLines={1}>{shop.name}</AppText>
+                                <AppText className="text-text-secondary text-xs mt-1 leading-4" numberOfLines={2}>
                                     {shop.description}
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
 
@@ -159,10 +160,10 @@ const ShopScreen = () => {
                                 <View className="bg-blue-100 dark:bg-blue-500/20 p-2 rounded-xl mb-1">
                                     <Ionicons name="cube-outline" size={20} color="#3B82F6" />
                                 </View>
-                                <Text className="text-text-primary font-black text-lg">{products.length}</Text>
-                                <Text className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
+                                <AppText className="text-text-primary font-black text-lg">{products.length}</AppText>
+                                <AppText className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
                                     {t('shop.products', 'Products')}
-                                </Text>
+                                </AppText>
                             </View>
 
                             {/* Rating */}
@@ -170,10 +171,10 @@ const ShopScreen = () => {
                                 <View className="bg-amber-100 dark:bg-amber-500/20 p-2 rounded-xl mb-1">
                                     <Ionicons name="star" size={20} color="#F59E0B" />
                                 </View>
-                                <Text className="text-text-primary font-black text-lg">4.8</Text>
-                                <Text className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
+                                <AppText className="text-text-primary font-black text-lg">4.8</AppText>
+                                <AppText className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
                                     {t('shop.rating', 'Rating')}
-                                </Text>
+                                </AppText>
                             </View>
 
                             {/* Joined */}
@@ -181,10 +182,10 @@ const ShopScreen = () => {
                                 <View className="bg-green-100 dark:bg-green-500/20 p-2 rounded-xl mb-1">
                                     <Ionicons name="calendar-outline" size={20} color="#10B981" />
                                 </View>
-                                <Text className="text-text-primary font-black text-lg">{joinedYear}</Text>
-                                <Text className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
+                                <AppText className="text-text-primary font-black text-lg">{joinedYear}</AppText>
+                                <AppText className="text-text-secondary text-[10px] uppercase font-bold tracking-wide">
                                     {t('shop.joined', 'Joined')}
-                                </Text>
+                                </AppText>
                             </View>
                         </View>
                     </View>
@@ -194,16 +195,16 @@ const ShopScreen = () => {
                 <View className="mt-8 px-4 pb-20">
                     <View className="flex-row items-center justify-between mb-6">
                         <View>
-                            <Text className="text-text-primary text-2xl font-black">
+                            <AppText className="text-text-primary text-2xl font-black">
                                 {t('shop.all_products', 'All Products')}
-                            </Text>
-                            <Text className="text-text-secondary text-sm mt-1">
+                            </AppText>
+                            <AppText className="text-text-secondary text-sm mt-1">
                                 {products.length} {products.length === 1 ? 'item' : 'items'} available
-                            </Text>
+                            </AppText>
                         </View>
                         <TouchableOpacity className="flex-row items-center bg-gray-100 dark:bg-zinc-800 px-5 py-2.5 rounded-full border border-gray-200 dark:border-zinc-700">
                             <Ionicons name="options-outline" size={18} className="text-text-primary" />
-                            <Text className="text-text-primary font-bold ml-2">{t('common.filter', 'Filter')}</Text>
+                            <AppText className="text-text-primary font-bold ml-2">{t('common.filter', 'Filter')}</AppText>
                         </TouchableOpacity>
                     </View>
 

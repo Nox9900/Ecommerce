@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { AnimatedContainer } from './AnimatedContainer';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/useTheme';
+import { AppText } from './AppText';
 
 interface EmptyProps {
   title: string;
@@ -21,10 +22,10 @@ export default function EmptyUI({ title, subtitle, buttonTitle, buttonAction, ic
       </AnimatedContainer>
 
       <AnimatedContainer animation="fadeUp" delay={100} className="items-center">
-        <Text className="text-text-primary font-bold text-2xl mt-4 text-center">{title}</Text>
-        <Text className="text-text-secondary text-center mt-3 text-base opacity-70 leading-6">
+        <AppText className="text-text-primary font-bold text-2xl mt-4 text-center">{title}</AppText>
+        <AppText className="text-text-secondary text-center mt-3 text-base opacity-70 leading-6">
           {subtitle}
-        </Text>
+        </AppText>
 
         {buttonTitle && buttonAction && (
           <TouchableOpacity
@@ -32,7 +33,7 @@ export default function EmptyUI({ title, subtitle, buttonTitle, buttonAction, ic
             activeOpacity={0.8}
             onPress={buttonAction}
           >
-            <Text className="text-white font-bold uppercase tracking-wider">{buttonTitle}</Text>
+            <AppText className="text-white font-bold uppercase tracking-wider">{buttonTitle}</AppText>
           </TouchableOpacity>
         )}
       </AnimatedContainer>

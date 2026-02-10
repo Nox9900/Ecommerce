@@ -1,10 +1,11 @@
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { View, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { useNotifications } from "@/context/NotificationContext";
+import { AppText } from "../ui/AppText";
 
 interface ShopHeaderProps {
     searchQuery?: string;
@@ -43,9 +44,9 @@ export default function ShopHeader({
                             className="flex-1 flex-row items-center bg-gray-100 dark:bg-white/10 rounded-full h-10 px-3"
                         >
                             <Ionicons name="search-outline" size={20} color="#9CA3AF" />
-                            <Text className="flex-1 ml-2 text-base text-text-primary" numberOfLines={1}>
+                            <AppText className="flex-1 ml-2 text-base text-text-primary" numberOfLines={1}>
                                 {searchQuery}
-                            </Text>
+                            </AppText>
                             {/* We keep the Close button as a separate touchable to avoid navigating when clearing */}
                         </TouchableOpacity>
 
@@ -64,8 +65,8 @@ export default function ShopHeader({
                     // Default Header Mode
                     <>
                         <View>
-                            <Text className="text-text-primary text-2xl font-bold">{t('common.discover')}</Text>
-                            <Text className="text-text-primary text-sm">{t('common.discover_desc')}</Text>
+                            <AppText className="text-text-primary text-2xl font-bold">{t('common.discover')}</AppText>
+                            <AppText className="text-text-primary text-sm">{t('common.discover_desc')}</AppText>
                         </View>
 
                         <View className="flex-row items-center gap-3">
@@ -90,7 +91,7 @@ export default function ShopHeader({
                                 <Ionicons name="notifications-outline" size={22} className="text-text-primary" />
                                 {unreadCount > 0 && (
                                     <View className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full items-center justify-center border border-white dark:border-black">
-                                        <Text className="text-[9px] text-white font-bold">{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                                        <AppText className="text-[9px] text-white font-bold">{unreadCount > 99 ? '99+' : unreadCount}</AppText>
                                     </View>
                                 )}
                             </TouchableOpacity>

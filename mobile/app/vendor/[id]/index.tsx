@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useVendor } from "@/hooks/useVendor";
 import useProducts from "@/hooks/useProducts";
@@ -9,6 +9,7 @@ import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import ProductsGrid from "@/components/ProductsGrid";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { AppText } from "@/components/ui/AppText";
 
 const VendorShopScreen = () => {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,17 +35,17 @@ const VendorShopScreen = () => {
             <SafeScreen>
                 <View className="flex-1 items-center justify-center px-6">
                     <Ionicons name="storefront-outline" size={64} color="#A3A3A3" />
-                    <Text className="text-text-primary text-xl font-bold mt-4 text-center">
+                    <AppText className="text-text-primary text-xl font-bold mt-4 text-center">
                         Vendor Not Found
-                    </Text>
-                    <Text className="text-text-secondary text-center mt-2 mb-6">
+                    </AppText>
+                    <AppText className="text-text-secondary text-center mt-2 mb-6">
                         The vendor you are looking for does not exist or has been removed.
-                    </Text>
+                    </AppText>
                     <TouchableOpacity
                         className="bg-primary px-6 py-3 rounded-full"
                         onPress={() => router.back()}
                     >
-                        <Text className="text-white font-bold">Go Back</Text>
+                        <AppText className="text-white font-bold">Go Back</AppText>
                     </TouchableOpacity>
                 </View>
             </SafeScreen>
@@ -91,30 +92,30 @@ const VendorShopScreen = () => {
                                 />
                             </View>
                             <View className="flex-1 pt-1">
-                                <Text className="text-text-primary text-xl font-black tracking-tight mb-1">
+                                <AppText className="text-text-primary text-xl font-black tracking-tight mb-1">
                                     {vendor.shopName}
-                                </Text>
+                                </AppText>
                                 <View className="flex-row items-center gap-1 mb-2">
                                     <Ionicons name="star" size={14} color="#F59E0B" />
-                                    <Text className="text-text-primary font-bold text-xs">{vendor.rating || 4.5}</Text>
-                                    <Text className="text-text-tertiary text-xs">•</Text>
-                                    <Text className="text-text-tertiary text-xs">Joined {new Date(vendor.joinedAt).getFullYear()}</Text>
+                                    <AppText className="text-text-primary font-bold text-xs">{vendor.rating || 4.5}</AppText>
+                                    <AppText className="text-text-tertiary text-xs">•</AppText>
+                                    <AppText className="text-text-tertiary text-xs">Joined {new Date(vendor.joinedAt).getFullYear()}</AppText>
                                 </View>
                                 {vendor.owner && (
                                     <View className="flex-row items-center gap-1.5">
                                         <View className="w-5 h-5 rounded-full overflow-hidden bg-gray-200">
                                             <Image source={{ uri: vendor.owner.avatar }} className="w-full h-full" />
                                         </View>
-                                        <Text className="text-text-secondary text-xs">Owner: {vendor.owner.name}</Text>
+                                        <AppText className="text-text-secondary text-xs">Owner: {vendor.owner.name}</AppText>
                                     </View>
                                 )}
                             </View>
                         </View>
 
                         <View className="mt-4 pt-4 border-t border-black/5 dark:border-white/5">
-                            <Text className="text-text-secondary text-sm leading-5">
+                            <AppText className="text-text-secondary text-sm leading-5">
                                 {vendor.description}
-                            </Text>
+                            </AppText>
                         </View>
                     </AnimatedContainer>
                 </View>
@@ -122,9 +123,9 @@ const VendorShopScreen = () => {
                 {/* Products Section */}
                 <View className="px-4 mt-6">
                     <View className="flex-row items-center justify-between mb-4">
-                        <Text className="text-text-primary text-lg font-bold">Products</Text>
+                        <AppText className="text-text-primary text-lg font-bold">Products</AppText>
                         <View className={`px-2.5 py-1 rounded-full border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"}`}>
-                            <Text className="text-text-secondary text-xs font-medium">{products?.length || 0} Items</Text>
+                            <AppText className="text-text-secondary text-xs font-medium">{products?.length || 0} Items</AppText>
                         </View>
                     </View>
 

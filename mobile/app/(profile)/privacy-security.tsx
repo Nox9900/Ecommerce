@@ -2,7 +2,8 @@ import SafeScreen from "@/components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, Switch, Text, TouchableOpacity, View, Alert, Modal, TextInput, ActivityIndicator, I18nManager } from "react-native";
+import { ScrollView, Switch, TouchableOpacity, View, Alert, Modal, TextInput, ActivityIndicator, I18nManager } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useTranslation } from "react-i18next";
 import { registerForPushNotificationsAsync } from "@/lib/notifications";
@@ -173,7 +174,7 @@ function PrivacyAndSecurityScreen() {
         {/* SECURITY SETTING */}
         <View className="px-6 pt-8">
           <AnimatedContainer animation="fadeUp" delay={100}>
-            <Text className="text-text-primary text-lg font-bold mb-4 ml-1">Security</Text>
+            <AppText className="text-text-primary text-lg font-bold mb-4 ml-1">Security</AppText>
             <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden mb-6">
               {securitySettings.map((setting, index) => (
                 <TouchableOpacity
@@ -187,10 +188,10 @@ function PrivacyAndSecurityScreen() {
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-text-primary font-bold text-base mb-0.5">
+                    <AppText className="text-text-primary font-bold text-base mb-0.5">
                       {setting.title}
-                    </Text>
-                    <Text className="text-text-tertiary text-xs">{setting.description}</Text>
+                    </AppText>
+                    <AppText className="text-text-tertiary text-xs">{setting.description}</AppText>
                   </View>
 
                   {setting.type === "toggle" ? (
@@ -212,7 +213,7 @@ function PrivacyAndSecurityScreen() {
         {/* Privacy Section */}
         <View className="px-6">
           <AnimatedContainer animation="fadeUp" delay={200}>
-            <Text className="text-text-primary text-lg font-bold mb-4 ml-1">Privacy</Text>
+            <AppText className="text-text-primary text-lg font-bold mb-4 ml-1">Privacy</AppText>
             <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden mb-6">
               {privacySettings.map((setting, index) => (
                 <View
@@ -223,10 +224,10 @@ function PrivacyAndSecurityScreen() {
                     <Ionicons name={setting.icon as any} size={22} color="#6366F1" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-text-primary font-bold text-base mb-0.5">
+                    <AppText className="text-text-primary font-bold text-base mb-0.5">
                       {setting.title}
-                    </Text>
-                    <Text className="text-text-tertiary text-xs">{setting.description}</Text>
+                    </AppText>
+                    <AppText className="text-text-tertiary text-xs">{setting.description}</AppText>
                   </View>
                   <Switch
                     value={setting.value}
@@ -253,8 +254,8 @@ function PrivacyAndSecurityScreen() {
                   <Ionicons name="trash-outline" size={22} color="#EF4444" />
                 </View>
                 <View>
-                  <Text className="text-red-500 text-base font-bold">{t('security.delete_account')}</Text>
-                  <Text className="text-text-tertiary text-xs opacity-70">{t('security.delete_account_desc')}</Text>
+                  <AppText className="text-red-500 text-base font-bold">{t('security.delete_account')}</AppText>
+                  <AppText className="text-text-tertiary text-xs opacity-70">{t('security.delete_account_desc')}</AppText>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#EF4444" opacity={0.5} />
@@ -267,9 +268,9 @@ function PrivacyAndSecurityScreen() {
           <AnimatedContainer animation="fadeUp" delay={400}>
             <GlassView intensity={10} className="rounded-3xl p-5 flex-row border border-black/5 dark:border-white/5">
               <Ionicons name="information-circle-outline" size={24} color="#6366F1" />
-              <Text className="text-text-tertiary text-xs ml-3 flex-1 leading-5">
+              <AppText className="text-text-tertiary text-xs ml-3 flex-1 leading-5">
                 {t('security.privacy_info', 'We take your privacy seriously. Your data is encrypted and stored securely. You can manage your privacy settings at any time.')}
-              </Text>
+              </AppText>
             </GlassView>
           </AnimatedContainer>
         </View>
@@ -305,10 +306,10 @@ function PrivacyAndSecurityScreen() {
               {/* Modal Header */}
               <View className="flex-row justify-between items-center mb-10">
                 <View>
-                  <Text className="text-text-primary text-3xl font-black tracking-tighter">{t('security.change_password')}</Text>
+                  <AppText className="text-text-primary text-3xl font-black tracking-tighter">{t('security.change_password')}</AppText>
                   <View className="flex-row items-center mt-1">
                     <View className="w-1.5 h-1.5 rounded-full bg-primary mr-2" />
-                    <Text className="text-text-tertiary text-[10px] font-black uppercase tracking-[2px]">Update Secret Access</Text>
+                    <AppText className="text-text-tertiary text-[10px] font-black uppercase tracking-[2px]">Update Secret Access</AppText>
                   </View>
                 </View>
                 <TouchableOpacity
@@ -328,7 +329,7 @@ function PrivacyAndSecurityScreen() {
               {/* Input Fields */}
               <View className="flex-col gap-5">
                 <View>
-                  <Text className="text-text-primary text-sm font-black mb-2 ml-1">New Password</Text>
+                  <AppText className="text-text-primary text-sm font-black mb-2 ml-1">New Password</AppText>
                   <View className={`flex-row items-center border rounded-2xl px-5 py-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
                     <Ionicons name="lock-closed-outline" size={20} color="#6366F1" style={{ marginRight: 12 }} />
                     <TextInput
@@ -354,7 +355,7 @@ function PrivacyAndSecurityScreen() {
                 </View>
 
                 <View>
-                  <Text className="text-text-primary text-sm font-black mb-2 ml-1">Confirm Password</Text>
+                  <AppText className="text-text-primary text-sm font-black mb-2 ml-1">Confirm Password</AppText>
                   <View className={`flex-row items-center border rounded-2xl px-5 py-4 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
                     <Ionicons name="shield-outline" size={20} color="#6366F1" style={{ marginRight: 12 }} />
                     <TextInput
@@ -390,7 +391,7 @@ function PrivacyAndSecurityScreen() {
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <>
-                    <Text className={ `font-black text-lg uppercase tracking-tight ${theme === 'dark' ? 'text-black' : 'text-white'}`}>Update Password</Text>
+                    <AppText className={`font-black text-lg uppercase tracking-tight ${theme === 'dark' ? 'text-black' : 'text-white'}`}>Update Password</AppText>
                     <View className="bg-white/20 p-2 rounded-full">
                       <Ionicons name="chevron-forward" size={18} color={theme === 'dark' ? '#FFFFFF' : '#FFFFFF'} />
                     </View>

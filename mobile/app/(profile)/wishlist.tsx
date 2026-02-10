@@ -4,7 +4,8 @@ import useWishlist, { useShareWishlist } from "@/hooks/useWishlist";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Share } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View, Share } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -164,12 +165,12 @@ function WishlistScreen() {
 
                   <View className="flex-1 ml-5 pt-1">
                     <View className="flex-row items-start justify-between mb-1">
-                      <Text
+                      <AppText
                         className="text-text-primary font-bold text-lg flex-1 mr-2"
                         numberOfLines={2}
                       >
                         {item.name}
-                      </Text>
+                      </AppText>
                       <TouchableOpacity
                         onPress={(e) => {
                           e.stopPropagation();
@@ -181,10 +182,10 @@ function WishlistScreen() {
                       </TouchableOpacity>
                     </View>
 
-                    <Text className="text-text-primary font-black text-lg mb-2">
-                      <Text className="text-primary text-sm">$</Text>
+                    <AppText className="text-text-primary font-black text-lg mb-2">
+                      <AppText className="text-primary text-sm">$</AppText>
                       {item.price.toFixed(2)}
-                    </Text>
+                    </AppText>
 
                     <View className="flex-row items-center justify-between">
                       {/* Stock Badge */}
@@ -198,12 +199,12 @@ function WishlistScreen() {
                         <View
                           className={`w-1.5 h-1.5 rounded-full mr-2 ${item.stock > 0 ? "bg-green-500" : "bg-red-500"}`}
                         />
-                        <Text
+                        <AppText
                           className="text-[10px] font-black uppercase tracking-wider"
                           style={{ color: item.stock > 0 ? "#22C55E" : "#EF4444" }}
                         >
                           {item.stock > 0 ? "In Stock" : "Out of Stock"}
-                        </Text>
+                        </AppText>
                       </View>
 
                       {/* Add to Cart Button (Small) */}

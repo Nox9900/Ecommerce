@@ -22,37 +22,42 @@ function DashboardPage() {
     {
       name: "Total Revenue",
       value: statsLoading ? "..." : `$${statsData?.totalRevenue?.toFixed(2) || 0}`,
-      icon: <DollarSignIcon className="size-8" />,
+      icon: <DollarSignIcon className="size-8" aria-hidden="true" />,
+      ariaLabel: `Total Revenue: ${statsData?.totalRevenue?.toFixed(2) || 0} dollars`,
     },
     {
       name: "Total Orders",
       value: statsLoading ? "..." : statsData?.totalOrders || 0,
-      icon: <ShoppingBagIcon className="size-8" />,
+      icon: <ShoppingBagIcon className="size-8" aria-hidden="true" />,
+      ariaLabel: `Total Orders: ${statsData?.totalOrders || 0}`,
     },
     {
       name: "Total Customers",
       value: statsLoading ? "..." : statsData?.totalCustomers || 0,
-      icon: <UsersIcon className="size-8" />,
+      icon: <UsersIcon className="size-8" aria-hidden="true" />,
+      ariaLabel: `Total Customers: ${statsData?.totalCustomers || 0}`,
     },
     {
       name: "Total Products",
       value: statsLoading ? "..." : statsData?.totalProducts || 0,
-      icon: <PackageIcon className="size-8" />,
+      icon: <PackageIcon className="size-8" aria-hidden="true" />,
+      ariaLabel: `Total Products: ${statsData?.totalProducts || 0}`,
     },
     {
       name: "Pending Vendors",
       value: statsLoading ? "..." : statsData?.pendingVendors || 0,
-      icon: <UsersIcon className="size-8 text-warning" />,
+      icon: <UsersIcon className="size-8 text-warning" aria-hidden="true" />,
       highlight: (statsData?.pendingVendors || 0) > 0,
+      ariaLabel: `Pending Vendors: ${statsData?.pendingVendors || 0}`,
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" role="main" aria-label="Dashboard Overview">
       {/* STATS */}
-      <div className="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100">
+      <div className="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100" role="region" aria-label="Quick Statistics">
         {statsCards.map((stat) => (
-          <div key={stat.name} className={`stat ${stat.highlight ? "bg-warning/10" : ""}`}>
+          <div key={stat.name} className={`stat ${stat.highlight ? "bg-warning/10" : ""}`} aria-label={stat.ariaLabel}>
             <div className={`stat-figure ${stat.highlight ? "text-warning" : "text-primary"}`}>
               {stat.icon}
             </div>
@@ -63,27 +68,27 @@ function DashboardPage() {
       </div>
 
       {/* RECENT ORDERS */}
-      <div className="card bg-base-100 shadow-xl">
+      <div className="card bg-base-100 shadow-xl" role="region" aria-label="Recent Orders List">
         <div className="card-body">
           <h2 className="card-title">Recent Orders</h2>
 
           {ordersLoading ? (
-            <div className="flex justify-center py-8">
+            <div className="flex justify-center py-8" aria-busy="true" aria-label="Loading recent orders">
               <span className="loading loading-spinner loading-lg" />
             </div>
           ) : recentOrders.length === 0 ? (
             <div className="text-center py-8 text-base-content/60">No orders yet</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="table">
+              <table className="table" aria-label="Table of recent orders">
                 <thead>
                   <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Items</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th scope="col">Order ID</th>
+                    <th scope="col">Customer</th>
+                    <th scope="col">Items</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
                   </tr>
                 </thead>
 
@@ -91,7 +96,7 @@ function DashboardPage() {
                   {recentOrders.map((order) => (
                     <tr key={order._id}>
                       <td>
-                        <span className="font-medium">#{order._id.slice(-8).toUpperCase()}</span>
+                        <span className="font-medium" aria-label={`Order ID: ${order._id.slice(-8).toUpperCase()}`}>#{order._id.slice(-8).toUpperCase()}</span>
                       </td>
 
                       <td>
@@ -111,11 +116,11 @@ function DashboardPage() {
                       </td>
 
                       <td>
-                        <span className="font-semibold">${order.totalPrice.toFixed(2)}</span>
+                        <span className="font-semibold" aria-label={`Total Price: ${order.totalPrice.toFixed(2)} dollars`}>${order.totalPrice.toFixed(2)}</span>
                       </td>
 
                       <td>
-                        <div className={`badge ${getOrderStatusBadge(order.status)}`}>
+                        <div className={`badge ${getOrderStatusBadge(order.status)}`} role="status">
                           {capitalizeText(order.status)}
                         </div>
                       </td>

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View, ScrollView, I18nManager, DevSettings, NativeModules } from "react-native";
+import { TouchableOpacity, View, ScrollView, I18nManager, DevSettings, NativeModules } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Updates from "expo-updates";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
@@ -88,9 +89,9 @@ export default function LanguageScreen() {
                                 >
                                     <View className="flex-row items-center gap-5">
                                         <View className="w-12 h-12 rounded-2xl items-center justify-center border border-black/5 dark:border-white/5">
-                                            <Text className="text-2xl">{lang.icon}</Text>
+                                            <AppText className="text-2xl">{lang.icon}</AppText>
                                         </View>
-                                        <Text className="text-text-primary text-base font-bold">{t(lang.label)}</Text>
+                                        <AppText className="text-text-primary text-base font-bold">{t(lang.label)}</AppText>
                                     </View>
                                     {i18n.language === lang.code ? (
                                         <View className="w-8 h-8 rounded-full bg-primary items-center justify-center shadow-lg shadow-primary/30">
@@ -107,9 +108,9 @@ export default function LanguageScreen() {
                     <AnimatedContainer animation="fadeUp" delay={300} className="mt-10 px-4">
                         <View className="bg-primary/5 rounded-3xl p-5 border border-primary/10 flex-row items-center">
                             <Ionicons name="information-circle-outline" size={20} color="#6366F1" />
-                            <Text className="text-text-tertiary text-xs ml-3 flex-1 leading-5">
+                            <AppText className="text-text-tertiary text-xs ml-3 flex-1 leading-5">
                                 {t('language.info')}
-                            </Text>
+                            </AppText>
                         </View>
                     </AnimatedContainer>
                 </View>

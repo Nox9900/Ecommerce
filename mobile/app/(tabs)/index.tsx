@@ -1,7 +1,7 @@
 import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
-import { View, Text, ScrollView, RefreshControl, Alert } from "react-native";
+import { View, ScrollView, RefreshControl, Alert } from "react-native";
 import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "@/lib/useTheme";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";

@@ -2,9 +2,7 @@ import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import {
   View,
-  Text,
   FlatList,
-  ActivityIndicator,
 } from "react-native";
 // import useCart from "@/hooks/useCart"; // Removed as now inside ProductCard
 // import useWishlist from "@/hooks/useWishlist"; // Removed as now inside ProductCard
@@ -13,6 +11,7 @@ import VendorShopSlider from "./shop/VendorShopSlider";
 import { useMemo } from "react";
 import { ProductCardSkeleton } from "./common/Skeleton";
 import EmptyUI from "./ui/Empty";
+import { AppText } from "./ui/AppText";
 
 interface ProductsGridProps {
   isLoading: boolean;
@@ -117,8 +116,8 @@ const ProductsGrid = ({
     return (
       <View className="py-20 items-center justify-center">
         <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-        <Text className="text-text-primary font-semibold mt-4">Failed to load products</Text>
-        <Text className="text-text-secondary text-sm mt-2">Please try again later</Text>
+        <AppText className="text-text-primary font-semibold mt-4">Failed to load products</AppText>
+        <AppText className="text-text-secondary text-sm mt-2">Please try again later</AppText>
       </View>
     );
   }

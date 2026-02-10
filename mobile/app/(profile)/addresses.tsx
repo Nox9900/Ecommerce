@@ -5,7 +5,8 @@ import { useAddresses } from "@/hooks/useAddressess";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { router } from "expo-router";
 import LoadingUI from "@/components/ui/Loading";
@@ -139,16 +140,16 @@ function AddressesScreen() {
           <View className="w-24 h-24 bg-surface-light rounded-full items-center justify-center mb-6">
             <Ionicons name="location-outline" size={48} color="#6366F1" />
           </View>
-          <Text className="text-text-primary font-bold text-2xl mt-4 text-center">No addresses yet</Text>
-          <Text className="text-text-secondary text-center mt-2 mx-8 text-base">
+          <AppText className="text-text-primary font-bold text-2xl mt-4 text-center">No addresses yet</AppText>
+          <AppText className="text-text-secondary text-center mt-2 mx-8 text-base">
             Add your primary delivery address to speed up the checkout process.
-          </Text>
+          </AppText>
           <TouchableOpacity
             className="bg-primary rounded-2xl px-10 py-4 mt-10 shadow-lg shadow-primary/20"
             activeOpacity={0.8}
             onPress={handleAddAddress}
           >
-            <Text className="text-white font-black uppercase tracking-tight">Add Address</Text>
+            <AppText className="text-white font-black uppercase tracking-tight">Add Address</AppText>
           </TouchableOpacity>
         </AnimatedContainer>
       ) : (

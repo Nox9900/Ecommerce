@@ -1,16 +1,16 @@
 import SafeScreen from "@/components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { GlassView } from "@/components/ui/GlassView";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
+import { AppText } from "@/components/ui/AppText";
 
 interface Conversation {
     _id: string;
@@ -57,10 +57,10 @@ export default function ChatScreen() {
                 {/* Header */}
                 <GlassView intensity={theme === 'dark' ? 20 : 40} className="px-6 pt-4 pb-6 border-b border-white/5">
                     <AnimatedContainer animation="fadeDown">
-                        <Text className="text-3xl font-bold text-text-primary tracking-tight">{t('chat.title')}</Text>
-                        <Text className="text-text-secondary text-sm font-medium mt-1">
+                        <AppText className="text-3xl font-bold text-text-primary tracking-tight">{t('chat.title')}</AppText>
+                        <AppText className="text-text-secondary text-sm font-medium mt-1">
                             {loading ? "..." : t('chat.conversations', { count: conversations.length })}
-                        </Text>
+                        </AppText>
                     </AnimatedContainer>
                 </GlassView>
 
@@ -79,10 +79,10 @@ export default function ChatScreen() {
                                 <View className="w-24 h-24 rounded-full bg-surface-light items-center justify-center mb-6 shadow-sm border border-white/5">
                                     <Ionicons name="chatbubbles-outline" size={40} color={theme === 'dark' ? "#94A3B8" : "#6366F1"} />
                                 </View>
-                                <Text className="text-text-primary font-bold text-xl mb-2 text-center">{t('chat.empty_title')}</Text>
-                                <Text className="text-text-secondary text-center text-base leading-snug">
+                                <AppText className="text-text-primary font-bold text-xl mb-2 text-center">{t('chat.empty_title')}</AppText>
+                                <AppText className="text-text-secondary text-center text-base leading-snug">
                                     {t('chat.empty_desc')}
-                                </Text>
+                                </AppText>
                             </AnimatedContainer>
                         ) : (
                             <View className="px-6">
@@ -106,20 +106,20 @@ export default function ChatScreen() {
                                                 </View>
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center justify-between mb-1">
-                                                        <Text className="text-text-primary font-bold text-lg" numberOfLines={1}>
+                                                        <AppText className="text-text-primary font-bold text-lg" numberOfLines={1}>
                                                             {other?.name || t('chat.unknown_user')}
-                                                        </Text>
-                                                        <Text className="text-text-tertiary text-xs">
+                                                        </AppText>
+                                                        <AppText className="text-text-tertiary text-xs">
                                                             {chat.lastMessageAt ? formatDistanceToNow(new Date(chat.lastMessageAt), { addSuffix: true }) : ""}
-                                                        </Text>
+                                                        </AppText>
                                                     </View>
                                                     <View className="flex-row items-center justify-between">
-                                                        <Text
+                                                        <AppText
                                                             className={`text-sm flex-1 ${chat.lastMessage ? 'text-text-secondary' : 'text-text-tertiary italic'}`}
                                                             numberOfLines={1}
                                                         >
                                                             {chat.lastMessage || t('chat.empty_title')}
-                                                        </Text>
+                                                        </AppText>
                                                         <Ionicons name="chevron-forward" size={16} color="#94A3B8" style={{ marginLeft: 8 }} />
                                                     </View>
                                                 </View>

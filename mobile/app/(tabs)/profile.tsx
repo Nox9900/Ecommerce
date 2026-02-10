@@ -3,12 +3,14 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Text, TouchableOpacity, View, ScrollView, Alert, Switch, Linking } from "react-native";
+import { TouchableOpacity, View, ScrollView, Alert, Switch, Linking } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
 import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { UserAvatar } from "@/components/UserAvatar";
+import { useFontSize } from "@/context/FontSizeContext";
+import { AppText } from "@/components/ui/AppText";
 
 const MENU_ITEMS = [
   {
@@ -48,6 +50,7 @@ export default function ProfileScreen() {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
+  const { fontScale, setFontScale } = useFontSize();
 
   const handleLogout = async () => {
     try {
@@ -57,6 +60,23 @@ export default function ProfileScreen() {
       console.error("Logout error:", error);
       Alert.alert(t('common.error'), t('profile.logout_error'));
     }
+  };
+
+  const handleFontSizeChange = () => {
+    const scales: { label: string, value: 0.9 | 1.0 | 1.15 }[] = [
+      { label: 'Small', value: 0.9 },
+      { label: 'Medium', value: 1.0 },
+      { label: 'Large', value: 1.15 },
+    ];
+
+    Alert.alert(
+      t('profile.font_size') || 'Font Size',
+      t('profile.select_font_size') || 'Select font size',
+      scales.map(s => ({
+        text: s.label + (fontScale === s.value ? ' (Current)' : ''),
+        onPress: () => setFontScale(s.value)
+      })).concat([{ text: t('profile.cancel') || 'Cancel', style: 'cancel' } as any])
+    );
   };
 
   const currentLanguageLabel = t(`language.${i18n.language === 'en' ? 'english' : i18n.language === 'fr' ? 'french' : i18n.language === 'es' ? 'spanish' : i18n.language === 'ar' ? 'arabic' : i18n.language === 'zh' ? 'chinese' : 'russian'}`);
@@ -87,18 +107,18 @@ export default function ProfileScreen() {
 
                 {/* User Info */}
                 <View className="flex-1">
-                  <Text className="text-2xl font-black text-text-primary tracking-tight">
+                  <AppText className="text-2xl font-black text-text-primary tracking-tight">
                     {user?.fullName || "Guest User"}
-                  </Text>
-                  <Text className="text-text-tertiary text-[10px] font-bold opacity-80 mt-1 mb-4">
+                  </AppText>
+                  <AppText className="text-text-tertiary text-[10px] font-bold opacity-80 mt-1 mb-4">
                     {user?.primaryEmailAddress?.emailAddress || "Sign in to sync data"}
-                  </Text>
+                  </AppText>
 
                   {/* Badge */}
                   <View className="bg-primary/10 self-start px-4 py-1.5 rounded-full border border-primary/20">
-                    <Text className="text-primary text-[10px] font-black uppercase tracking-widest">
+                    <AppText className="text-primary text-[10px] font-black uppercase tracking-widest">
                       {user?.publicMetadata?.role as string || "Customer"} MEMBER
-                    </Text>
+                    </AppText>
                   </View>
                 </View>
               </View>
@@ -108,7 +128,7 @@ export default function ProfileScreen() {
           {/* Account Section */}
           <View className="px-6 mb-8">
             <AnimatedContainer animation="fadeUp" delay={100}>
-              <Text className="text-text-primary text-xl font-black mb-4 ml-1 tracking-tight">{t('profile.account')}</Text>
+              <AppText className="text-text-primary text-xl font-black mb-4 ml-1 tracking-tight">{t('profile.account')}</AppText>
               <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden">
                 {MENU_ITEMS.map((item, index) => (
                   <TouchableOpacity
@@ -121,8 +141,8 @@ export default function ProfileScreen() {
                       <Ionicons name={item.icon as any} size={24} color={item.color} />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-text-primary text-base font-bold">{t(item.label)}</Text>
-                      <Text className="text-text-tertiary text-xs mt-0.5">{item.description}</Text>
+                      <AppText className="text-text-primary text-base font-bold">{t(item.label)}</AppText>
+                      <AppText className="text-text-tertiary text-xs mt-0.5">{item.description}</AppText>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color="#64748B" opacity={0.5} />
                   </TouchableOpacity>
@@ -134,7 +154,7 @@ export default function ProfileScreen() {
           {/* Settings Section */}
           <View className="px-6 mb-8">
             <AnimatedContainer animation="fadeUp" delay={200}>
-              <Text className="text-text-primary text-xl font-black mb-4 ml-1 tracking-tight">{t('profile.settings')}</Text>
+              <AppText className="text-text-primary text-xl font-black mb-4 ml-1 tracking-tight">{t('profile.settings')}</AppText>
               <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden">
 
                 {/* Language Item */}
@@ -147,21 +167,21 @@ export default function ProfileScreen() {
                     <Ionicons name="language" size={24} color="#F59E0B" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-text-primary text-base font-bold">{t('profile.language')}</Text>
-                    <Text className="text-text-tertiary text-xs mt-0.5">{currentLanguageLabel}</Text>
+                    <AppText className="text-text-primary text-base font-bold">{t('profile.language')}</AppText>
+                    <AppText className="text-text-tertiary text-xs mt-0.5">{currentLanguageLabel}</AppText>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color="#64748B" opacity={0.5} />
                 </TouchableOpacity>
 
                 {/* Dark Mode Item */}
-                <View className="flex-row items-center justify-between p-5">
+                <View className="flex-row items-center justify-between p-5 border-b border-black/5 dark:border-white/5">
                   <View className="flex-row items-center flex-1">
                     <View className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 items-center justify-center mr-4">
                       <Ionicons name={theme === 'dark' ? "moon" : "sunny"} size={24} color="#6366F1" />
                     </View>
                     <View>
-                      <Text className="text-text-primary text-base font-bold">{t('profile.dark_mode')}</Text>
-                      <Text className="text-text-tertiary text-xs mt-0.5">{theme === 'dark' ? 'Modern dark' : 'Vibrant light'}</Text>
+                      <AppText className="text-text-primary text-base font-bold">{t('profile.dark_mode')}</AppText>
+                      <AppText className="text-text-tertiary text-xs mt-0.5">{theme === 'dark' ? 'Modern dark' : 'Vibrant light'}</AppText>
                     </View>
                   </View>
                   <Switch
@@ -171,6 +191,22 @@ export default function ProfileScreen() {
                     thumbColor="#FFFFFF"
                   />
                 </View>
+
+                {/* Font Size Item */}
+                <TouchableOpacity
+                  className="flex-row items-center p-5"
+                  onPress={handleFontSizeChange}
+                  activeOpacity={0.7}
+                >
+                  <View className="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 items-center justify-center mr-4">
+                    <Ionicons name="text-outline" size={24} color="#10B981" />
+                  </View>
+                  <View className="flex-1">
+                    <AppText className="text-text-primary text-base font-bold">{t('profile.font_size') || 'Font Size'}</AppText>
+                    <AppText className="text-text-tertiary text-xs mt-0.5">{fontScale === 0.9 ? 'Small' : fontScale === 1.0 ? 'Medium' : 'Large'}</AppText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#64748B" opacity={0.5} />
+                </TouchableOpacity>
               </GlassView>
             </AnimatedContainer>
           </View>
@@ -205,8 +241,8 @@ export default function ProfileScreen() {
                       <Ionicons name="storefront" size={28} color="#FFFFFF" />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-white text-xl font-black">{t('profile.become_vendor')}</Text>
-                      <Text className="text-white/80 text-xs font-bold" numberOfLines={1}>{t('profile.become_vendor_desc')}</Text>
+                      <AppText className="text-white text-xl font-black">{t('profile.become_vendor')}</AppText>
+                      <AppText className="text-white/80 text-xs font-bold" numberOfLines={1}>{t('profile.become_vendor_desc')}</AppText>
                     </View>
                   </View>
                   <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
@@ -224,12 +260,12 @@ export default function ProfileScreen() {
               onPress={handleLogout}
             >
               <Ionicons name="log-out-outline" size={24} color="#EF4444" style={{ marginRight: 8 }} />
-              <Text className="text-red-500 font-black text-lg uppercase tracking-tight">{t('profile.sign_out')}</Text>
+              <AppText className="text-red-500 font-black text-lg uppercase tracking-tight">{t('profile.sign_out')}</AppText>
             </TouchableOpacity>
 
             <View className="mt-8 items-center">
               <View className="bg-black/5 dark:bg-white/5 py-2 px-6 rounded-full border border-black/5 dark:border-white/5">
-                <Text className="text-text-tertiary text-[10px] font-black uppercase tracking-[3px]">{t('profile.version')} 1.0.0</Text>
+                <AppText className="text-text-tertiary text-[10px] font-black uppercase tracking-[3px]">{t('profile.version')} 1.0.0</AppText>
               </View>
             </View>
           </AnimatedContainer>

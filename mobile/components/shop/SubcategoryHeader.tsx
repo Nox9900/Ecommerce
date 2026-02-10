@@ -1,9 +1,10 @@
-import { View, Text, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { View, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTheme } from "@/lib/useTheme";
 import { SubCategory } from "@/types";
 import { useRef, useEffect } from "react";
+import { AppText } from "../ui/AppText";
 
 interface SubcategoryHeaderProps {
     title: string;
@@ -48,7 +49,7 @@ export default function SubcategoryHeader({
 
                 {/* Branded Search Area */}
                 <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-zinc-800 rounded-full px-3 h-10 border border-red-500/10">
-                    <Text className="text-red-500 font-black italic mr-2 text-xs">Subsidy</Text>
+                    <AppText className="text-red-500 font-black italic mr-2 text-xs">Subsidy</AppText>
                     <View className="w-[1px] h-4 bg-gray-300 dark:bg-zinc-700 mr-2" />
                     <Ionicons name="search" size={16} color="#9CA3AF" />
                     <TextInput
@@ -103,12 +104,12 @@ function FilterTab({
 }) {
     return (
         <TouchableOpacity className="items-center" onPress={onPress}>
-            <Text
+            <AppText
                 className={`text-[13px] ${active ? 'font-bold' : 'text-text-secondary font-medium'}`}
                 style={active ? { color: activeColor } : {}}
             >
                 {label}
-            </Text>
+            </AppText>
             {active && <View className="h-0.5 w-4 mt-1 rounded-full" style={{ backgroundColor: activeColor }} />}
         </TouchableOpacity>
     );

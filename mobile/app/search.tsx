@@ -1,5 +1,4 @@
-
-import { View, TextInput, TouchableOpacity, Text, ScrollView } from "react-native";
+import { View, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
@@ -8,6 +7,7 @@ import SafeScreen from "@/components/SafeScreen";
 import SearchHistory from "@/components/shop/SearchHistory";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useTheme } from "@/lib/useTheme";
+import { AppText } from "@/components/ui/AppText";
 
 export default function SearchScreen() {
     const { t } = useTranslation();

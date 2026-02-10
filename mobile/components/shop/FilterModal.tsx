@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Modal, TouchableOpacity, ScrollView, Switch } from "react-native";
+import { View, Modal, TouchableOpacity, ScrollView, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { AppText } from "../ui/AppText";
 
 interface FilterParams {
     minPrice?: string;
@@ -59,7 +60,7 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
             <View className="flex-1 bg-black/50 justify-end">
                 <View className="bg-white dark:bg-zinc-900 rounded-t-3xl p-6 h-[80%]">
                     <View className="flex-row justify-between items-center mb-6">
-                        <Text className="text-2xl font-bold text-text-primary">{t('common.filters')}</Text>
+                        <AppText className="text-2xl font-bold text-text-primary">{t('common.filters')}</AppText>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={24} className="text-text-primary" />
                         </TouchableOpacity>
@@ -68,7 +69,7 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
                     <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                         {/* Sort Options */}
                         <View className="mb-6">
-                            <Text className="text-lg font-semibold text-text-primary mb-3">{t('common.sort_by')}</Text>
+                            <AppText className="text-lg font-semibold text-text-primary mb-3">{t('common.sort_by')}</AppText>
                             <View className="flex-row flex-wrap gap-2">
                                 {[
                                     { label: t('common.latest'), value: "latest" },
@@ -85,14 +86,14 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
                                             : "bg-transparent border-gray-300 dark:border-gray-700"
                                             }`}
                                     >
-                                        <Text
+                                        <AppText
                                             className={`${filters.sort === option.value
                                                 ? "text-white font-bold"
                                                 : "text-text-primary"
                                                 }`}
                                         >
                                             {option.label}
-                                        </Text>
+                                        </AppText>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -100,7 +101,7 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
 
                         {/* Price Range */}
                         <View className="mb-6">
-                            <Text className="text-lg font-semibold text-text-primary mb-3">{t('common.price_range')}</Text>
+                            <AppText className="text-lg font-semibold text-text-primary mb-3">{t('common.price_range')}</AppText>
                             <View className="flex-row gap-4">
                                 <View className="flex-1">
                                     <Input
@@ -125,7 +126,7 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
 
                         {/* Rating */}
                         <View className="mb-6">
-                            <Text className="text-lg font-semibold text-text-primary mb-3">{t('common.minimum_rating')}</Text>
+                            <AppText className="text-lg font-semibold text-text-primary mb-3">{t('common.minimum_rating')}</AppText>
                             <View className="flex-row gap-2">
                                 {[4, 3, 2, 1].map((rating) => (
                                     <TouchableOpacity
@@ -137,14 +138,14 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
                                             }`}
                                     >
                                         <Ionicons name="star" size={16} color={filters.minRating === rating ? "#EAB308" : "#9CA3AF"} />
-                                        <Text
+                                        <AppText
                                             className={`ml-1 ${filters.minRating === rating
                                                 ? "text-yellow-700 font-bold"
                                                 : "text-text-primary"
                                                 }`}
                                         >
                                             {rating}+
-                                        </Text>
+                                        </AppText>
                                     </TouchableOpacity>
                                 ))}
                             </View>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet, Dimensions } from "react-native";
+import { View, Image, StyleSheet, Dimensions } from "react-native";
 import { Redirect, useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import SafeScreen from "@/components/SafeScreen";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
+import { AppText } from "@/components/ui/AppText";
 
 const { width } = Dimensions.get("window");
 
@@ -63,14 +64,14 @@ export default function RootIndex() {
             <View className="flex-1 px-8 justify-between py-12 bg-background">
                 <View className="items-center mt-10">
                     <View className="w-24 h-24 bg-primary rounded-3xl items-center justify-center mb-6 shadow-xl">
-                        <Text className="text-primary-foreground text-4xl font-bold">{t('splash.title').charAt(0)}</Text>
+                        <AppText className="text-primary-foreground text-4xl font-bold">{t('splash.title').charAt(0)}</AppText>
                     </View>
-                    <Text className="text-4xl font-bold text-text-primary text-center mb-4">
-                        {t('splash.title')}<Text className="text-text-tertiary">{t('splash.subtitle')}</Text>
-                    </Text>
-                    <Text className="text-text-secondary text-center text-lg px-4">
+                    <AppText className="text-4xl font-bold text-text-primary text-center mb-4">
+                        {t('splash.title')}<AppText className="text-text-tertiary">{t('splash.subtitle')}</AppText>
+                    </AppText>
+                    <AppText className="text-text-secondary text-center text-lg px-4">
                         {t('splash.desc')}
-                    </Text>
+                    </AppText>
                 </View>
 
                 <View className="items-center">
@@ -90,9 +91,9 @@ export default function RootIndex() {
                             className="py-5"
                             textClassName="text-lg font-bold"
                         />
-                        <Text className="text-text-tertiary text-center text-sm">
-                            {t('splash.already_have_account')} <Text onPress={() => router.replace("/(auth)/welcome")} className="text-text-primary font-semibold">{t('splash.sign_in')}</Text>
-                        </Text>
+                        <AppText className="text-text-tertiary text-center text-sm">
+                            {t('splash.already_have_account')} <AppText onPress={() => router.replace("/(auth)/welcome")} className="text-text-primary font-semibold">{t('splash.sign_in')}</AppText>
+                        </AppText>
                     </View>
                 </View>
             </View>

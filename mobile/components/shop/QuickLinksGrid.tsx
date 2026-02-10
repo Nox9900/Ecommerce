@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { AppText } from "../ui/AppText";
 
 interface QuickLinksGridProps {
     items?: any[];
@@ -29,14 +30,14 @@ export default function QuickLinksGrid({ items, onLinkPress }: QuickLinksGridPro
                             >
                                 <Ionicons name={(item.icon || 'grid') as any} size={22} color={item.color || '#3B82F6'} />
                             </View>
-                            <Text className="text-xs text-text-secondary font-medium text-center" numberOfLines={1}>
+                            <AppText className="text-xs text-text-secondary font-medium text-center" numberOfLines={1}>
                                 {item.label || item.name}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     ))
                 ) : (
                     <View className="w-full py-4 items-center">
-                        <Text className="text-sm text-text-secondary opacity-50 italic">No subcategories available</Text>
+                        <AppText className="text-sm text-text-secondary opacity-50 italic">No subcategories available</AppText>
                     </View>
                 )}
             </View>

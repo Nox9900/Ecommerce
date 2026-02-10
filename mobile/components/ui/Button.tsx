@@ -2,6 +2,7 @@ import React from "react";
 import { Text, Pressable, ActivityIndicator, ViewStyle, TextStyle } from "react-native";
 // import { cn } from "../../lib/utils"; // Assuming you have a utils file for merging class names (clsx/tailwind-merge) -- if not I'll handle it nicely
 import * as Haptics from "expo-haptics";
+import { AppText } from "./AppText";
 
 interface ButtonProps {
     onPress?: () => void;
@@ -13,6 +14,9 @@ interface ButtonProps {
     className?: string;
     textClassName?: string;
     icon?: React.ReactNode;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
+    accessibilityRole?: "button" | "link" | "none";
 }
 
 export const Button = ({
@@ -25,6 +29,9 @@ export const Button = ({
     className,
     textClassName,
     icon,
+    accessibilityLabel,
+    accessibilityHint,
+    accessibilityRole = "button",
 }: ButtonProps) => {
     const handlePress = () => {
         if (disabled || loading) return;
@@ -56,6 +63,10 @@ export const Button = ({
         <Pressable
             onPress={handlePress}
             disabled={disabled || loading}
+            accessibilityLabel={accessibilityLabel || title}
+            accessibilityHint={accessibilityHint}
+            accessibilityRole={accessibilityRole}
+            accessibilityState={{ disabled: disabled || loading }}
             className={
                 `rounded-full flex-row items-center justify-center border ${variants[variant]} ${sizes[size]} ${disabled ? "opacity-50" : ""} ${className || ""}`
             }
@@ -65,9 +76,9 @@ export const Button = ({
             ) : (
                 <>
                     {icon && <React.Fragment>{icon}</React.Fragment>}
-                    <Text className={`${textVariants[variant]} ${size === 'lg' ? 'text-lg' : 'text-base'} text-center ${icon ? 'ml-2' : ''} ${textClassName || ""}`}>
+                    <AppText className={`${textVariants[variant]} ${size === 'lg' ? 'text-lg' : 'text-base'} text-center ${icon ? 'ml-2' : ''} ${textClassName || ""}`}>
                         {title}
-                    </Text>
+                    </AppText>
                 </>
             )}
         </Pressable>

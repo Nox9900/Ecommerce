@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { AppText } from '../ui/AppText';
 
 interface SearchHistoryProps {
     history: string[];
@@ -25,9 +26,9 @@ export default function SearchHistory({
     return (
         <View className="bg-white dark:bg-background px-4 py-2 border-t border-black/5 dark:border-white/5 w-full">
             <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-sm font-semibold text-text-tertiary">{t('common.recent_searches')}</Text>
+                <AppText className="text-sm font-semibold text-text-tertiary">{t('common.recent_searches')}</AppText>
                 <TouchableOpacity onPress={onClear}>
-                    <Text className="text-xs text-primary font-medium">{t('common.clear_all')}</Text>
+                    <AppText className="text-xs text-primary font-medium">{t('common.clear_all')}</AppText>
                 </TouchableOpacity>
             </View>
 
@@ -40,7 +41,7 @@ export default function SearchHistory({
                     >
                         <View className="flex-row items-center flex-1">
                             <Ionicons name="time-outline" size={18} color="#9CA3AF" />
-                            <Text className="ml-3 text-text-primary text-base" numberOfLines={1}>{term}</Text>
+                            <AppText className="ml-3 text-text-primary text-base" numberOfLines={1}>{term}</AppText>
                         </View>
                         <TouchableOpacity onPress={() => onRemove(term)} className="p-1">
                             <Ionicons name="close" size={16} color="#9CA3AF" />
