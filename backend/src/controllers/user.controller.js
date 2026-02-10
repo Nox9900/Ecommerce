@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
+import crypto from "crypto";
 
 export const addAddress = catchAsync(async (req, res, next) => {
   const { label, fullName, streetAddress, city, state, zipCode, phoneNumber, isDefault } =
@@ -113,9 +114,39 @@ export const removeFromWishlist = catchAsync(async (req, res, next) => {
   res.status(200).json({ message: "Product removed from wishlist", wishlist: user.wishlist });
 });
 
+
 export const getWishlist = catchAsync(async (req, res, next) => {
   // we're using populate, bc wishlist is just an array of product ids
   const user = await User.findById(req.user._id).populate("wishlist");
 
-  res.status(200).json({ wishlist: user.wishlist });
+  res.status(200).json({ wishlist: user.wishlist, isWishlistPublic: user.isWishlistPublic, wishlistToken: user.wishlistToken });
+});
+
+export const toggleWishlistPrivacy = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  user.isWishlistPublic = !user.isWishlistPublic;
+
+  if (user.isWishlistPublic && !user.wishlistToken) {
+    user.wishlistToken = crypto.randomBytes(20).toString("hex");
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    message: "Wishlist privacy updated",
+    isWishlistPublic: user.isWishlistPublic,
+    wishlistToken: user.wishlistToken,
+  });
+});
+
+export const getPublicWishlist = catchAsync(async (req, res, next) => {
+  const { token } = req.params;
+
+  const user = await User.findOne({ wishlistToken: token }).populate("wishlist");
+
+  if (!user || !user.isWishlistPublic) {
+    return next(new AppError("Wishlist not found or is private", 404));
+  }
+
+  res.status(200).json({ wishlist: user.wishlist, ownerName: user.name });
 });

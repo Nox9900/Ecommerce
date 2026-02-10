@@ -4,8 +4,10 @@ import {
   addToWishlist,
   deleteAddress,
   getAddresses,
+  getPublicWishlist,
   getWishlist,
   removeFromWishlist,
+  toggleWishlistPrivacy,
   updateAddress,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
@@ -26,5 +28,7 @@ router.delete("/addresses/:addressId", deleteAddress);
 router.post("/wishlist", validate(wishlistSchema), addToWishlist);
 router.delete("/wishlist/:productId", removeFromWishlist);
 router.get("/wishlist", getWishlist);
+router.put("/wishlist/share", toggleWishlistPrivacy);
+router.get("/wishlist/share/:token", getPublicWishlist);
 
 export default router;

@@ -7,17 +7,21 @@ import { useTheme } from "@/lib/useTheme";
 
 interface HeaderProps {
   onAdd?: () => void;
-  primaryText? : string;
-  secondaryText? : string;
+  primaryText?: string;
+  secondaryText?: string;
+  rightComponent?: React.ReactNode;
 }
 
-export default function Header({ onAdd, primaryText, secondaryText }: HeaderProps) {
+export default function Header({ onAdd, primaryText, secondaryText, rightComponent }: HeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
 
   return (
-    <View className="px-2 pb-4 border-b border-black/5 dark:border-white/5 flex-row items-center justify-between" style={{ paddingTop: insets.top + 10 }}>
-      <View className="flex-row items-center justify-between gap-36">
+    <View
+      className="px-2 pb-4 border-b border-black/5 dark:border-white/5 flex-row items-center justify-between"
+      style={{ paddingTop: insets.top + 10 }}
+    >
+      <View className="flex-row items-center justify-between flex-1">
         <View className="flex-row items-center gap-2">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -27,11 +31,14 @@ export default function Header({ onAdd, primaryText, secondaryText }: HeaderProp
           </TouchableOpacity>
           <View className="ml-2">
             <Text className="text-text-primary text-xl font-bold">{primaryText}</Text>
-            <Text className="text-text-tertiary text-[10px] font-bold uppercase tracking-widest">{secondaryText}</Text>
+            <Text className="text-text-tertiary text-[10px] font-bold uppercase tracking-widest">
+              {secondaryText}
+            </Text>
           </View>
         </View>
 
-        <View className="flex-row items-center justify-end">
+        <View className="flex-row items-center justify-end gap-2">
+          {rightComponent}
           {onAdd && (
             <TouchableOpacity
               onPress={onAdd}
