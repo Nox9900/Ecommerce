@@ -23,7 +23,7 @@ type SecurityOption = {
 };
 
 function PrivacyAndSecurityScreen() {
-  const { user } = userUser();
+  const { user } = useUser();
   const { signOut } = useAuth();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -175,7 +175,7 @@ function PrivacyAndSecurityScreen() {
         <View className="px-6 pt-8">
           <AnimatedContainer animation="fadeUp" delay={100}>
             <AppText className="text-text-primary text-lg font-bold mb-4 ml-1">Security</AppText>
-            <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden mb-6">
+            <GlassView intensity={20} className="overflow-hidden mb-6">
               {securitySettings.map((setting, index) => (
                 <TouchableOpacity
                   key={setting.id}
@@ -183,7 +183,7 @@ function PrivacyAndSecurityScreen() {
                   onPress={() => setting.id === 'password' && setPasswordModalVisible(true)}
                   activeOpacity={setting.type === "toggle" ? 1 : 0.7}
                 >
-                  <View className="bg-primary/10 rounded-2xl w-12 h-12 items-center justify-center mr-4 border border-primary/20">
+                  <View className="bg-indigo-500/10 rounded-2xl w-12 h-12 items-center justify-center mr-4 border border-indigo-500/20" >
                     <Ionicons name={setting.icon as any} size={22} color="#6366F1" />
                   </View>
 
@@ -214,13 +214,13 @@ function PrivacyAndSecurityScreen() {
         <View className="px-6">
           <AnimatedContainer animation="fadeUp" delay={200}>
             <AppText className="text-text-primary text-lg font-bold mb-4 ml-1">Privacy</AppText>
-            <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden mb-6">
+            <GlassView intensity={20} className="overflow-hidden mb-6">
               {privacySettings.map((setting, index) => (
                 <View
                   key={setting.id}
                   className={`p-5 flex-row items-center ${index !== privacySettings.length - 1 ? 'border-b border-black/5 dark:border-white/5' : ''}`}
                 >
-                  <View className="bg-primary/10 rounded-2xl w-12 h-12 items-center justify-center mr-4 border border-primary/20">
+                  <View className="bg-indigo-500/10 rounded-2xl w-12 h-12 items-center justify-center mr-4 border border-indigo-500/20">
                     <Ionicons name={setting.icon as any} size={22} color="#6366F1" />
                   </View>
                   <View className="flex-1">
@@ -404,12 +404,6 @@ function PrivacyAndSecurityScreen() {
       </Modal>
     </View>
   );
-}
-
-// Helper to avoid build error since I used userUser instead of useUser by mistake in thought
-function userUser() {
-  const { user } = useUser();
-  return { user };
 }
 
 export default PrivacyAndSecurityScreen;

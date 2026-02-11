@@ -11,6 +11,11 @@ import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useFontSize } from "@/context/FontSizeContext";
 import { AppText } from "@/components/ui/AppText";
+import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useEffect } from "react";
+import PhotoUploadModal from "@/components/PhotoUploadModal";
+import FontSizeModal from "@/components/FontSizeModal";
 
 const MENU_ITEMS = [
   {
@@ -25,21 +30,21 @@ const MENU_ITEMS = [
     label: "profile.my_orders",
     description: "View your purchase history",
     route: "/(profile)/orders",
-    color: "#EC4899", // Pink
+    color: "#6366F1", // Pink
   },
   {
     icon: "heart-outline",
     label: "profile.wishlist",
     description: "Your saved and favorite items",
     route: "/(profile)/wishlist",
-    color: "#F43F5E", // Rose
+    color: "#6366F1", // Rose
   },
   {
     icon: "shield-checkmark-outline",
     label: "profile.privacy_security",
     description: "Secure your account & data",
     route: "/(profile)/privacy-security",
-    color: "#10B981", // Emerald
+    color: "#6366F1", // Emerald
   },
 ] as const;
 
@@ -51,6 +56,104 @@ export default function ProfileScreen() {
   const { theme, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const { fontScale, setFontScale } = useFontSize();
+  const [customProfilePhoto, setCustomProfilePhoto] = useState<string | null>(null);
+  const [photoModalVisible, setPhotoModalVisible] = useState(false);
+  const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
+
+  // Load saved profile photo on mount
+  useEffect(() => {
+    const loadProfilePhoto = async () => {
+      try {
+        if (user?.id) {
+          const savedPhoto = await AsyncStorage.getItem(`user_profile_photo_${user.id}`);
+          if (savedPhoto) {
+            setCustomProfilePhoto(savedPhoto);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading profile photo:", error);
+      }
+    };
+    loadProfilePhoto();
+  }, [user?.id]);
+
+  const handleTakePhoto = async () => {
+    try {
+      // Request camera permissions
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (cameraPermission.status !== 'granted') {
+        Alert.alert(
+          t('common.error') || 'Error',
+          t('profile.camera_permission_required') || 'Camera permission is required to take photos.'
+        );
+        return;
+      }
+
+      // Launch camera
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const photoUri = result.assets[0].uri;
+        setCustomProfilePhoto(photoUri);
+
+        // Save to AsyncStorage
+        if (user?.id) {
+          await AsyncStorage.setItem(`user_profile_photo_${user.id}`, photoUri);
+        }
+      }
+    } catch (error) {
+      console.error("Camera error:", error);
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('profile.photo_upload_error') || 'Failed to take photo. Please try again.'
+      );
+    }
+  };
+
+  const handleChooseFromLibrary = async () => {
+    try {
+      // Request media library permissions
+      const libraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (libraryPermission.status !== 'granted') {
+        Alert.alert(
+          t('common.error') || 'Error',
+          t('profile.library_permission_required') || 'Photo library permission is required to select photos.'
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const photoUri = result.assets[0].uri;
+        setCustomProfilePhoto(photoUri);
+
+        // Save to AsyncStorage
+        if (user?.id) {
+          await AsyncStorage.setItem(`user_profile_photo_${user.id}`, photoUri);
+        }
+      }
+    } catch (error) {
+      console.error("Image picker error:", error);
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('profile.photo_upload_error') || 'Failed to select photo. Please try again.'
+      );
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -63,20 +166,7 @@ export default function ProfileScreen() {
   };
 
   const handleFontSizeChange = () => {
-    const scales: { label: string, value: 0.9 | 1.0 | 1.15 }[] = [
-      { label: 'Small', value: 0.9 },
-      { label: 'Medium', value: 1.0 },
-      { label: 'Large', value: 1.15 },
-    ];
-
-    Alert.alert(
-      t('profile.font_size') || 'Font Size',
-      t('profile.select_font_size') || 'Select font size',
-      scales.map(s => ({
-        text: s.label + (fontScale === s.value ? ' (Current)' : ''),
-        onPress: () => setFontScale(s.value)
-      })).concat([{ text: t('profile.cancel') || 'Cancel', style: 'cancel' } as any])
-    );
+    setFontSizeModalVisible(true);
   };
 
   const currentLanguageLabel = t(`language.${i18n.language === 'en' ? 'english' : i18n.language === 'fr' ? 'french' : i18n.language === 'es' ? 'spanish' : i18n.language === 'ar' ? 'arabic' : i18n.language === 'zh' ? 'chinese' : 'russian'}`);
@@ -94,20 +184,24 @@ export default function ProfileScreen() {
                 <View className="relative">
                   <View className="shadow-2xl shadow-primary/40 rounded-full">
                     <UserAvatar
-                      source={user?.imageUrl}
+                      source={customProfilePhoto || user?.imageUrl}
                       name={user?.fullName || "User"}
                       size={96} // 24 * 4 = 96
                       className="border-4 border-surface dark:border-black/50"
                     />
                   </View>
-                  <TouchableOpacity className="absolute bottom-0 right-0 bg-primary p-2.5 rounded-full border-[3px] border-background shadow-md">
+                  <TouchableOpacity
+                    className="absolute bottom-0 right-0 bg-primary p-2.5 rounded-full border-[3px] border-background shadow-md"
+                    onPress={() => setPhotoModalVisible(true)}
+                    activeOpacity={0.7}
+                  >
                     <Ionicons name="camera" size={16} color="#ffffff" />
                   </TouchableOpacity>
                 </View>
 
                 {/* User Info */}
                 <View className="flex-1">
-                  <AppText className="text-2xl font-black text-text-primary tracking-tight">
+                  <AppText className="text-2xl font-black">
                     {user?.fullName || "Guest User"}
                   </AppText>
                   <AppText className="text-text-tertiary text-[10px] font-bold opacity-80 mt-1 mb-4">
@@ -115,8 +209,8 @@ export default function ProfileScreen() {
                   </AppText>
 
                   {/* Badge */}
-                  <View className="bg-primary/10 self-start px-4 py-1.5 rounded-full border border-primary/20">
-                    <AppText className="text-primary text-[10px] font-black uppercase tracking-widest">
+                  <View className="bg-primary/10 self-start px-2 py-1.5 rounded-full border border-primary/20">
+                    <AppText className="text-primary text-sm font-black uppercase tracking-widest">
                       {user?.publicMetadata?.role as string || "Customer"} MEMBER
                     </AppText>
                   </View>
@@ -129,7 +223,7 @@ export default function ProfileScreen() {
           <View className="px-6 mb-8">
             <AnimatedContainer animation="fadeUp" delay={100}>
               <AppText className="text-text-primary text-xl font-black mb-4 ml-1 tracking-tight">{t('profile.account')}</AppText>
-              <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden">
+              <GlassView intensity={20} className="overflow-hidden">
                 {MENU_ITEMS.map((item, index) => (
                   <TouchableOpacity
                     key={item.label}
@@ -137,7 +231,7 @@ export default function ProfileScreen() {
                     onPress={() => router.push(item.route as any)}
                     activeOpacity={0.7}
                   >
-                    <View className="w-12 h-12 rounded-2xl items-center justify-center mr-4 border" style={{ backgroundColor: `${item.color}15`, borderColor: `${item.color}30` }}>
+                    <View className="w-12 h-12 rounded-2xl items-center justify-center mr-4 border border-primary/20" style={{ backgroundColor: `${item.color}15`, borderColor: `${item.color}30` }}>
                       <Ionicons name={item.icon as any} size={24} color={item.color} />
                     </View>
                     <View className="flex-1">
@@ -154,8 +248,8 @@ export default function ProfileScreen() {
           {/* Settings Section */}
           <View className="px-6 mb-8">
             <AnimatedContainer animation="fadeUp" delay={200}>
-              <AppText className="text-text-primary text-xl font-black mb-4 ml-1 tracking-tight">{t('profile.settings')}</AppText>
-              <GlassView intensity={20} className="rounded-[32px] border border-black/10 dark:border-white/10 overflow-hidden">
+              <AppText className="text-text-primary text-lg font-black mb-4 ml-1 tracking-tight">{t('profile.settings')}</AppText>
+              <GlassView intensity={20} className="overflow-hidden">
 
                 {/* Language Item */}
                 <TouchableOpacity
@@ -163,8 +257,8 @@ export default function ProfileScreen() {
                   onPress={() => router.push("/(profile)/language")}
                   activeOpacity={0.7}
                 >
-                  <View className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 items-center justify-center mr-4">
-                    <Ionicons name="language" size={24} color="#F59E0B" />
+                  <View className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 items-center justify-center mr-4">
+                    <Ionicons name="language" size={24} color="#6366F1" />
                   </View>
                   <View className="flex-1">
                     <AppText className="text-text-primary text-base font-bold">{t('profile.language')}</AppText>
@@ -198,8 +292,8 @@ export default function ProfileScreen() {
                   onPress={handleFontSizeChange}
                   activeOpacity={0.7}
                 >
-                  <View className="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/20 items-center justify-center mr-4">
-                    <Ionicons name="text-outline" size={24} color="#10B981" />
+                  <View className="w-12 h-12 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 items-center justify-center mr-4">
+                    <Ionicons name="text-outline" size={24} color="#6366F1" />
                   </View>
                   <View className="flex-1">
                     <AppText className="text-text-primary text-base font-bold">{t('profile.font_size') || 'Font Size'}</AppText>
@@ -238,15 +332,15 @@ export default function ProfileScreen() {
                 >
                   <View className="flex-row items-center gap-4 flex-1">
                     <View className="w-14 h-14 rounded-2xl bg-white/20 items-center justify-center border border-white/30">
-                      <Ionicons name="storefront" size={28} color="#FFFFFF" />
+                      <Ionicons name="storefront" size={28} color={theme === 'dark' ? '#262626' : '#FAFAFA'} />
                     </View>
                     <View className="flex-1">
-                      <AppText className="text-white text-xl font-black">{t('profile.become_vendor')}</AppText>
-                      <AppText className="text-white/80 text-xs font-bold" numberOfLines={1}>{t('profile.become_vendor_desc')}</AppText>
+                      <AppText className="text-primary-foreground text-xl font-black">{t('profile.become_vendor')}</AppText>
+                      <AppText className="text-primary-foreground text-xs font-bold" numberOfLines={1}>{t('profile.become_vendor_desc')}</AppText>
                     </View>
                   </View>
                   <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
-                    <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+                    <Ionicons name="arrow-forward" size={20} color={theme === 'dark' ? '#262626' : '#FAFAFA'} />
                   </View>
                 </TouchableOpacity>
               </AnimatedContainer>
@@ -271,6 +365,20 @@ export default function ProfileScreen() {
           </AnimatedContainer>
 
         </ScrollView>
+
+        {/* Modals */}
+        <PhotoUploadModal
+          visible={photoModalVisible}
+          onClose={() => setPhotoModalVisible(false)}
+          onTakePhoto={handleTakePhoto}
+          onChooseFromLibrary={handleChooseFromLibrary}
+        />
+        <FontSizeModal
+          visible={fontSizeModalVisible}
+          onClose={() => setFontSizeModalVisible(false)}
+          currentScale={fontScale}
+          onSelectSize={setFontScale}
+        />
       </View>
     </SafeScreen>
   );

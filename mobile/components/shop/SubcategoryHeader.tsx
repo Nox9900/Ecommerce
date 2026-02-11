@@ -105,7 +105,7 @@ function FilterTab({
     return (
         <TouchableOpacity className="items-center" onPress={onPress}>
             <AppText
-                className={`text-[13px] ${active ? 'font-bold' : 'text-text-secondary font-medium'}`}
+                className={`text-[13px] ${active ? '' : 'text-text-secondary'}`}
                 style={active ? { color: activeColor } : {}}
             >
                 {label}

@@ -24,6 +24,7 @@ import * as Sentry from "@sentry/react-native";
 const CartScreen = () => {
   const api = useApi();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const {
     cart,
     cartItemCount,
@@ -363,7 +364,7 @@ const CartScreen = () => {
             ) : (
               <>
                 <AppText className="text-primary-foreground font-bold text-lg mr-2">{t('cart.checkout_button')}</AppText>
-                <Ionicons name="arrow-forward" size={20} color="#000" />
+                <Ionicons name="arrow-forward" size={20} color={theme === 'dark' ? '#262626' : '#FAFAFA'} />
               </>
             )}
           </View>

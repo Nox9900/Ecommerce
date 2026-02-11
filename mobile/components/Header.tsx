@@ -25,9 +25,9 @@ export default function Header({ onAdd, primaryText, secondaryText, rightCompone
         <View className="flex-row items-center gap-2">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-10 h-10 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
+            className={`w-10 h-10 items-center justify-center`}
           >
-            <Ionicons name="arrow-back" size={20} className="text-text-primary" />
+            <Ionicons name="arrow-back" size={20} color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
           </TouchableOpacity>
           <View className="ml-2">
             <AppText className="text-text-primary text-xl font-bold">{primaryText}</AppText>
@@ -44,7 +44,7 @@ export default function Header({ onAdd, primaryText, secondaryText, rightCompone
               onPress={onAdd}
               className="w-10 h-10 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
             >
-              <Ionicons name="add" size={24} className="text-text-primary" />
+              <Ionicons name="add" size={24} color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
             </TouchableOpacity>
           )}
         </View>

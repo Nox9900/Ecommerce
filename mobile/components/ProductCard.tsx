@@ -106,7 +106,7 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                 <View className="p-2">
                     {/* Title */}
                     <AppText
-                        className="text-text-primary text-[13px] font-bold mb-1.5 leading-4"
+                        className="text-text-primary text-[13px] font-medium mb-1.5 leading-4"
                         numberOfLines={2}
                     >
                         {productName}
@@ -125,9 +125,9 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                     {/* Price and Sold */}
                     <View className="flex-row items-end justify-between">
                         <View className="flex-row items-baseline gap-1" accessibilityLabel={`Price: ${product.price.toFixed(2)}`}>
-                            <AppText className="text-red-600 font-black text-xs">¥</AppText>
-                            <AppText className="text-red-600 font-black text-lg -ml-0.5">{product.price.toFixed(0)}</AppText>
-                            <AppText className="text-red-600 font-bold text-xs">.{(product.price % 1 * 100).toFixed(0)}</AppText>
+                            <AppText className="text-red-600 font-medium text-xs">¥</AppText>
+                            <AppText className="text-red-600 font-medium text-lg -ml-0.5">{product.price.toFixed(0)}</AppText>
+                            <AppText className="text-red-600 font-medium text-xs">.{(product.price % 1 * 100).toFixed(0)}</AppText>
                         </View>
                         <AppText className="text-[#9CA3AF] text-[10px] mb-0.5" accessibilityLabel={`Sold: ${product.soldCount || mockSold}`}>
                             Sold {(product.soldCount || mockSold) > 1000 ? ((product.soldCount || mockSold) / 1000).toFixed(1) + 'k' : (product.soldCount || mockSold)}

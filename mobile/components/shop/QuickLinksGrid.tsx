@@ -42,7 +42,7 @@ export default function QuickLinksGrid({ items, onLinkPress }: QuickLinksGridPro
                                     <Ionicons name={(item.icon || 'grid') as any} size={24} color={item.color || '#3B82F6'} />
                                 )}
                             </View>
-                            <AppText className="text-[10px] text-text-primary font-bold text-center" numberOfLines={1}>
+                            <AppText className="text-[10px] text-text-primary text-center" numberOfLines={1}>
                                 {item.label || item.name}
                             </AppText>
                         </TouchableOpacity>

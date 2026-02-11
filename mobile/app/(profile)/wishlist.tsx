@@ -78,7 +78,7 @@ function WishlistScreen() {
     try {
       // In a real app, this would be a deep link or a web URL
       // For now, we'll use a placeholder URL structure
-      const url = `https://expo-ecommerce.com/wishlist/share/${token}`;
+      const url = `https://yaamaan.sevalla.app/wishlist/share/${token}`;
       await Share.share({
         message: `Check out my wishlist on Expo Ecommerce! ${url}`,
         url, // iOS only

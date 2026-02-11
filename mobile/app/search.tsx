@@ -49,7 +49,7 @@ export default function SearchScreen() {
                 {/* Header */}
                 <View className="flex-row items-center px-4 py-2 border-b border-black/5 dark:border-white/5 gap-2">
                     <TouchableOpacity onPress={() => router.back()} className="p-1">
-                        <Ionicons name="arrow-back" size={24} className="text-text-primary" />
+                        <Ionicons name="arrow-back" size={24} color={theme === 'dark' ? "#9CA3AF" : "#525252"} />
                     </TouchableOpacity>
 
                     <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-white/10 rounded-full px-3 ">

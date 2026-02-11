@@ -8,6 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { AppText } from "./ui/AppText";
+import { useTheme } from "@/lib/useTheme";
 
 interface CouponInputProps {
     onApply: (code: string) => Promise<any>;
@@ -78,6 +79,8 @@ const CouponInput = ({
         );
     }
 
+    const { theme } = useTheme();
+
     return (
         <View className="bg-surface p-4 rounded-3xl border border-white/5 space-y-2">
             <AppText className="text-text-primary font-bold text-lg">
@@ -104,7 +107,7 @@ const CouponInput = ({
                     {isApplying ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <AppText className="text-white font-bold">
+                        <AppText className="font-bold" style={{ color: theme === 'dark' ? '#FAFAFA' : '#262626' }}>
                             {t("common.apply", "Apply")}
                         </AppText>
                     )}
