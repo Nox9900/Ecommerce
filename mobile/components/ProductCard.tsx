@@ -1,5 +1,5 @@
 import { Link, router } from "expo-router";
-import { View, Pressable, Image, ActivityIndicator } from "react-native";
+import { View, Pressable, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import useWishlist from "@/hooks/useWishlist";
@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
 import { getTranslated } from "@/lib/i18n-utils";
 import { AppText } from "./ui/AppText";
+import { OptimizedImage } from "./common/OptimizedImage";
 
 interface ProductCardProps {
     product: Product;
@@ -75,10 +76,12 @@ export const ProductCard = ({ product, index }: ProductCardProps) => {
                 style={animatedStyle}
             >
                 <View className="relative">
-                    <Image
-                        source={{ uri: product.images[0] }}
-                        className="w-full h-52 bg-gray-100 dark:bg-zinc-800"
-                        resizeMode="cover"
+                    <OptimizedImage
+                        source={product.images[0]}
+                        width={400} // ~200px * 2 for retina
+                        height={416} // h-52 is 208px * 2
+                        className="w-full h-52"
+                        contentFit="cover"
                         accessibilityLabel={productName}
                     />
 

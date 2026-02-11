@@ -2,6 +2,7 @@ import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
 import { View, ScrollView, RefreshControl, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "@/lib/useTheme";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
@@ -101,9 +102,9 @@ const ShopScreen = () => {
   const subcategories = useMemo(() => {
     if (selectedCategoryId === "all") {
       const allSubcats = categories?.reduce((acc: any[], cat: any) => [...acc, ...(cat.subcategories || [])], []) || [];
-      return [...allSubcats].sort(() => Math.random() - 0.5).slice(0, 15);
+      return [...allSubcats].sort(() => Math.random() - 0.5).slice(0, 10);
     }
-    return activeCategory?.subcategories || [];
+    return (activeCategory?.subcategories || []).slice(0, 10);
   }, [categories, activeCategory, selectedCategoryId]);
 
   // Handlers
@@ -215,21 +216,27 @@ const ShopScreen = () => {
                     {isSignedIn && personalizedProducts && (
                       <ProductSection
                         title="For You"
+                        subtitle="Picked just for you"
                         products={personalizedProducts}
                         isLoading={personalizedLoading}
+                        icon={<Ionicons name="heart" size={24} color="#ef4444" />}
                       />
                     )}
 
                     <ProductSection
                       title="Trending Now"
+                      subtitle="Billions in Subsidies"
                       products={trendingProducts || []}
                       isLoading={trendingLoading}
+                      icon={<Ionicons name="flame" size={24} color="#f97316" />}
                     />
 
                     <ProductSection
                       title="New Arrivals"
+                      subtitle="Freshly added"
                       products={newArrivals || []}
                       isLoading={newArrivalsLoading}
+                      icon={<Ionicons name="sparkles" size={24} color="#3b82f6" />}
                     />
                   </AnimatedContainer>
                 )}

@@ -1,8 +1,9 @@
-import { View, Image, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import usePromoBanners from "@/hooks/usePromoBanners";
 import { AppText } from "../ui/AppText";
+import { OptimizedImage } from "../common/OptimizedImage";
 
 export default function PromoBanners() {
     const { theme } = useTheme();
@@ -46,10 +47,12 @@ export default function PromoBanners() {
                             </AppText>
                         </View>
                         <View className="flex-row mt-3 justify-between items-end">
-                            <Image
-                                source={{ uri: banner.imageUrl }}
-                                className="w-12 h-12 bg-gray-200 rounded-md"
-                                resizeMode="cover"
+                            <OptimizedImage
+                                source={banner.imageUrl}
+                                width={96} // 48px * 2
+                                height={96}
+                                className="w-12 h-12"
+                                contentFit="cover"
                             />
                             <AppText className="text-red-600 font-bold text-lg">{banner.price}</AppText>
                         </View>

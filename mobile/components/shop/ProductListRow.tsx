@@ -6,6 +6,7 @@ import { Product } from "@/types";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
 import { AppText } from "../ui/AppText";
+import { OptimizedImage } from "../common/OptimizedImage";
 
 interface ProductListRowProps {
     product: Product;
@@ -46,14 +47,16 @@ export default function ProductListRow({ product, index }: ProductListRowProps) 
             >
                 <Animated.View
                     style={animatedStyle}
-                    className="flex-row bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-sm border border-black/5 dark:border-white/5"
+                    className="flex-row bg-white dark:bg-zinc-900 overflow-hidden shadow-sm"
                 >
                     {/* Image Section */}
                     <View className="relative">
-                        <Image
-                            source={{ uri: product.images[0] }}
-                            className="w-36 h-36 bg-gray-100 dark:bg-zinc-800"
-                            resizeMode="cover"
+                        <OptimizedImage
+                            source={product.images[0]}
+                            width={288} // 144px * 2 for retina
+                            height={288}
+                            className="w-36 h-36"
+                            contentFit="cover"
                         />
                         {/* Status Label (Dynamic based on sold count) */}
                         {soldCount > 100 && (

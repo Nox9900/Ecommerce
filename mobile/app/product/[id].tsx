@@ -17,7 +17,7 @@ import { getTranslated } from "@/lib/i18n-utils";
 import { UserAvatar } from "@/components/UserAvatar";
 import * as Sentry from "@sentry/react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState, useMemo, useRef } from "react";
 import axios from "axios";
@@ -397,7 +397,13 @@ const ProductDetailScreen = () => {
                 }}
                 style={{ width, height: 400 }}
               >
-                <Image source={image} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={500} />
+                <OptimizedImage
+                  source={image}
+                  width={width * 2} // Retina width 
+                  height={800} // 400 * 2
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -427,17 +433,15 @@ const ProductDetailScreen = () => {
                   setSelectedImageIndex(index);
                   scrollViewRef.current?.scrollTo({ x: index * width, animated: true });
                 }}
-                className={`w-16 h-16 rounded-xl overflow-hidden border-2 ${selectedImageIndex === index
-                  ? "border-primary"
-                  : theme === 'dark' ? "border-white/10" : "border-black/5"
-                  }`}
+                className={`w-16 h-16 overflow-hidden ${selectedImageIndex === index ? "border-b-2 border-primary" : ""}`}
                 style={{
                   transform: [{ scale: selectedImageIndex === index ? 1.05 : 1 }],
-                  backgroundColor: theme === 'dark' ? '#27272A' : '#F4F4F5'
                 }}
               >
-                <Image
+                <OptimizedImage
                   source={image}
+                  width={128} // 64px * 2
+                  height={128}
                   style={{ width: '100%', height: '100%' }}
                   contentFit="cover"
                 />
@@ -645,11 +649,12 @@ const ProductDetailScreen = () => {
                         {/* Variant Image (if available) */}
                         {variant.image && (
                           <View className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                            <Image
+                            <OptimizedImage
                               source={variant.image}
+                              width={160} // 80px * 2
+                              height={160}
                               style={{ width: '100%', height: '100%' }}
                               contentFit="cover"
-                              transition={300}
                             />
                           </View>
                         )}
@@ -889,8 +894,9 @@ const ProductDetailScreen = () => {
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
               <View style={{ width, height: '100%', justifyContent: 'center' }}>
-                <Image
+                <OptimizedImage
                   source={item}
+                  width={width * 2} // Retina width
                   style={{ width: '100%', height: '70%' }}
                   contentFit="contain"
                 />
