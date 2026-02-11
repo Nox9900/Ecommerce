@@ -22,7 +22,7 @@ export const CompactProductCard = ({ product }: CompactProductCardProps) => {
             onPress={handlePress}
             className="items-center flex-1"
         >
-            <View className="mb-1 items-center justify-center">
+            <View className="mb-1 items-center justify-center rounded-3xl overflow-hidden">
                 <OptimizedImage
                     source={product.images[0]}
                     width={128} // 64 * 2 for retina display

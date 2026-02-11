@@ -213,31 +213,32 @@ const ShopScreen = () => {
 
                 {category._id === "all" && (
                   <AnimatedContainer animation="fadeUp" delay={150}>
-                    {isSignedIn && personalizedProducts && (
+                    {isSignedIn && personalizedProducts && personalizedProducts.length > 0 && (
                       <ProductSection
                         title="For You"
-                        subtitle="Picked just for you"
                         products={personalizedProducts}
                         isLoading={personalizedLoading}
                         icon={<Ionicons name="heart" size={24} color="#ef4444" />}
                       />
                     )}
 
-                    <ProductSection
-                      title="Trending Now"
-                      subtitle="Billions in Subsidies"
-                      products={trendingProducts || []}
-                      isLoading={trendingLoading}
-                      icon={<Ionicons name="flame" size={24} color="#f97316" />}
-                    />
+                    {trendingProducts && trendingProducts.length > 0 && (
+                      <ProductSection
+                        title="Trending Now"
+                        products={trendingProducts}
+                        isLoading={trendingLoading}
+                        icon={<Ionicons name="flame" size={24} color="#f97316" />}
+                      />
+                    )}
 
-                    <ProductSection
-                      title="New Arrivals"
-                      subtitle="Freshly added"
-                      products={newArrivals || []}
-                      isLoading={newArrivalsLoading}
-                      icon={<Ionicons name="sparkles" size={24} color="#3b82f6" />}
-                    />
+                    {newArrivals && newArrivals.length > 0 && (
+                      <ProductSection
+                        title="New Arrivals"
+                        products={newArrivals}
+                        isLoading={newArrivalsLoading}
+                        icon={<Ionicons name="sparkles" size={24} color="#3b82f6" />}
+                      />
+                    )}
                   </AnimatedContainer>
                 )}
 

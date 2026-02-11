@@ -19,7 +19,7 @@ export const ProductSection = ({ title, products, isLoading, onSeeAll, icon, sub
     if (!isLoading && products.length === 0) return null;
 
     return (
-        <View className="my-2 bg-white dark:bg-zinc-900 py-3 rounded-2xl mx-1 border border-black/5 dark:border-white/5 flex-row">
+        <View className="my-1 bg-white dark:bg-zinc-900 py-3 rounded-2xl mx-1 flex-row">
             {/* Left Header Section */}
             <View className="w-24 px-3 justify-center border-r border-black/5 dark:border-white/5">
                 {icon && <View className="mb-2 items-center">{icon}</View>}
