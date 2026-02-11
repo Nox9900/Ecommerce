@@ -185,6 +185,11 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   // Remove undefined fields to avoid overwriting with null/undefined
   Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
 
+  // Check for price drop to notify wishlist users
+  const oldPrice = product.price;
+  const newPrice = updateData.price;
+  const isPriceDrop = newPrice && newPrice < oldPrice;
+
   // Update fields
   Object.assign(product, updateData);
 
@@ -205,6 +210,20 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   }
 
   await product.save();
+
+  // Send wishlist price drop notifications if price decreased
+  if (isPriceDrop) {
+    try {
+      const { notifyWishlistPriceDrop } = await import("../services/wishlistNotification.service.js");
+      // Fire and forget - don't wait for notifications
+      notifyWishlistPriceDrop(product._id, oldPrice, newPrice, product.name).catch(err => {
+        console.error("Failed to send wishlist notifications:", err);
+      });
+    } catch (err) {
+      console.error("Error importing wishlist notification service:", err);
+    }
+  }
+
   res.status(200).json(product);
 });
 
