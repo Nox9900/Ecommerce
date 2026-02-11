@@ -139,6 +139,7 @@ export const toggleWishlistPrivacy = catchAsync(async (req, res, next) => {
   });
 });
 
+
 export const getPublicWishlist = catchAsync(async (req, res, next) => {
   const { token } = req.params;
 
@@ -149,4 +150,30 @@ export const getPublicWishlist = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json({ wishlist: user.wishlist, ownerName: user.name });
+});
+
+/**
+ * Save/update user's Expo push token
+ * POST /api/users/push-token
+ */
+export const savePushToken = catchAsync(async (req, res, next) => {
+  const { expoPushToken } = req.body;
+  const user = req.user;
+
+  if (!expoPushToken) {
+    return next(new AppError("Push token is required", 400));
+  }
+
+  // Basic validation for Expo push token format
+  if (!expoPushToken.startsWith("ExponentPushToken[") && !expoPushToken.startsWith("ExpoPushToken[")) {
+    return next(new AppError("Invalid Expo push token format", 400));
+  }
+
+  user.expoPushToken = expoPushToken;
+  await user.save();
+
+  res.status(200).json({
+    message: "Push token saved successfully",
+    expoPushToken: user.expoPushToken,
+  });
 });

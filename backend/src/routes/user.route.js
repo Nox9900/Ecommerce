@@ -9,6 +9,7 @@ import {
   removeFromWishlist,
   toggleWishlistPrivacy,
   updateAddress,
+  savePushToken,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
@@ -30,5 +31,8 @@ router.delete("/wishlist/:productId", removeFromWishlist);
 router.get("/wishlist", getWishlist);
 router.put("/wishlist/share", toggleWishlistPrivacy);
 router.get("/wishlist/share/:token", getPublicWishlist);
+
+// push notification token route
+router.post("/push-token", savePushToken);
 
 export default router;

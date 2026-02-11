@@ -18,11 +18,34 @@ export async function registerForPushNotificationsAsync() {
     let token;
 
     if (Platform.OS === 'android') {
+        // Default channel
         await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
+            name: 'Default',
             importance: Notifications.AndroidImportance.MAX,
             vibrationPattern: [0, 250, 250, 250],
             lightColor: '#FF231F7C',
+        });
+
+        // Order notifications channel
+        await Notifications.setNotificationChannelAsync('orders', {
+            name: 'Order Updates',
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#4CAF50',
+        });
+
+        // Delivery notifications channel
+        await Notifications.setNotificationChannelAsync('delivery', {
+            name: 'Delivery Updates',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#2196F3',
+        });
+
+        // Wishlist notifications channel
+        await Notifications.setNotificationChannelAsync('wishlist', {
+            name: 'Wishlist Alerts',
+            importance: Notifications.AndroidImportance.DEFAULT,
         });
     }
 

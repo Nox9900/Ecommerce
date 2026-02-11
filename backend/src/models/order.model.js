@@ -108,6 +108,17 @@ const orderSchema = new mongoose.Schema(
       ],
       default: "pending",
     },
+    trackingNumber: {
+      type: String,
+      default: "",
+    },
+    carrier: {
+      type: String,
+      default: "",
+    },
+    estimatedDelivery: {
+      type: Date,
+    },
     deliveredAt: {
       type: Date,
     },

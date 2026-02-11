@@ -236,11 +236,11 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
   const { status } = req.body;
 
-  if (!["pending", "shipped", "delivered"].includes(status)) {
+  if (!["pending", "processing", "shipped", "delivered", "cancelled", "refunded"].includes(status)) {
     return next(new AppError("Invalid status", 400));
   }
 
-  const order = await Order.findById(orderId);
+  const order = await Order.findById(orderId).populate("user");
   if (!order) {
     return next(new AppError("Order not found", 404));
   }
@@ -256,6 +256,47 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
   }
 
   await order.save();
+
+  // Create notification and send push notification
+  try {
+    const { Notification } = await import("../models/notification.model.js");
+    const { sendOrderStatusNotification } = await import("../services/pushNotification.service.js");
+
+    const orderShortId = order._id.toString().slice(-6);
+    const notificationMessages = {
+      pending: { title: "Order Placed", body: `Your order #${orderShortId} has been placed successfully!` },
+      processing: { title: "Order Processing", body: `Your order #${orderShortId} is being processed.` },
+      shipped: { title: "Order Shipped", body: `Great news! Your order #${orderShortId} has been shipped!` },
+      delivered: { title: "Order Delivered", body: `Your order #${orderShortId} has been delivered. Enjoy!` },
+      cancelled: { title: "Order Cancelled", body: `Your order #${orderShortId} has been cancelled.` },
+      refunded: { title: "Order Refunded", body: `Your order #${orderShortId} has been refunded.` },
+    };
+
+    const notifMsg = notificationMessages[status] || {
+      title: "Order Update",
+      body: `Your order #${orderShortId} status has been updated to ${status}.`,
+    };
+
+    // Create in-app notification
+    const notification = await Notification.create({
+      recipient: order.user._id,
+      type: status === "shipped" || status === "delivered" ? "delivery" : "order",
+      title: notifMsg.title,
+      body: notifMsg.body,
+      data: { orderId: order._id },
+    });
+
+    // Send socket notification
+    const io = req.app.get("io");
+    if (io) {
+      io.to(order.user._id.toString()).emit("notification:new", notification);
+    }
+
+    // Send push notification
+    await sendOrderStatusNotification(order.user, order._id, status);
+  } catch (err) {
+    console.error("Failed to send notification:", err);
+  }
 
   res.status(200).json({ message: "Order status updated successfully", order });
 });

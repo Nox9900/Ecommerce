@@ -10,7 +10,7 @@ const notificationSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ["order", "message", "promotion", "system"],
+            enum: ["order", "message", "promotion", "system", "wishlist", "delivery"],
             required: true,
         },
         title: {
@@ -24,6 +24,8 @@ const notificationSchema = new mongoose.Schema(
         data: {
             orderId: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
             conversationId: { type: mongoose.Schema.Types.ObjectId, ref: "Conversation" },
+            productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+            trackingNumber: String,
             // Any other related data
         },
         read: {

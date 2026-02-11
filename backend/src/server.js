@@ -31,6 +31,7 @@ import promoBannerRoutes from "./routes/promoBanner.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import couponRoutes from "./routes/coupon.route.js";
 import recommendationRoutes from "./routes/recommendation.routes.js";
+import deliveryRoutes from "./routes/delivery.route.js";
 
 const app = express();
 app.use(
@@ -137,6 +138,7 @@ app.use("/api/shops", shopRoutes);
 app.use("/api/promo-banners", promoBannerRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/delivery", deliveryRoutes);
 
 // Helper for admin dist path
 const adminDistPath = path.join(__dirname, "../admin/dist");

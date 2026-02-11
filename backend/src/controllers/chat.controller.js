@@ -127,9 +127,13 @@ export const sendMessage = catchAsync(async (req, res, next) => {
         if (otherParticipants) {
             const recipients = otherParticipants.participants.filter((p) => p.toString() !== user._id.toString());
             const Notification = (await import("../models/notification.model.js")).Notification;
+            const { sendMessageNotification } = await import("../services/pushNotification.service.js");
 
             for (const recipientId of recipients) {
                 try {
+                    const recipientUser = await User.findById(recipientId);
+
+                    // Create in-app notification
                     const notification = await Notification.create({
                         recipient: recipientId,
                         type: "message",
@@ -137,9 +141,20 @@ export const sendMessage = catchAsync(async (req, res, next) => {
                         body: content || "Sent an attachment",
                         data: { conversationId: conversationId },
                     });
+
                     io.to(recipientId.toString()).emit("notification:new", notification);
+
+                    // Send push notification
+                    if (recipientUser) {
+                        await sendMessageNotification(
+                            recipientUser,
+                            user.name,
+                            content || "Sent an attachment",
+                            conversationId
+                        );
+                    }
                 } catch (err) {
-                    console.error("Failed to notifiy recipient", err);
+                    console.error("Failed to notify recipient", err);
                 }
             }
         }
