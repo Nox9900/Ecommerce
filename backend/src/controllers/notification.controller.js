@@ -1,10 +1,26 @@
 import { Notification } from "../models/notification.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
+import { parsePaginationParams } from "../utils/queryOptimization.js";
 
 export const getNotifications = catchAsync(async (req, res, next) => {
-    const notifications = await Notification.find({ recipient: req.user._id }).sort({ createdAt: -1 }).limit(50); // Limit to last 50 notifications
-    res.json(notifications);
+    const { page, limit, skip } = parsePaginationParams({ ...req.query, limit: req.query.limit || 50 });
+
+    const [notifications, totalCount] = await Promise.all([
+        Notification.find({ recipient: req.user._id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Notification.countDocuments({ recipient: req.user._id }),
+    ]);
+
+    res.json({
+        notifications,
+        total: totalCount,
+        page: parseInt(page),
+        pages: Math.ceil(totalCount / limit),
+    });
 });
 
 export const getUnreadCount = catchAsync(async (req, res, next) => {

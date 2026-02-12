@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { format } from "date-fns";
 import { useTheme } from "@/lib/useTheme";
 
@@ -24,21 +24,37 @@ export default function ChatListScreen() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { theme } = useTheme();
+    const isFetchingRef = useRef(false);
 
-    useEffect(() => {
-        fetchConversations();
-    }, []);
+    const fetchConversations = useCallback(async () => {
+        // Prevent duplicate requests
+        if (isFetchingRef.current) {
+            return;
+        }
 
-    const fetchConversations = async () => {
+        isFetchingRef.current = true;
         try {
             const response = await api.get("/chats");
-            setConversations(response.data);
+            setConversations(response.data.conversations || []);
         } catch (error) {
             console.error("Error fetching conversations:", error);
         } finally {
             setLoading(false);
+            isFetchingRef.current = false;
         }
-    };
+    }, [api]);
+
+    // Fetch on mount
+    useEffect(() => {
+        fetchConversations();
+    }, [fetchConversations]);
+
+    // Refetch when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchConversations();
+        }, [fetchConversations])
+    );
 
     const getOtherParticipant = (participants: Conversation["participants"]) => {
         return participants.find((p) => true) || participants[0]; // Temporary fallback

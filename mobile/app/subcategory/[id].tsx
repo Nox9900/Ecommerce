@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, ScrollView, RefreshControl } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "@/lib/useTheme";
@@ -10,6 +10,7 @@ import ProductListRow from "@/components/shop/ProductListRow";
 import PromoBanners from "@/components/shop/PromoBanners";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import SwipeableCategoryView from "@/components/shop/SwipeableCategoryView";
+import { AppText } from "@/components/ui/AppText";
 
 export default function SubcategoryScreen() {
     const { id: initialId, name: initialName } = useLocalSearchParams<{ id: string; name: string }>();
@@ -142,9 +143,9 @@ export default function SubcategoryScreen() {
                                 ))
                             ) : (
                                 <View className="py-20 items-center px-10">
-                                    <Text className="text-gray-400 text-center font-medium">
+                                    <AppText className="text-gray-400 text-center font-medium">
                                         No products found for "{searchQuery}"
-                                    </Text>
+                                    </AppText>
                                 </View>
                             )}
                         </View>
@@ -176,10 +177,10 @@ export default function SubcategoryScreen() {
                                             className="w-1 h-4 rounded-full"
                                             style={{ backgroundColor: activeSubColor }}
                                         />
-                                        <Text className="text-lg font-black dark:text-white" style={{ color: activeSubColor }}>
+                                        <AppText className="text-lg font-black dark:text-white" style={{ color: activeSubColor }}>
                                             10 Billion Subsidy
-                                        </Text>
-                                        <Text className="text-xs text-gray-400 font-medium ml-1">Up To 50% Off</Text>
+                                        </AppText>
+                                        <AppText className="text-xs text-gray-400 font-medium ml-1">Up To 50% Off</AppText>
                                     </View>
                                 </View>
 
@@ -190,7 +191,7 @@ export default function SubcategoryScreen() {
                                 <View className="mt-2">
                                     {productsLoading ? (
                                         <View className="py-20 items-center">
-                                            <Text className="text-gray-400">Loading premium deals...</Text>
+                                            <AppText className="text-gray-400">Loading premium deals...</AppText>
                                         </View>
                                     ) : (productsBySibling[index] || []).length > 0 ? (
                                         (productsBySibling[index] || []).map((product, pIndex) => (
@@ -200,9 +201,9 @@ export default function SubcategoryScreen() {
                                         ))
                                     ) : (
                                         <View className="py-20 items-center px-10">
-                                            <Text className="text-gray-400 text-center font-medium">
+                                            <AppText className="text-gray-400 text-center font-medium">
                                                 No products found for "{sub.name}" in the subsidy program yet.
-                                            </Text>
+                                            </AppText>
                                         </View>
                                     )}
                                 </View>

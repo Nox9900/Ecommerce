@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Address } from "@/types";
 import { GlassView } from "./ui/GlassView";
+import { AppText } from "./ui/AppText";
 
 
 
@@ -31,10 +32,10 @@ export default function AddressCard({
             <Ionicons name="location-outline" size={32} color="#6366F1" />
           </View>
           <View>
-            <Text className="text-text-primary font-bold text-lg">{address.label}</Text>
+            <AppText className="text-text-primary font-bold text-lg">{address.label}</AppText>
             {address.isDefault && (
               <View className="bg-primary/20 self-start px-2 py-0.5 rounded-lg border border-primary/30 mt-1">
-                <Text className="text-primary text-[10px] font-black uppercase tracking-tighter">Default</Text>
+                <AppText className="text-primary text-[10px] font-black uppercase tracking-tighter">Default</AppText>
               </View>
             )}
           </View>
@@ -59,19 +60,19 @@ export default function AddressCard({
 
       <View className="ml-16 space-y-1">
         <View className="flex-row items-center gap-2">
-          <Text className="text-text-primary font-bold text-base">{address.fullName}</Text>
-          <Text className="text-text-secondary text-sm leading-5 opacity-90">{address.streetAddress}</Text>
-          <Text className="text-text-secondary text-sm leading-5 opacity-90">
+          <AppText className="text-text-primary font-bold text-base">{address.fullName}</AppText>
+          <AppText className="text-text-secondary text-sm leading-5 opacity-90">{address.streetAddress}</AppText>
+          <AppText className="text-text-secondary text-sm leading-5 opacity-90">
             {address.city}, {address.state} {address.zipCode}
-          </Text>
+          </AppText>
         </View>
         <View className="flex-row items-center mt-2">
           <Ionicons name="call-outline" size={14} color="#64748B" style={{ marginRight: 6 }} />
-          <Text className="text-text-tertiary text-xs font-medium">{address.phoneNumber}</Text>
+          <AppText className="text-text-tertiary text-xs font-medium">{address.phoneNumber}</AppText>
         </View>
       </View>
     </GlassView>
 
-    
+
   );
 }

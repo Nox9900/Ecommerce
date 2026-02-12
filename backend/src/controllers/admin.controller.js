@@ -10,6 +10,8 @@ import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
 export const createProduct = catchAsync(async (req, res, next) => {
+  console.log("createProduct - Body:", req.body);
+  console.log("createProduct - Files:", req.files);
   const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, variants, shop } = req.body;
 
   if (!name || !price || !stock || !category) {
@@ -56,7 +58,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
   // Parse and validate variants if provided
   let parsedVariants = [];
   if (variants) {
-    const variantsData = JSON.parse(variants);
+    const variantsData = Array.isArray(variants) ? variants : JSON.parse(variants);
     parsedVariants = variantsData.map((v) => ({
       name: v.name,
       options: v.options || {},
@@ -78,7 +80,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
     brand,
     isSubsidy: isSubsidy === "true" || isSubsidy === true,
     soldCount: soldCount ? parseInt(soldCount) : 0,
-    attributes: attributes ? JSON.parse(attributes) : [],
+    attributes: Array.isArray(attributes) ? attributes : (attributes ? JSON.parse(attributes) : []),
     variants: parsedVariants,
     images: imageUrls,
     vendor: vendorId,
@@ -155,7 +157,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   // Parse and validate variants if provided
   let parsedVariants = undefined;
   if (variants) {
-    const variantsData = JSON.parse(variants);
+    const variantsData = Array.isArray(variants) ? variants : JSON.parse(variants);
     parsedVariants = variantsData.map((v) => ({
       name: v.name,
       options: v.options || {},
@@ -177,13 +179,18 @@ export const updateProduct = catchAsync(async (req, res, next) => {
     brand,
     isSubsidy: isSubsidy !== undefined ? isSubsidy === "true" || isSubsidy === true : undefined,
     soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
-    attributes: attributes ? JSON.parse(attributes) : undefined,
+    attributes: attributes ? (Array.isArray(attributes) ? attributes : JSON.parse(attributes)) : undefined,
     variants: parsedVariants,
     shop: shop || undefined,
   };
 
   // Remove undefined fields to avoid overwriting with null/undefined
   Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
+
+  // Check for price drop to notify wishlist users
+  const oldPrice = product.price;
+  const newPrice = updateData.price;
+  const isPriceDrop = newPrice && newPrice < oldPrice;
 
   // Update fields
   Object.assign(product, updateData);
@@ -205,6 +212,20 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   }
 
   await product.save();
+
+  // Send wishlist price drop notifications if price decreased
+  if (isPriceDrop) {
+    try {
+      const { notifyWishlistPriceDrop } = await import("../services/wishlistNotification.service.js");
+      // Fire and forget - don't wait for notifications
+      notifyWishlistPriceDrop(product._id, oldPrice, newPrice, product.name).catch(err => {
+        console.error("Failed to send wishlist notifications:", err);
+      });
+    } catch (err) {
+      console.error("Error importing wishlist notification service:", err);
+    }
+  }
+
   res.status(200).json(product);
 });
 
@@ -236,11 +257,11 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
   const { status } = req.body;
 
-  if (!["pending", "shipped", "delivered"].includes(status)) {
+  if (!["pending", "processing", "shipped", "delivered", "cancelled", "refunded"].includes(status)) {
     return next(new AppError("Invalid status", 400));
   }
 
-  const order = await Order.findById(orderId);
+  const order = await Order.findById(orderId).populate("user");
   if (!order) {
     return next(new AppError("Order not found", 404));
   }
@@ -256,6 +277,47 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
   }
 
   await order.save();
+
+  // Create notification and send push notification
+  try {
+    const { Notification } = await import("../models/notification.model.js");
+    const { sendOrderStatusNotification } = await import("../services/pushNotification.service.js");
+
+    const orderShortId = order._id.toString().slice(-6);
+    const notificationMessages = {
+      pending: { title: "Order Placed", body: `Your order #${orderShortId} has been placed successfully!` },
+      processing: { title: "Order Processing", body: `Your order #${orderShortId} is being processed.` },
+      shipped: { title: "Order Shipped", body: `Great news! Your order #${orderShortId} has been shipped!` },
+      delivered: { title: "Order Delivered", body: `Your order #${orderShortId} has been delivered. Enjoy!` },
+      cancelled: { title: "Order Cancelled", body: `Your order #${orderShortId} has been cancelled.` },
+      refunded: { title: "Order Refunded", body: `Your order #${orderShortId} has been refunded.` },
+    };
+
+    const notifMsg = notificationMessages[status] || {
+      title: "Order Update",
+      body: `Your order #${orderShortId} status has been updated to ${status}.`,
+    };
+
+    // Create in-app notification
+    const notification = await Notification.create({
+      recipient: order.user._id,
+      type: status === "shipped" || status === "delivered" ? "delivery" : "order",
+      title: notifMsg.title,
+      body: notifMsg.body,
+      data: { orderId: order._id },
+    });
+
+    // Send socket notification
+    const io = req.app.get("io");
+    if (io) {
+      io.to(order.user._id.toString()).emit("notification:new", notification);
+    }
+
+    // Send push notification
+    await sendOrderStatusNotification(order.user, order._id, status);
+  } catch (err) {
+    console.error("Failed to send notification:", err);
+  }
 
   res.status(200).json({ message: "Order status updated successfully", order });
 });

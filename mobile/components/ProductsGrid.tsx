@@ -2,15 +2,16 @@ import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import {
   View,
-  Text,
   FlatList,
-  ActivityIndicator,
 } from "react-native";
 // import useCart from "@/hooks/useCart"; // Removed as now inside ProductCard
 // import useWishlist from "@/hooks/useWishlist"; // Removed as now inside ProductCard
 import { ProductCard } from "./ProductCard";
 import VendorShopSlider from "./shop/VendorShopSlider";
 import { useMemo } from "react";
+import { ProductCardSkeleton } from "./common/Skeleton";
+import EmptyUI from "./ui/Empty";
+import { AppText } from "./ui/AppText";
 
 interface ProductsGridProps {
   isLoading: boolean;
@@ -102,9 +103,11 @@ const ProductsGrid = ({
 
   if (isLoading) {
     return (
-      <View className="py-20 items-center justify-center">
-        <ActivityIndicator size="large" color="#6366F1" />
-        <Text className="text-text-secondary mt-4">Loading products...</Text>
+      <View className="flex-row flex-wrap justify-between px-2">
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
+        <View style={{ width: '49%' }}><ProductCardSkeleton /></View>
       </View>
     );
   }
@@ -113,8 +116,8 @@ const ProductsGrid = ({
     return (
       <View className="py-20 items-center justify-center">
         <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-        <Text className="text-text-primary font-semibold mt-4">Failed to load products</Text>
-        <Text className="text-text-secondary text-sm mt-2">Please try again later</Text>
+        <AppText className="text-text-primary font-semibold mt-4">Failed to load products</AppText>
+        <AppText className="text-text-secondary text-sm mt-2">Please try again later</AppText>
       </View>
     );
   }
@@ -127,18 +130,21 @@ const ProductsGrid = ({
       showsVerticalScrollIndicator={false}
       scrollEnabled={scrollEnabled}
       ListEmptyComponent={NoProductsFound}
+      style={{ marginTop: 10 }}
     />
   );
 };
 
 export default ProductsGrid;
 
+
+// ...
 function NoProductsFound() {
   return (
-    <View className="py-20 items-center justify-center">
-      <Ionicons name="search-outline" size={48} color={"#666"} />
-      <Text className="text-text-primary font-semibold mt-4">No products found</Text>
-      <Text className="text-text-secondary text-sm mt-2">Try adjusting your filters</Text>
-    </View>
+    <EmptyUI
+      title="No products found"
+      subtitle="Try adjusting your filters or search for something else."
+      icon="search-outline"
+    />
   );
 }

@@ -42,6 +42,9 @@ export const getVendorProfile = catchAsync(async (req, res, next) => {
 });
 
 export const createVendorProduct = catchAsync(async (req, res, next) => {
+    console.log("createVendorProduct - Body:", req.body);
+    console.log("createVendorProduct - Files:", req.files);
+    console.log("createVendorProduct - User:", req.user._id);
     const { name, description, price, stock, category, shop, attributes } = req.body;
     const vendor = await Vendor.findOne({ owner: req.user._id });
 
@@ -54,10 +57,17 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
     }
 
     if (!req.files || req.files.length === 0) {
-        return next(new AppError("At least one image is required", 400));
+        // We need to check if main images are present, but since we use upload.any(), 
+        // req.files includes everything. We will filter later.
     }
 
-    const uploadPromises = req.files.map((file) => {
+    const productImages = req.files.filter(file => file.fieldname === "images");
+
+    if (productImages.length === 0) {
+        return next(new AppError("At least one product image is required", 400));
+    }
+
+    const uploadPromises = productImages.map((file) => {
         return cloudinary.uploader.upload(file.path, {
             folder: "products",
         });
@@ -65,6 +75,29 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
 
     const uploadResults = await Promise.all(uploadPromises);
     const imageUrls = uploadResults.map((result) => result.secure_url);
+
+    // Handle variant images
+    let parsedVariants = [];
+    if (req.body.variants) {
+        parsedVariants = Array.isArray(req.body.variants) ? req.body.variants : JSON.parse(req.body.variants);
+
+        // Upload variant images
+        const variantImagePromises = parsedVariants.map(async (variant, index) => {
+            const variantImageFile = req.files.find(
+                (file) => file.fieldname === `variant_image_${index}`
+            );
+
+            if (variantImageFile) {
+                const result = await cloudinary.uploader.upload(variantImageFile.path, {
+                    folder: "products/variants",
+                });
+                variant.image = result.secure_url;
+            }
+            return variant;
+        });
+
+        parsedVariants = await Promise.all(variantImagePromises);
+    }
 
     const product = await Product.create({
         name,
@@ -77,8 +110,9 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
         brand: req.body.brand,
         isSubsidy: req.body.isSubsidy === "true" || req.body.isSubsidy === true,
         soldCount: req.body.soldCount ? parseInt(req.body.soldCount) : 0,
-        attributes: attributes ? JSON.parse(attributes) : [],
+        attributes: attributes ? (Array.isArray(attributes) ? attributes : JSON.parse(attributes)) : [],
         images: imageUrls,
+        variants: parsedVariants,
         vendor: vendor._id,
         shop: shop || undefined,
     });
@@ -144,9 +178,31 @@ export const updateVendorProduct = catchAsync(async (req, res, next) => {
         brand,
         isSubsidy: isSubsidy !== undefined ? (isSubsidy === "true" || isSubsidy === true) : undefined,
         soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
-        attributes: attributes ? JSON.parse(attributes) : undefined,
+        attributes: attributes ? (Array.isArray(attributes) ? attributes : JSON.parse(attributes)) : undefined,
         shop: shop || undefined,
     };
+
+    // Handle variants update
+    if (req.body.variants) {
+        let parsedVariants = Array.isArray(req.body.variants) ? req.body.variants : JSON.parse(req.body.variants);
+
+        // Upload new variant images
+        const variantImagePromises = parsedVariants.map(async (variant, index) => {
+            const variantImageFile = req.files.find(
+                (file) => file.fieldname === `variant_image_${index}`
+            );
+
+            if (variantImageFile) {
+                const result = await cloudinary.uploader.upload(variantImageFile.path, {
+                    folder: "products/variants",
+                });
+                variant.image = result.secure_url;
+            }
+            return variant;
+        });
+
+        updateData.variants = await Promise.all(variantImagePromises);
+    }
 
     // Remove undefined fields
     Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
@@ -156,18 +212,22 @@ export const updateVendorProduct = catchAsync(async (req, res, next) => {
 
     // handle image updates
     if (req.files && req.files.length > 0) {
-        if (req.files.length > 3) {
-            return next(new AppError("Maximum 3 images allowed", 400));
-        }
+        const productImages = req.files.filter(file => file.fieldname === "images");
 
-        const uploadPromises = req.files.map((file) => {
-            return cloudinary.uploader.upload(file.path, {
-                folder: "products",
+        if (productImages.length > 0) {
+            if (productImages.length > 3) {
+                return next(new AppError("Maximum 3 images allowed", 400));
+            }
+
+            const uploadPromises = productImages.map((file) => {
+                return cloudinary.uploader.upload(file.path, {
+                    folder: "products",
+                });
             });
-        });
 
-        const uploadResults = await Promise.all(uploadPromises);
-        product.images = uploadResults.map((result) => result.secure_url);
+            const uploadResults = await Promise.all(uploadPromises);
+            product.images = uploadResults.map((result) => result.secure_url);
+        }
     }
 
     await product.save();
@@ -208,4 +268,30 @@ export const vendorSearch = catchAsync(async (req, res, next) => {
         products,
         orders: orders.filter((o) => o !== null),
     });
+});
+
+export const getPublicVendorProfile = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const vendor = await Vendor.findById(id).populate("owner", "firstName lastName imageUrl avatar");
+
+    if (!vendor) {
+        return next(new AppError("Vendor not found", 404));
+    }
+
+    // Only return public info
+    const publicProfile = {
+        _id: vendor._id,
+        shopName: vendor.shopName,
+        description: vendor.description,
+        logoUrl: vendor.logoUrl || "https://ui-avatars.com/api/?name=" + vendor.shopName,
+        owner: {
+            name: `${vendor.owner.firstName} ${vendor.owner.lastName}`,
+            avatar: vendor.owner.imageUrl || vendor.owner.avatar
+        },
+        bannerUrl: vendor.bannerUrl, // Assuming we might add this later or if it exists
+        rating: 4.5, // Placeholder or calculate real rating
+        joinedAt: vendor.createdAt
+    };
+
+    res.status(200).json(publicProfile);
 });

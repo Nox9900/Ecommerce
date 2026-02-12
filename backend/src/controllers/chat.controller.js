@@ -5,26 +5,98 @@ import { Vendor } from "../models/vendor.model.js";
 import cloudinary from "../config/cloudinary.js";
 import { catchAsync } from "../lib/catchAsync.js";
 import AppError from "../lib/AppError.js";
+import {
+    parsePaginationParams,
+    selectFields,
+} from "../utils/queryOptimization.js";
 
 export const getConversations = catchAsync(async (req, res, next) => {
     const user = req.user;
+    const { page, limit, skip } = parsePaginationParams({ ...req.query, limit: req.query.limit || 50 });
 
-    const conversations = await Conversation.find({
-        participants: user._id,
-    })
-        .populate("participants", "name email avatar role clerkId")
-        .sort({ updatedAt: -1 });
+    const [conversations, totalCount] = await Promise.all([
+        Conversation.find({
+            participants: user._id,
+        })
+            .populate(selectFields("participants", "name email avatar role clerkId _id"))
+            .sort({ updatedAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Conversation.countDocuments({ participants: user._id }),
+    ]);
 
-    res.status(200).json(conversations);
+    res.status(200).json({
+        conversations,
+        total: totalCount,
+        page: parseInt(page),
+        pages: Math.ceil(totalCount / limit),
+    });
 });
 
 export const getMessages = catchAsync(async (req, res, next) => {
     const { conversationId } = req.params;
-    const messages = await Message.find({ conversationId })
-        .populate("sender", "name email avatar clerkId")
-        .sort({ createdAt: 1 });
+    const { page, limit, skip } = parsePaginationParams({ ...req.query, limit: req.query.limit || 50 });
 
-    res.status(200).json(messages);
+    const [messages, totalCount] = await Promise.all([
+        Message.find({ conversationId })
+            .populate(selectFields("sender", "name email avatar clerkId _id"))
+            .sort({ createdAt: 1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Message.countDocuments({ conversationId }),
+    ]);
+
+    res.status(200).json({
+        messages,
+        total: totalCount,
+        page: parseInt(page),
+        pages: Math.ceil(totalCount / limit),
+    });
+});
+
+export const getUnreadCount = catchAsync(async (req, res, next) => {
+    const user = req.user;
+
+    // Get all conversations for the user
+    const conversations = await Conversation.find({
+        participants: user._id,
+    }).select('_id').lean();
+
+    const conversationIds = conversations.map(c => c._id);
+
+    // Count messages in these conversations where user is NOT in readBy
+    const unreadCount = await Message.countDocuments({
+        conversationId: { $in: conversationIds },
+        sender: { $ne: user._id }, // Don't count user's own messages
+        readBy: { $ne: user._id }, // User is not in readBy array
+    });
+
+    res.status(200).json({
+        count: unreadCount,
+    });
+    res.status(200).json({
+        count: unreadCount,
+    });
+});
+
+export const markConversationAsRead = catchAsync(async (req, res, next) => {
+    const { conversationId } = req.params;
+    const user = req.user;
+
+    await Message.updateMany(
+        {
+            conversationId,
+            sender: { $ne: user._id },
+            readBy: { $ne: user._id },
+        },
+        {
+            $addToSet: { readBy: user._id },
+        }
+    );
+
+    res.status(200).json({ status: "success" });
 });
 
 export const startConversation = catchAsync(async (req, res, next) => {
@@ -127,9 +199,13 @@ export const sendMessage = catchAsync(async (req, res, next) => {
         if (otherParticipants) {
             const recipients = otherParticipants.participants.filter((p) => p.toString() !== user._id.toString());
             const Notification = (await import("../models/notification.model.js")).Notification;
+            const { sendMessageNotification } = await import("../services/pushNotification.service.js");
 
             for (const recipientId of recipients) {
                 try {
+                    const recipientUser = await User.findById(recipientId);
+
+                    // Create in-app notification
                     const notification = await Notification.create({
                         recipient: recipientId,
                         type: "message",
@@ -137,9 +213,20 @@ export const sendMessage = catchAsync(async (req, res, next) => {
                         body: content || "Sent an attachment",
                         data: { conversationId: conversationId },
                     });
+
                     io.to(recipientId.toString()).emit("notification:new", notification);
+
+                    // Send push notification
+                    if (recipientUser) {
+                        await sendMessageNotification(
+                            recipientUser,
+                            user.name,
+                            content || "Sent an attachment",
+                            conversationId
+                        );
+                    }
                 } catch (err) {
-                    console.error("Failed to notifiy recipient", err);
+                    console.error("Failed to notify recipient", err);
                 }
             }
         }

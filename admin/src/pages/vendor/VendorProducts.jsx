@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
+import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon, CheckSquare, Square } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api"; // Reuse productApi for delete/update if needed, or vendorApi for isolation
+import { vendorApi, productApi, mobileApi, shopApi } from "../../lib/api";
 import { getStockStatusBadge } from "../../lib/utils";
 import toast from "react-hot-toast";
+import { CardSkeleton } from "../../components/common/Skeleton";
+import EmptyState from "../../components/common/EmptyState";
+import { PackageOpenIcon } from "lucide-react";
 
 function VendorProducts() {
     const [searchParams] = useSearchParams();
@@ -29,6 +32,11 @@ function VendorProducts() {
     const [images, setImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
 
+    // Bulk operations state
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [showBulkStockModal, setShowBulkStockModal] = useState(false);
+    const [bulkStockValue, setBulkStockValue] = useState("");
+
     const queryClient = useQueryClient();
 
     const { data: products = [], isLoading } = useQuery({
@@ -45,6 +53,66 @@ function VendorProducts() {
         queryKey: ["vendor-shops"],
         queryFn: shopApi.getVendorShops,
     });
+
+    const [variants, setVariants] = useState([]);
+
+    // Generate variants when attributes change
+    const generateVariants = () => {
+        // Filter out empty attributes and values
+        const validAttributes = attributes
+            .map(attr => ({
+                ...attr,
+                values: attr.values.filter(v => v && v.trim() !== "")
+            }))
+            .filter(attr => attr.name && attr.name.trim() !== "" && attr.values.length > 0);
+
+        if (validAttributes.length === 0) {
+            toast.error("Add at least one attribute with values first");
+            return;
+        }
+
+        const cartesian = (...arrays) => {
+            return arrays.reduce((acc, curr) => {
+                return acc.flatMap(d => curr.map(e => [...(Array.isArray(d) ? d : [d]), e]));
+            });
+        };
+
+        const attrValues = validAttributes.map(attr => attr.values);
+        let combinations = [];
+
+        if (attrValues.length === 1) {
+            combinations = attrValues[0].map(v => [v]);
+        } else {
+            combinations = cartesian(...attrValues);
+        }
+
+        const newVariants = combinations.map(combo => {
+            const options = {};
+            validAttributes.forEach((attr, index) => {
+                options[attr.name] = combo[index];
+            });
+
+            // Check if this variant already exists to preserve its data/image
+            const existingVariant = variants.find(v =>
+                JSON.stringify(v.options) === JSON.stringify(options)
+            );
+
+            if (existingVariant) return existingVariant;
+
+            return {
+                name: combo.join(" / "),
+                options,
+                price: parseFloat(formData.price) || 0,
+                stock: parseInt(formData.stock) || 0,
+                sku: "",
+                image: "",
+                imageFile: null
+            };
+        });
+
+        setVariants(newVariants);
+        toast.success(`Generated ${newVariants.length} variants`);
+    };
 
     const createProductMutation = useMutation({
         mutationFn: vendorApi.createProduct,
@@ -75,6 +143,33 @@ function VendorProducts() {
         onError: (error) => toast.error(error.response?.data?.message || "Failed to delete product"),
     });
 
+    // Bulk operations mutations
+    const bulkDeleteMutation = useMutation({
+        mutationFn: vendorApi.bulkDelete,
+        onSuccess: (data) => {
+            toast.success(data.message || "Products deleted successfully");
+            setSelectedProducts([]);
+            queryClient.invalidateQueries({ queryKey: ["vendor-products"] });
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to delete products");
+        },
+    });
+
+    const bulkUpdateStockMutation = useMutation({
+        mutationFn: ({ productIds, stock }) => vendorApi.bulkUpdateStock(productIds, stock),
+        onSuccess: (data) => {
+            toast.success(data.message || "Stock updated successfully");
+            setSelectedProducts([]);
+            setShowBulkStockModal(false);
+            setBulkStockValue("");
+            queryClient.invalidateQueries({ queryKey: ["vendor-products"] });
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to update stock");
+        },
+    });
+
     const closeModal = () => {
         setShowModal(false);
         setEditingProduct(null);
@@ -92,6 +187,7 @@ function VendorProducts() {
             shop: "",
         });
         setAttributes([]);
+        setVariants([]);
         setImages([]);
         setImagePreviews([]);
     };
@@ -111,7 +207,9 @@ function VendorProducts() {
             description: product.description,
             shop: product.shop?._id || product.shop || "",
         });
+
         setAttributes(product.attributes || []);
+        setVariants(product.variants || []);
         setImagePreviews(product.images);
         setShowModal(true);
     };
@@ -138,13 +236,70 @@ function VendorProducts() {
         data.append("soldCount", formData.soldCount);
         data.append("shop", formData.shop);
         data.append("attributes", JSON.stringify(attributes.filter(attr => attr.name && attr.values.length > 0)));
+        data.append("variants", JSON.stringify(variants));
+
         images.forEach(image => data.append("images", image));
+
+        // Append variant images from state/refs (needs a way to store them)
+        // Ideally we store files in `variants` state but File objects don't JSON stringify well for the `variants` field.
+        // So we append them separately.
+        variants.forEach((variant, index) => {
+            if (variant.imageFile) {
+                data.append(`variant_image_${index}`, variant.imageFile);
+            }
+        });
 
         if (editingProduct) {
             updateProductMutation.mutate({ id: editingProduct._id, formData: data });
         } else {
             createProductMutation.mutate(data);
         }
+    };
+
+    // Bulk operations handlers
+    const handleSelectProduct = (productId) => {
+        setSelectedProducts((prev) =>
+            prev.includes(productId)
+                ? prev.filter((id) => id !== productId)
+                : [...prev, productId]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedProducts.length === products.length) {
+            setSelectedProducts([]);
+        } else {
+            setSelectedProducts(products.map((p) => p._id));
+        }
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedProducts.length === 0) {
+            toast.error("Please select at least one product");
+            return;
+        }
+
+        if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} product(s)?`)) {
+            bulkDeleteMutation.mutate(selectedProducts);
+        }
+    };
+
+    const handleBulkUpdateStock = () => {
+        if (selectedProducts.length === 0) {
+            toast.error("Please select at least one product");
+            return;
+        }
+        setShowBulkStockModal(true);
+    };
+
+    const handleBulkStockSubmit = () => {
+        const stockNum = parseInt(bulkStockValue);
+        if (isNaN(stockNum) || stockNum < 0) {
+            toast.error("Please enter a valid stock number");
+            return;
+        }
+
+        bulkUpdateStockMutation.mutate({ productIds: selectedProducts, stock: stockNum });
     };
 
     return (
@@ -159,13 +314,80 @@ function VendorProducts() {
                 </button>
             </div>
 
+            {/* BULK ACTIONS TOOLBAR */}
+            {selectedProducts.length > 0 && (
+                <div className="alert bg-primary/10 border-primary/20">
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleSelectAll}
+                                className="btn btn-sm btn-ghost gap-2"
+                            >
+                                {selectedProducts.length === products.length ? (
+                                    <CheckSquare className="w-5 h-5" />
+                                ) : (
+                                    <Square className="w-5 h-5" />
+                                )}
+                                {selectedProducts.length === products.length ? "Deselect All" : "Select All"}
+                            </button>
+                            <span className="font-medium">
+                                {selectedProducts.length} product(s) selected
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleBulkUpdateStock}
+                                className="btn btn-sm btn-info gap-2"
+                                disabled={bulkUpdateStockMutation.isPending}
+                            >
+                                {bulkUpdateStockMutation.isPending ? (
+                                    <span className="loading loading-spinner loading-sm"></span>
+                                ) : (
+                                    "Update Stock"
+                                )}
+                            </button>
+                            <button
+                                onClick={handleBulkDelete}
+                                className="btn btn-sm btn-error gap-2"
+                                disabled={bulkDeleteMutation.isPending}
+                            >
+                                {bulkDeleteMutation.isPending ? (
+                                    <span className="loading loading-spinner loading-sm"></span>
+                                ) : (
+                                    <>
+                                        <Trash2Icon className="w-4 h-4" />
+                                        Delete Selected
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 gap-4">
                 {isLoading ? (
-                    <div className="flex justify-center p-10"><span className="loading loading-spinner loading-lg"></span></div>
+                    <>
+                        <CardSkeleton />
+                        <CardSkeleton />
+                        <CardSkeleton />
+                    </>
                 ) : (
                     products.map((product) => (
                         <div key={product._id} className="card bg-base-100 shadow-sm border border-base-200">
                             <div className="card-body p-4 flex-row items-center gap-6">
+                                {/* Checkbox for selection */}
+                                <div className="form-control">
+                                    <label className="cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="checkbox checkbox-primary"
+                                            checked={selectedProducts.includes(product._id)}
+                                            onChange={() => handleSelectProduct(product._id)}
+                                        />
+                                    </label>
+                                </div>
+
                                 <div className="avatar">
                                     <div className="w-20 rounded-xl">
                                         <img src={product.images[0]} alt={product.name} />
@@ -207,7 +429,13 @@ function VendorProducts() {
                     ))
                 )}
                 {!isLoading && products.length === 0 && (
-                    <div className="text-center p-10 opacity-50">No products found. Start by adding one!</div>
+                    <EmptyState
+                        title="No products found"
+                        description={q ? `We couldn't find any products matching "${q}".` : "Your shop inventory is currently empty. Start by adding your first product!"}
+                        icon={PackageOpenIcon}
+                        buttonText={q ? null : "Add Product"}
+                        onButtonClick={q ? null : () => setShowModal(true)}
+                    />
                 )}
             </div>
 
@@ -362,8 +590,9 @@ function VendorProducts() {
                                                     className="input input-sm input-bordered w-full font-semibold"
                                                     value={attr.name}
                                                     onChange={(e) => {
-                                                        const newAttrs = [...attributes];
-                                                        newAttrs[attrIndex].name = e.target.value;
+                                                        const newAttrs = attributes.map((a, i) =>
+                                                            i === attrIndex ? { ...a, name: e.target.value } : a
+                                                        );
                                                         setAttributes(newAttrs);
                                                     }}
                                                 />
@@ -377,19 +606,28 @@ function VendorProducts() {
                                                                 className="input input-xs input-bordered w-24"
                                                                 value={val}
                                                                 onChange={(e) => {
-                                                                    const newAttrs = [...attributes];
-                                                                    newAttrs[attrIndex].values[valIndex] = e.target.value;
+                                                                    const newAttrs = attributes.map((a, i) => {
+                                                                        if (i === attrIndex) {
+                                                                            const newVals = [...a.values];
+                                                                            newVals[valIndex] = e.target.value;
+                                                                            return { ...a, values: newVals };
+                                                                        }
+                                                                        return a;
+                                                                    });
                                                                     setAttributes(newAttrs);
                                                                 }}
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    const newAttrs = [...attributes];
-                                                                    newAttrs[attrIndex].values = attr.values.filter((_, i) => i !== valIndex);
-                                                                    if (newAttrs[attrIndex].values.length === 0) {
-                                                                        newAttrs[attrIndex].values = [""];
-                                                                    }
+                                                                    const newAttrs = attributes.map((a, i) => {
+                                                                        if (i === attrIndex) {
+                                                                            let newVals = a.values.filter((_, j) => j !== valIndex);
+                                                                            if (newVals.length === 0) newVals = [""];
+                                                                            return { ...a, values: newVals };
+                                                                        }
+                                                                        return a;
+                                                                    });
                                                                     setAttributes(newAttrs);
                                                                 }}
                                                                 className="btn btn-xs btn-circle btn-ghost text-error"
@@ -401,8 +639,12 @@ function VendorProducts() {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const newAttrs = [...attributes];
-                                                            newAttrs[attrIndex].values.push("");
+                                                            const newAttrs = attributes.map((a, i) => {
+                                                                if (i === attrIndex) {
+                                                                    return { ...a, values: [...a.values, ""] };
+                                                                }
+                                                                return a;
+                                                            });
                                                             setAttributes(newAttrs);
                                                         }}
                                                         className="btn btn-xs btn-ghost btn-circle"
@@ -419,6 +661,107 @@ function VendorProducts() {
                                 </div>
                             </div>
 
+                            {/* VARIANTS SECTION */}
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text font-semibold flex items-center justify-between w-full">
+                                        Variants
+                                        <button
+                                            type="button"
+                                            onClick={generateVariants}
+                                            className="btn btn-xs btn-outline btn-secondary ml-2"
+                                        >
+                                            Generate / Refresh Variants
+                                        </button>
+                                    </span>
+                                </label>
+
+                                <div className="space-y-4 bg-base-200 p-4 rounded-xl max-h-96 overflow-y-auto">
+                                    {variants.length === 0 && (
+                                        <p className="text-center text-xs opacity-50 italic">
+                                            Add attributes above and click "Generate" to create variants.
+                                        </p>
+                                    )}
+
+                                    {variants.map((variant, index) => (
+                                        <div key={index} className="bg-base-100 p-4 rounded-lg flex flex-col gap-3">
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="font-bold text-sm bg-base-200 px-2 py-1 rounded">
+                                                    {Object.values(variant.options).join(" / ")}
+                                                </h4>
+
+                                                {/* Variant Image Upload */}
+                                                <div className="flex items-center gap-2">
+                                                    {(variant.image || variant.imagePreview) && (
+                                                        <div className="avatar">
+                                                            <div className="w-8 h-8 rounded">
+                                                                <img src={variant.imagePreview || variant.image} alt="Variant" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        className="file-input file-input-bordered file-input-xs w-full max-w-xs"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                const newVariants = [...variants];
+                                                                newVariants[index].imageFile = file;
+                                                                newVariants[index].imagePreview = URL.createObjectURL(file);
+                                                                setVariants(newVariants);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div className="form-control">
+                                                    <label className="label py-0"><span className="label-text-alt">Price</span></label>
+                                                    <input
+                                                        type="number"
+                                                        className="input input-sm input-bordered"
+                                                        value={variant.price}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].price = parseFloat(e.target.value);
+                                                            setVariants(newVariants);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label py-0"><span className="label-text-alt">Stock</span></label>
+                                                    <input
+                                                        type="number"
+                                                        className="input input-sm input-bordered"
+                                                        value={variant.stock}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].stock = parseInt(e.target.value);
+                                                            setVariants(newVariants);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="form-control">
+                                                    <label className="label py-0"><span className="label-text-alt">SKU</span></label>
+                                                    <input
+                                                        type="text"
+                                                        className="input input-sm input-bordered"
+                                                        value={variant.sku || ""}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].sku = e.target.value;
+                                                            setVariants(newVariants);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <input type="file" multiple className="file-input file-input-bordered w-full" onChange={handleImageChange} />
                             <div className="modal-action">
                                 <button type="button" className="btn" onClick={closeModal} disabled={createProductMutation.isPending || updateProductMutation.isPending}>Cancel</button>
@@ -431,6 +774,59 @@ function VendorProducts() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* BULK STOCK UPDATE MODAL */}
+            {showBulkStockModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Update Stock for Selected Products</h3>
+                        <p className="text-sm text-base-content/70 mb-4">
+                            Updating stock for {selectedProducts.length} product(s). Enter the new stock value:
+                        </p>
+
+                        <div className="form-control">
+                            <label className="label">
+                                <span>New Stock Value</span>
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="Enter stock quantity"
+                                className="input input-bordered w-full"
+                                value={bulkStockValue}
+                                onChange={(e) => setBulkStockValue(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="modal-action">
+                            <button
+                                type="button"
+                                className="btn"
+                                onClick={() => {
+                                    setShowBulkStockModal(false);
+                                    setBulkStockValue("");
+                                }}
+                                disabled={bulkUpdateStockMutation.isPending}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={handleBulkStockSubmit}
+                                disabled={bulkUpdateStockMutation.isPending || !bulkStockValue}
+                            >
+                                {bulkUpdateStockMutation.isPending ? (
+                                    <span className="loading loading-spinner"></span>
+                                ) : (
+                                    "Update Stock"
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

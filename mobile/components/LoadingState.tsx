@@ -1,4 +1,5 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator } from "react-native";
+import { AppText } from "./ui/AppText";
 
 interface LoadingStateProps {
   message?: string;
@@ -9,7 +10,7 @@ const LoadingState = ({ message = "Loading...", color = "#00D9FF" }: LoadingStat
   return (
     <View className="flex-1 bg-background items-center justify-center">
       <ActivityIndicator size={"large"} color={color} />
-      <Text className="text-text-secondary mt-4">{message}</Text>
+      <AppText className="text-text-secondary mt-4">{message}</AppText>
     </View>
   );
 };

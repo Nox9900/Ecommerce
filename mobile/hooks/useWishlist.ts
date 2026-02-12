@@ -7,14 +7,18 @@ const useWishlist = () => {
   const queryClient = useQueryClient();
 
   const {
-    data: wishlist,
+    data: wishlistData,
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["wishlist"],
     queryFn: async () => {
-      const { data } = await api.get<{ wishlist: Product[] }>("/users/wishlist");
-      return data.wishlist;
+      const { data } = await api.get<{
+        wishlist: Product[];
+        isWishlistPublic: boolean;
+        wishlistToken: string;
+      }>("/users/wishlist");
+      return data;
     },
   });
 
@@ -35,7 +39,7 @@ const useWishlist = () => {
   });
 
   const isInWishlist = (productId: string) => {
-    return wishlist?.some((product) => product._id === productId) ?? false;
+    return wishlistData?.wishlist?.some((product) => product._id === productId) ?? false;
   };
 
   const toggleWishlist = (productId: string) => {
@@ -47,10 +51,12 @@ const useWishlist = () => {
   };
 
   return {
-    wishlist: wishlist || [],
+    wishlist: wishlistData?.wishlist || [],
+    isWishlistPublic: wishlistData?.isWishlistPublic || false,
+    wishlistToken: wishlistData?.wishlistToken || "",
     isLoading,
     isError,
-    wishlistCount: wishlist?.length || 0,
+    wishlistCount: wishlistData?.wishlist?.length || 0,
     isInWishlist,
     toggleWishlist,
     addToWishlist: addToWishlistMutation.mutate,
@@ -58,6 +64,41 @@ const useWishlist = () => {
     isAddingToWishlist: addToWishlistMutation.isPending,
     isRemovingFromWishlist: removeFromWishlistMutation.isPending,
   };
+};
+
+export const useShareWishlist = () => {
+  const api = useApi();
+  const queryClient = useQueryClient();
+
+  const shareWishlistMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.put<{ isWishlistPublic: boolean; wishlistToken: string }>(
+        "/users/wishlist/share"
+      );
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
+  });
+
+  return {
+    toggleShare: shareWishlistMutation.mutate,
+    isTogglingShare: shareWishlistMutation.isPending,
+  };
+};
+
+export const usePublicWishlist = (token: string) => {
+  const api = useApi();
+
+  return useQuery({
+    queryKey: ["public-wishlist", token],
+    queryFn: async () => {
+      const { data } = await api.get<{ wishlist: Product[]; ownerName: string }>(
+        `/users/wishlist/share/${token}`
+      );
+      return data;
+    },
+    enabled: !!token,
+  });
 };
 
 export default useWishlist;

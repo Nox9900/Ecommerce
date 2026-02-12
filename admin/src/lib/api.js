@@ -20,6 +20,17 @@ export const productApi = {
     const { data } = await axiosInstance.delete(`/admin/products/${productId}`);
     return data;
   },
+
+  bulkDelete: async (productIds) => {
+    const { data } = await axiosInstance.post("/admin/products/bulk-delete", { productIds });
+    return data;
+  },
+
+  bulkUpdateStock: async (productIds, stock) => {
+    const { data } = await axiosInstance.post("/admin/products/bulk-update-stock", { productIds, stock });
+    return data;
+  },
+
   getAllShops: async () => {
     const { data } = await axiosInstance.get("/admin/shops");
     return data;
@@ -126,6 +137,17 @@ export const vendorApi = {
     const { data } = await axiosInstance.put(`/vendors/products/${id}`, formData);
     return data;
   },
+
+  bulkDelete: async (productIds) => {
+    const { data } = await axiosInstance.post("/vendors/products/bulk-delete", { productIds });
+    return data;
+  },
+
+  bulkUpdateStock: async (productIds, stock) => {
+    const { data } = await axiosInstance.post("/vendors/products/bulk-update-stock", { productIds, stock });
+    return data;
+  },
+
   search: async (q) => {
     const { data } = await axiosInstance.get(`/vendors/search?q=${q}`);
     return data;
@@ -158,11 +180,11 @@ export const shopApi = {
 export const chatApi = {
   getConversations: async () => {
     const { data } = await axiosInstance.get("/chats");
-    return data;
+    return data.conversations || [];
   },
   getMessages: async (conversationId) => {
     const { data } = await axiosInstance.get(`/chats/${conversationId}/messages`);
-    return data;
+    return data.messages || [];
   },
   sendMessage: async (messageData) => {
     const { data } = await axiosInstance.post("/chats/message", messageData);

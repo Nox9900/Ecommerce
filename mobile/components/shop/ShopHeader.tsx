@@ -5,6 +5,7 @@ import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { useNotifications } from "@/context/NotificationContext";
+import { AppText } from "../ui/AppText";
 
 interface ShopHeaderProps {
     searchQuery?: string;
@@ -43,9 +44,9 @@ export default function ShopHeader({
                             className="flex-1 flex-row items-center bg-gray-100 dark:bg-white/10 rounded-full h-10 px-3"
                         >
                             <Ionicons name="search-outline" size={20} color="#9CA3AF" />
-                            <Text className="flex-1 ml-2 text-base text-text-primary" numberOfLines={1}>
+                            <AppText className="flex-1 ml-2 text-base text-text-primary" numberOfLines={1}>
                                 {searchQuery}
-                            </Text>
+                            </AppText>
                             {/* We keep the Close button as a separate touchable to avoid navigating when clearing */}
                         </TouchableOpacity>
 
@@ -89,8 +90,8 @@ export default function ShopHeader({
                             >
                                 <Ionicons name="notifications-outline" size={22} className="text-text-primary" />
                                 {unreadCount > 0 && (
-                                    <View className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full items-center justify-center border border-white dark:border-black">
-                                        <Text className="text-[9px] text-white font-bold">{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                                    <View className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full items-center justify-center border-2 border-white dark:border-background px-1">
+                                        <AppText className="text-[10px] text-white font-extrabold leading-none">{unreadCount > 99 ? '99+' : unreadCount}</AppText>
                                     </View>
                                 )}
                             </TouchableOpacity>

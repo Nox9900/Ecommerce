@@ -1,7 +1,9 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import usePromoBanners from "@/hooks/usePromoBanners";
+import { AppText } from "../ui/AppText";
+import { OptimizedImage } from "../common/OptimizedImage";
 
 export default function PromoBanners() {
     const { theme } = useTheme();
@@ -30,27 +32,29 @@ export default function PromoBanners() {
                     >
                         <View className="flex-row items-center gap-1 mb-1">
                             {isSubsidy ? (
-                                <Text className="text-red-500 font-black italic text-lg">{banner.title}</Text>
+                                <AppText className="text-red-500 font-black italic text-lg">{banner.title}</AppText>
                             ) : (
                                 <>
                                     <Ionicons name={iconName as any} size={18} color={iconColor} />
-                                    <Text className="text-green-600 font-bold text-lg">{banner.title}</Text>
+                                    <AppText className="text-green-600 font-bold text-lg">{banner.title}</AppText>
                                 </>
                             )}
                         </View>
                         <View className="flex-row items-center gap-1">
                             {isSubsidy && <Ionicons name={iconName as any} size={14} color={iconColor} />}
-                            <Text className={`${isSubsidy ? 'text-orange-500' : 'text-green-500 text-opacity-80'} text-xs font-bold`}>
+                            <AppText className={`${isSubsidy ? 'text-orange-500' : 'text-green-500 text-opacity-80'} text-xs font-bold`}>
                                 {banner.label}
-                            </Text>
+                            </AppText>
                         </View>
                         <View className="flex-row mt-3 justify-between items-end">
-                            <Image
-                                source={{ uri: banner.imageUrl }}
-                                className="w-12 h-12 bg-gray-200 rounded-md"
-                                resizeMode="cover"
+                            <OptimizedImage
+                                source={banner.imageUrl}
+                                width={96} // 48px * 2
+                                height={96}
+                                className="w-12 h-12"
+                                contentFit="cover"
                             />
-                            <Text className="text-red-600 font-bold text-lg">{banner.price}</Text>
+                            <AppText className="text-red-600 font-bold text-lg">{banner.price}</AppText>
                         </View>
                     </TouchableOpacity>
                 );

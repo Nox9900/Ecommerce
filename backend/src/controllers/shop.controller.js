@@ -4,6 +4,10 @@ import { Vendor } from "../models/vendor.model.js";
 import { Product } from "../models/product.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
+import {
+    parsePaginationParams,
+    selectFields,
+} from "../utils/queryOptimization.js";
 
 export const createShop = catchAsync(async (req, res, next) => {
     const { name, description } = req.body;
@@ -69,27 +73,49 @@ export const getVendorShops = catchAsync(async (req, res, next) => {
         ];
     }
 
-    const shops = await Shop.find(query).sort({ createdAt: -1 });
+    // Use lean for read-only data
+    const shops = await Shop.find(query).sort({ createdAt: -1 }).lean();
     res.status(200).json(shops);
 });
 
 export const getShopById = catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const shop = await Shop.findById(id).populate("vendor", "shopName logoUrl");
+    const { page, limit, skip } = parsePaginationParams({ ...req.query, limit: req.query.limit || 20 });
+
+    const shop = await Shop.findById(id)
+        .populate(selectFields("vendor", "shopName logoUrl _id"))
+        .lean();
+
     if (!shop) return next(new AppError("Shop not found", 404));
 
-    const products = await Product.find({ shop: id }).sort({ createdAt: -1 });
+    // Paginate products
+    const [products, totalCount] = await Promise.all([
+        Product.find({ shop: id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Product.countDocuments({ shop: id }),
+    ]);
 
-    res.status(200).json({ shop, products });
+    res.status(200).json({
+        shop,
+        products,
+        total: totalCount,
+        page: parseInt(page),
+        pages: Math.ceil(totalCount / limit),
+    });
 });
 
 export const getRandomShops = catchAsync(async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 5;
     const shops = await Shop.aggregate([{ $sample: { size: limit } }]);
 
-    // Populate vendor info after aggregation if needed, but aggregate sample doesn't support easy populate.
-    // We can do it manually or use $lookup. For simplicity:
-    const populatedShops = await Shop.populate(shops, { path: "vendor", select: "shopName logoUrl" });
+    // Populate vendor info after aggregation
+    const populatedShops = await Shop.populate(shops, {
+        path: "vendor",
+        select: "shopName logoUrl _id"
+    });
 
     res.status(200).json(populatedShops);
 });

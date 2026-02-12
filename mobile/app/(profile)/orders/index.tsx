@@ -8,7 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -110,24 +111,24 @@ function OrdersScreen() {
                       {/* BADGE FOR MORE ITEMS */}
                       {order.orderItems.length > 1 && (
                         <View className="absolute -bottom-2 -right-2 bg-primary rounded-full size-8 items-center justify-center border-4 border-background shadow-md">
-                          <Text className="text-white text-xs font-black">
+                          <AppText className="text-white text-xs font-black">
                             +{order.orderItems.length - 1}
-                          </Text>
+                          </AppText>
                         </View>
                       )}
                     </View>
 
                     <View className="flex-1 ml-5 pt-1">
                       <View className="flex-row items-center justify-between mb-1">
-                        <Text className="text-text-primary font-bold text-lg">
+                        <AppText className="text-text-primary font-bold text-lg">
                           #{order._id.slice(-8).toUpperCase()}
-                        </Text>
+                        </AppText>
                         <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
                       </View>
 
-                      <Text className="text-text-tertiary text-xs font-bold uppercase tracking-widest mb-3">
+                      <AppText className="text-text-tertiary text-xs font-bold uppercase tracking-widest mb-3">
                         {formatDate(order.createdAt)}
-                      </Text>
+                      </AppText>
 
                       <View className="flex-row items-center gap-2 mb-2">
                         <View
@@ -137,20 +138,20 @@ function OrdersScreen() {
                             borderColor: getStatusColor(order.status) + "30"
                           }}
                         >
-                          <Text
+                          <AppText
                             className="text-[10px] font-black uppercase tracking-wider"
                             style={{ color: getStatusColor(order.status) }}
                           >
                             {order.status}
-                          </Text>
+                          </AppText>
                         </View>
                       </View>
 
                       <View className="flex-row items-baseline gap-1">
-                        <Text className="text-text-tertiary text-xs font-bold">{totalItems} {totalItems === 1 ? 'Item' : 'Items'} • </Text>
-                        <Text className="text-text-primary font-black text-lg -mb-0.5">
-                          <Text className="text-primary text-sm">$</Text>{order.totalPrice.toFixed(2)}
-                        </Text>
+                        <AppText className="text-text-tertiary text-xs font-bold">{totalItems} {totalItems === 1 ? 'Item' : 'Items'} • </AppText>
+                        <AppText className="text-text-primary font-black text-lg -mb-0.5">
+                          <AppText className="text-primary text-sm">$</AppText>{order.totalPrice.toFixed(2)}
+                        </AppText>
                       </View>
                     </View>
                   </TouchableOpacity>

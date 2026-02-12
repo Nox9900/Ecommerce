@@ -2,12 +2,14 @@ import SafeScreen from "@/components/SafeScreen";
 import { useAddresses } from "@/hooks/useAddressess";
 import useCart from "@/hooks/useCart";
 import { useApi } from "@/lib/api";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, RefreshControl } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, Text, View, RefreshControl } from "react-native";
+import EmptyUI from "@/components/ui/Empty";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useState } from "react";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import OrderSummary from "@/components/OrderSummary";
 import CouponInput from "@/components/CouponInput";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
@@ -15,12 +17,14 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/useTheme";
 import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { AppText } from "@/components/ui/AppText";
 
 import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const {
     cart,
     cartItemCount,
@@ -180,12 +184,24 @@ const CartScreen = () => {
 
   if (isLoading) return <LoadingUI />;
   if (isError) return <ErrorUI />;
-  if (cartItems.length === 0) return <EmptyUI />;
+  if (cartItems.length === 0) {
+    return (
+      <SafeScreen>
+        <EmptyUI
+          title={t('cart.empty_title')}
+          subtitle={t('cart.empty_desc')}
+          buttonTitle={t('cart.start_shopping')}
+          buttonAction={() => router.push("/(tabs)")}
+          icon="bag-handle-outline"
+        />
+      </SafeScreen>
+    );
+  }
 
   return (
     <SafeScreen>
       <AnimatedContainer animation="fadeDown">
-        <Text className="pt-4 px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">{t('tabs.cart')}</Text>
+        <Text className="pt-4 px-6 pb-5 text-text-primary text-2xl font-bold tracking-tight">{t('tabs.cart')}</Text>
       </AnimatedContainer>
 
       <ScrollView
@@ -217,19 +233,19 @@ const CartScreen = () => {
 
                   <View className="flex-1 ml-4 justify-between">
                     <View>
-                      <Text
+                      <AppText
                         className="text-text-primary font-bold text-lg leading-tight"
                         numberOfLines={2}
                       >
                         {t('db.' + item.product.name, { defaultValue: item.product.name })}
-                      </Text>
+                      </AppText>
                       {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
                         <View className="flex-row flex-wrap gap-2 mt-1">
                           {Object.entries(item.selectedOptions).map(([key, value]) => (
                             <View key={key} className="bg-background-lighter px-2 py-0.5 rounded-md">
-                              <Text className="text-[10px] text-text-secondary uppercase font-bold">
-                                {key}: <Text className="text-text-primary capitalize">{value}</Text>
-                              </Text>
+                              <AppText className="text-[10px] text-text-secondary uppercase font-bold">
+                                {key}: <AppText className="text-text-primary capitalize">{value}</AppText>
+                              </AppText>
                             </View>
                           ))}
                         </View>
@@ -241,12 +257,12 @@ const CartScreen = () => {
                             item.product.price;
                           return (
                             <>
-                              <Text className="text-primary font-bold text-2xl">
+                              <AppText className="text-primary font-bold text-2xl">
                                 ${(itemPrice * item.quantity).toFixed(2)}
-                              </Text>
-                              <Text className="text-text-secondary text-sm ml-2">
+                              </AppText>
+                              <AppText className="text-text-secondary text-sm ml-2">
                                 ${itemPrice.toFixed(2)} {t('common.item')}
-                              </Text>
+                              </AppText>
                             </>
                           );
                         })()}
@@ -269,7 +285,7 @@ const CartScreen = () => {
                         </TouchableOpacity>
 
                         <View className="mx-3 min-w-[24px] items-center">
-                          <Text className="text-text-primary font-bold text-base">{item.quantity}</Text>
+                          <AppText className="text-text-primary font-bold text-base">{item.quantity}</AppText>
                         </View>
 
                         <TouchableOpacity
@@ -326,12 +342,12 @@ const CartScreen = () => {
             <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-2">
               <Ionicons name="cart" size={16} color="#6366F1" />
             </View>
-            <Text className="text-text-secondary font-medium">
+            <AppText className="text-text-secondary font-medium">
               {cartItemCount} {cartItemCount === 1 ? t('common.item') : t('common.items')}
-            </Text>
+            </AppText>
           </View>
           <View className="flex-row items-center">
-            <Text className="text-text-primary font-bold text-2xl">${total.toFixed(2)}</Text>
+            <AppText className="text-text-primary font-bold text-2xl">${total.toFixed(2)}</AppText>
           </View>
         </View>
 
@@ -347,8 +363,8 @@ const CartScreen = () => {
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <>
-                <Text className="text-primary-foreground font-bold text-lg mr-2">{t('cart.checkout_button')}</Text>
-                <Ionicons name="arrow-forward" size={20} color="#000" />
+                <AppText className="text-primary-foreground font-bold text-lg mr-2">{t('cart.checkout_button')}</AppText>
+                <Ionicons name="arrow-forward" size={20} color={theme === 'dark' ? '#262626' : '#FAFAFA'} />
               </>
             )}
           </View>
@@ -372,8 +388,8 @@ function LoadingUI() {
   const { t } = useTranslation();
   return (
     <View className="flex-1 bg-background items-center justify-center">
-      <ActivityIndicator size="large" color={theme === 'dark' ? "#fff" : "#000"} />
-      <Text className="text-text-secondary mt-4">{t('cart.loading')}</Text>
+      <ActivityIndicator size="large"color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
+      <AppText className="text-text-secondary mt-4">{t('cart.loading')}</AppText>
     </View>
   );
 }
@@ -384,28 +400,10 @@ function ErrorUI() {
   return (
     <View className="flex-1 bg-background items-center justify-center px-6">
       <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-      <Text className="text-text-primary font-semibold text-xl mt-4">{t('cart.error_title')}</Text>
-      <Text className="text-text-secondary text-center mt-2">
+      <AppText className="text-text-primary font-semibold text-xl mt-4">{t('cart.error_title')}</AppText>
+      <AppText className="text-text-secondary text-center mt-2">
         {t('cart.error_desc')}
-      </Text>
-    </View>
-  );
-}
-
-function EmptyUI() {
-  const { t } = useTranslation();
-  return (
-    <View className="flex-1 bg-background">
-      <View className="px-6 pt-16 pb-5">
-        <Text className="text-text-primary text-3xl font-bold tracking-tight">{t('cart.title')}</Text>
-      </View>
-      <View className="flex-1 items-center justify-center px-6">
-        <Ionicons name="cart-outline" size={80} color="#666" />
-        <Text className="text-text-primary font-semibold text-xl mt-4">{t('cart.empty_title')}</Text>
-        <Text className="text-text-secondary text-center mt-2">
-          {t('cart.empty_desc')}
-        </Text>
-      </View>
+      </AppText>
     </View>
   );
 }

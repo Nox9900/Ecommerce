@@ -7,7 +7,12 @@ import {
     getVendorStats,
     updateVendorProduct,
     vendorSearch,
+    getPublicVendorProfile,
 } from "../controllers/vendor.controller.js";
+import {
+    vendorBulkDeleteProducts,
+    vendorBulkUpdateProductStock,
+} from "../controllers/bulk-operations.controller.js";
 import {
     createConnectAccount,
     createAccountLink,
@@ -33,8 +38,10 @@ router.post("/register", protectRoute, validate(registerVendorSchema), registerV
 router.get("/profile", protectRoute, vendorOnly, getVendorProfile);
 router.get("/stats", protectRoute, vendorOnly, getVendorStats);
 router.get("/products", protectRoute, vendorOnly, getVendorProducts);
-router.post("/products", protectRoute, vendorOnly, upload.array("images", 3), validate(createProductSchema), createVendorProduct);
-router.put("/products/:id", protectRoute, vendorOnly, upload.array("images", 3), validate(createProductSchema), updateVendorProduct);
+router.post("/products", protectRoute, vendorOnly, upload.any(), validate(createProductSchema), createVendorProduct);
+router.put("/products/:id", protectRoute, vendorOnly, upload.any(), validate(createProductSchema), updateVendorProduct);
+router.post("/products/bulk-delete", protectRoute, vendorOnly, vendorBulkDeleteProducts);
+router.post("/products/bulk-update-stock", protectRoute, vendorOnly, vendorBulkUpdateProductStock);
 router.post("/withdrawals", protectRoute, vendorOnly, validate(requestWithdrawalSchema), requestWithdrawal);
 router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
 router.get("/search", protectRoute, vendorOnly, vendorSearch);
@@ -44,5 +51,8 @@ router.post("/connect/account", protectRoute, vendorOnly, createConnectAccount);
 router.post("/connect/account-link", protectRoute, vendorOnly, createAccountLink);
 router.get("/connect/status", protectRoute, vendorOnly, getConnectAccountStatus);
 router.post("/connect/login-link", protectRoute, vendorOnly, createLoginLink);
+
+// Public Vendor Profile - Must be last to avoid conflict with other routes
+router.get("/:id", getPublicVendorProfile);
 
 export default router;

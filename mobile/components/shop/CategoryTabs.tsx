@@ -1,8 +1,8 @@
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import { View, ScrollView, TouchableOpacity } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import useCategories from "@/hooks/useCategories";
-import { Ionicons } from "@expo/vector-icons";
 import { useRef, useEffect } from "react";
+import { AppText } from "../ui/AppText";
 
 interface CategoryTabsProps {
     selectedCategoryId: string;
@@ -70,14 +70,14 @@ export default function CategoryTabs({ selectedCategoryId, onSelectCategory }: C
                                 )}
                             </View> */}
 
-                            <Text
+                            <AppText
                                 className={`text-m ${isActive
                                     ? "font-bold text-primary"
                                     : "text-text-secondary font-medium"
                                     }`}
                             >
                                 {category.name}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     );
                 })}

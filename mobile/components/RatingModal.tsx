@@ -3,13 +3,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
   View,
-  Text,
   Modal,
   TouchableWithoutFeedback,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { AppText } from "./ui/AppText";
 
 interface RatingModalProps {
   visible: boolean;
@@ -41,12 +41,12 @@ const RatingModal = ({
                 <View className="bg-primary/20 rounded-full w-16 h-16 items-center justify-center mb-3">
                   <Ionicons name="star" size={32} color="#1DB954" />
                 </View>
-                <Text className="text-text-primary text-2xl font-bold mb-1">
+                <AppText className="text-text-primary text-2xl font-bold mb-1">
                   Rate Your Products
-                </Text>
-                <Text className="text-text-secondary text-center text-sm">
+                </AppText>
+                <AppText className="text-text-secondary text-center text-sm">
                   Rate each product from your order
-                </Text>
+                </AppText>
               </View>
 
               <ScrollView className="mb-4">
@@ -57,9 +57,8 @@ const RatingModal = ({
                   return (
                     <View
                       key={item._id}
-                      className={`bg-background-lighter rounded-2xl p-4 ${
-                        index < order.orderItems.length - 1 ? "mb-3" : ""
-                      }`}
+                      className={`bg-background-lighter rounded-2xl p-4 ${index < order.orderItems.length - 1 ? "mb-3" : ""
+                        }`}
                     >
                       <View className="flex-row items-center mb-3">
                         <Image
@@ -67,15 +66,15 @@ const RatingModal = ({
                           style={{ height: 64, width: 64, borderRadius: 8 }}
                         />
                         <View className="flex-1 ml-3">
-                          <Text
+                          <AppText
                             className="text-text-primary font-semibold text-sm"
                             numberOfLines={2}
                           >
                             {item.name}
-                          </Text>
-                          <Text className="text-text-secondary text-xs mt-1">
+                          </AppText>
+                          <AppText className="text-text-secondary text-xs mt-1">
                             Qty: {item.quantity} • ${item.price.toFixed(2)}
-                          </Text>
+                          </AppText>
                         </View>
                       </View>
 
@@ -110,7 +109,7 @@ const RatingModal = ({
                   {isSubmitting ? (
                     <ActivityIndicator size="small" color="#121212" />
                   ) : (
-                    <Text className="text-background font-bold text-base">Submit All Ratings</Text>
+                    <AppText className="text-background font-bold text-base">Submit All Ratings</AppText>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -119,7 +118,7 @@ const RatingModal = ({
                   onPress={onClose}
                   disabled={isSubmitting}
                 >
-                  <Text className="text-text-secondary font-bold text-base">Cancel</Text>
+                  <AppText className="text-text-secondary font-bold text-base">Cancel</AppText>
                 </TouchableOpacity>
               </View>
             </View>

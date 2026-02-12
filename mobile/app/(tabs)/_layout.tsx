@@ -3,15 +3,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
+import { useNotifications } from "@/context/NotificationContext";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { unreadCount: unreadNotifications } = useNotifications();
+  const { count: unreadMessages } = useUnreadMessages();
 
   if (!isLoaded) return null; // for a better ux
   if (!isSignedIn) return <Redirect href={"/(auth)/welcome"} />;
@@ -62,7 +66,40 @@ const TabsLayout = () => {
         name="chat"
         options={{
           title: t('tabs.chat'),
-          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ width: size, height: size }}>
+              <Ionicons name="chatbubbles" size={size} color={color} />
+              {unreadMessages > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -8,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: '#EF4444',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 4,
+                    borderWidth: 2,
+                    borderColor: theme === 'dark' ? '#000' : '#fff',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#fff',
+                      fontSize: 9,
+                      fontWeight: '800',
+                      lineHeight: 12,
+                    }}
+                  >
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
         }}
       />
 

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
     View,
-    Text,
     Modal,
     TouchableOpacity,
     TextInput,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useReviews } from "@/hooks/useReviews";
+import { AppText } from "./ui/AppText";
 
 interface ReviewModalProps {
     isVisible: boolean;
@@ -59,17 +59,17 @@ const ReviewModal = ({
             >
                 <View className="bg-background rounded-t-3xl px-6 pt-6 pb-10">
                     <View className="flex-row items-center justify-between mb-8">
-                        <Text className="text-text-primary text-xl font-bold">Write Review</Text>
+                        <AppText className="text-text-primary text-xl font-bold">Write Review</AppText>
                         <TouchableOpacity onPress={onClose} className="p-1">
-                            <Ionicons name="close" size={24} color="var(--color-text-primary)" />
+                            <Ionicons name="close" size={24} color="#A1A1AA" />
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <View className="items-center mb-8">
-                            <Text className="text-text-secondary text-center mb-4 text-base">
+                            <AppText className="text-text-secondary text-center mb-4 text-base">
                                 How would you rate {productName}?
-                            </Text>
+                            </AppText>
                             <View className="flex-row gap-2">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <TouchableOpacity
@@ -80,7 +80,7 @@ const ReviewModal = ({
                                         <Ionicons
                                             name={star <= rating ? "star" : "star-outline"}
                                             size={40}
-                                            color="var(--color-accent-warning)"
+                                            color="#F59E0B"
                                         />
                                     </TouchableOpacity>
                                 ))}
@@ -88,11 +88,11 @@ const ReviewModal = ({
                         </View>
 
                         <View className="mb-8">
-                            <Text className="text-text-primary font-bold mb-3 text-base">Your Review</Text>
+                            <AppText className="text-text-primary font-bold mb-3 text-base">Your Review</AppText>
                             <TextInput
                                 className="bg-surface-light border border-white/5 rounded-2xl p-4 text-text-primary min-h-[120px] text-base"
                                 placeholder="Tell us what you think about the product..."
-                                placeholderTextColor="var(--color-text-tertiary)"
+                                placeholderTextColor="#71717A"
                                 multiline
                                 textAlignVertical="top"
                                 value={comment}
@@ -109,7 +109,7 @@ const ReviewModal = ({
                             {isCreatingReview ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text className="text-white font-bold text-lg">Submit Review</Text>
+                                <AppText className="text-white font-bold text-lg">Submit Review</AppText>
                             )}
                         </TouchableOpacity>
                     </ScrollView>

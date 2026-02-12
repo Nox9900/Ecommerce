@@ -75,6 +75,19 @@ const userSchema = new mongoose.Schema(
         ref: "Product",
       },
     ],
+    isWishlistPublic: {
+      type: Boolean,
+      default: false,
+    },
+    wishlistToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    expoPushToken: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

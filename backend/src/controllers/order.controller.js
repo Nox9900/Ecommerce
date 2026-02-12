@@ -4,6 +4,10 @@ import { Review } from "../models/review.model.js";
 import { Coupon } from "../models/coupon.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
+import {
+  parsePaginationParams,
+  buildUserOrdersPipeline,
+} from "../utils/queryOptimization.js";
 
 export const createOrder = catchAsync(async (req, res, next) => {
   const user = req.user;
@@ -144,22 +148,20 @@ export const createOrder = catchAsync(async (req, res, next) => {
 });
 
 export const getUserOrders = catchAsync(async (req, res, next) => {
-  const orders = await Order.find({ clerkId: req.user.clerkId }).populate("orderItems.product").sort({ createdAt: -1 });
+  const { page, limit, skip } = parsePaginationParams(req.query);
 
-  // check if each order has been reviewed
+  // Use aggregation pipeline to fetch orders with products and review status in one query
+  const pipeline = buildUserOrdersPipeline(req.user.clerkId, skip, limit);
 
-  const orderIds = orders.map((order) => order._id);
-  const reviews = await Review.find({ orderId: { $in: orderIds } });
-  const reviewedOrderIds = new Set(reviews.map((review) => review.orderId.toString()));
+  const [orders, totalCount] = await Promise.all([
+    Order.aggregate(pipeline),
+    Order.countDocuments({ clerkId: req.user.clerkId }),
+  ]);
 
-  const ordersWithReviewStatus = await Promise.all(
-    orders.map(async (order) => {
-      return {
-        ...order.toObject(),
-        hasReviewed: reviewedOrderIds.has(order._id.toString()),
-      };
-    })
-  );
-
-  res.status(200).json({ orders: ordersWithReviewStatus });
+  res.status(200).json({
+    orders,
+    total: totalCount,
+    page: parseInt(page),
+    pages: Math.ceil(totalCount / limit),
+  });
 });

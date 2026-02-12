@@ -3,6 +3,11 @@ import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
+import {
+  parsePaginationParams,
+  selectFields,
+  buildReviewStatsAggregate,
+} from "../utils/queryOptimization.js";
 
 export const createReview = catchAsync(async (req, res, next) => {
   const { productId, orderId, rating } = req.body;
@@ -40,14 +45,16 @@ export const createReview = catchAsync(async (req, res, next) => {
     { new: true, upsert: true, runValidators: true }
   );
 
-  // update the product rating with atomic aggregation
-  const reviews = await Review.find({ productId });
-  const totalRating = reviews.reduce((sum, rev) => sum + rev.rating, 0);
+  // Use aggregation to calculate rating stats instead of loading all reviews
+  const pipeline = buildReviewStatsAggregate(productId);
+  const stats = await Review.aggregate(pipeline);
+
+  const reviewStats = stats.length > 0 ? stats[0] : { averageRating: 0, totalReviews: 0 };
   const updatedProduct = await Product.findByIdAndUpdate(
     productId,
     {
-      averageRating: totalRating / reviews.length,
-      totalReviews: reviews.length,
+      averageRating: reviewStats.averageRating,
+      totalReviews: reviewStats.totalReviews,
     },
     { new: true, runValidators: true }
   );
@@ -78,11 +85,14 @@ export const deleteReview = catchAsync(async (req, res, next) => {
   const productId = review.productId;
   await Review.findByIdAndDelete(reviewId);
 
-  const reviews = await Review.find({ productId });
-  const totalRating = reviews.reduce((sum, rev) => sum + rev.rating, 0);
+  // Use aggregation to calculate rating stats
+  const pipeline = buildReviewStatsAggregate(productId);
+  const stats = await Review.aggregate(pipeline);
+
+  const reviewStats = stats.length > 0 ? stats[0] : { averageRating: 0, totalReviews: 0 };
   await Product.findByIdAndUpdate(productId, {
-    averageRating: reviews.length > 0 ? totalRating / reviews.length : 0,
-    totalReviews: reviews.length,
+    averageRating: reviewStats.averageRating,
+    totalReviews: reviewStats.totalReviews,
   });
 
   res.status(200).json({ message: "Review deleted successfully" });
@@ -90,7 +100,22 @@ export const deleteReview = catchAsync(async (req, res, next) => {
 
 export const getProductReviews = catchAsync(async (req, res, next) => {
   const { productId } = req.params;
-  const reviews = await Review.find({ productId }).populate("userId", "name imageUrl").sort({ createdAt: -1 });
+  const { page, limit, skip } = parsePaginationParams(req.query);
 
-  res.status(200).json({ reviews });
+  const [reviews, totalCount] = await Promise.all([
+    Review.find({ productId })
+      .populate(selectFields("userId", "name imageUrl _id"))
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Review.countDocuments({ productId }),
+  ]);
+
+  res.status(200).json({
+    reviews,
+    total: totalCount,
+    page: parseInt(page),
+    pages: Math.ceil(totalCount / limit),
+  });
 });

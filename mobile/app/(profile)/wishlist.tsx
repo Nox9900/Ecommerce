@@ -1,10 +1,11 @@
 import SafeScreen from "@/components/SafeScreen";
 import useCart from "@/hooks/useCart";
-import useWishlist from "@/hooks/useWishlist";
+import useWishlist, { useShareWishlist } from "@/hooks/useWishlist";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View, Share } from "react-native";
+import { AppText } from "@/components/ui/AppText";
 import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,8 +15,15 @@ import ErrorUI from "@/components/ui/Error";
 import EmptyUI from "@/components/ui/Empty";
 
 function WishlistScreen() {
-  const { wishlist, isLoading, isError, removeFromWishlist, isRemovingFromWishlist } =
-    useWishlist();
+  const {
+    wishlist,
+    isLoading,
+    isError,
+    removeFromWishlist,
+    isWishlistPublic,
+    wishlistToken,
+  } = useWishlist();
+  const { toggleShare } = useShareWishlist();
   const { addToCart, isAddingToCart } = useCart();
   const insets = useSafeAreaInsets();
 
@@ -28,6 +36,56 @@ function WishlistScreen() {
         onPress: () => removeFromWishlist(productId),
       },
     ]);
+  };
+
+  const handleShare = async () => {
+    if (!isWishlistPublic) {
+      Alert.alert(
+        "Share Wishlist",
+        "Your wishlist is currently private. Would you like to make it public to share with friends?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Make Public",
+            onPress: () => {
+              toggleShare(undefined, {
+                onSuccess: (data) => {
+                  // Wait for the token to be available (it comes back in data)
+                  shareLink(data.wishlistToken);
+                },
+              });
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert("Share Wishlist", "Choose an option", [
+        {
+          text: "Make Private",
+          style: "destructive",
+          onPress: () => toggleShare(),
+        },
+        {
+          text: "Share Link",
+          onPress: () => shareLink(wishlistToken),
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
+  };
+
+  const shareLink = async (token: string) => {
+    try {
+      // In a real app, this would be a deep link or a web URL
+      // For now, we'll use a placeholder URL structure
+      const url = `https://yaamaan.sevalla.app/wishlist/share/${token}`;
+      await Share.share({
+        message: `Check out my wishlist on Expo Ecommerce! ${url}`,
+        url, // iOS only
+      });
+    } catch (error) {
+      Alert.alert("Error", "Could not share wishlist");
+    }
   };
 
   const handleAddToCart = (productId: string, productName: string) => {
@@ -43,15 +101,43 @@ function WishlistScreen() {
   };
 
   if (isLoading) return <LoadingUI title="Loading" subtitle="Loading your wishlist" />;
-  if (isError) return <ErrorUI title="Something went wrong" subtitle="We couldn't retrieve your saved items. Please try again." buttonTitle="Go Back" buttonAction={() => router.back()} />;
+  if (isError)
+    return (
+      <ErrorUI
+        title="Something went wrong"
+        subtitle="We couldn't retrieve your saved items. Please try again."
+        buttonTitle="Go Back"
+        buttonAction={() => router.back()}
+      />
+    );
 
   return (
     <View className="flex-1 bg-background">
       {/* HEADER */}
-      <Header primaryText="Wishlist" secondaryText="All the items you liked" />
+      <Header
+        primaryText="Wishlist"
+        secondaryText="All the items you liked"
+        rightComponent={
+          <TouchableOpacity
+            onPress={handleShare}
+            className="w-10 h-10 mr-4 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
+          >
+            <Ionicons
+              name={isWishlistPublic ? "share-social" : "lock-closed"}
+              size={20}
+              className="text-text-primary"
+            />
+          </TouchableOpacity>
+        }
+      />
 
       {wishlist.length === 0 ? (
-        <EmptyUI title="Your wishlist is empty" subtitle="Start building your dream collection! Add products you love to keep an eye on them." buttonTitle="Explore" buttonAction={() => router.push("/(tabs)/" as any)} />
+        <EmptyUI
+          title="Your wishlist is empty"
+          subtitle="Start building your dream collection! Add products you love to keep an eye on them."
+          buttonTitle="Explore"
+          buttonAction={() => router.push("/(tabs)/" as any)}
+        />
       ) : (
         <ScrollView
           className="flex-1"
@@ -79,9 +165,12 @@ function WishlistScreen() {
 
                   <View className="flex-1 ml-5 pt-1">
                     <View className="flex-row items-start justify-between mb-1">
-                      <Text className="text-text-primary font-bold text-lg flex-1 mr-2" numberOfLines={2}>
+                      <AppText
+                        className="text-text-primary font-bold text-lg flex-1 mr-2"
+                        numberOfLines={2}
+                      >
                         {item.name}
-                      </Text>
+                      </AppText>
                       <TouchableOpacity
                         onPress={(e) => {
                           e.stopPropagation();
@@ -93,9 +182,10 @@ function WishlistScreen() {
                       </TouchableOpacity>
                     </View>
 
-                    <Text className="text-text-primary font-black text-lg mb-2">
-                      <Text className="text-primary text-sm">$</Text>{item.price.toFixed(2)}
-                    </Text>
+                    <AppText className="text-text-primary font-black text-lg mb-2">
+                      <AppText className="text-primary text-sm">$</AppText>
+                      {item.price.toFixed(2)}
+                    </AppText>
 
                     <View className="flex-row items-center justify-between">
                       {/* Stock Badge */}
@@ -103,16 +193,18 @@ function WishlistScreen() {
                         className="px-3 py-1 rounded-lg border flex-row items-center"
                         style={{
                           backgroundColor: (item.stock > 0 ? "#22C55E" : "#EF4444") + "10",
-                          borderColor: (item.stock > 0 ? "#22C55E" : "#EF4444") + "30"
+                          borderColor: (item.stock > 0 ? "#22C55E" : "#EF4444") + "30",
                         }}
                       >
-                        <View className={`w-1.5 h-1.5 rounded-full mr-2 ${item.stock > 0 ? "bg-green-500" : "bg-red-500"}`} />
-                        <Text
+                        <View
+                          className={`w-1.5 h-1.5 rounded-full mr-2 ${item.stock > 0 ? "bg-green-500" : "bg-red-500"}`}
+                        />
+                        <AppText
                           className="text-[10px] font-black uppercase tracking-wider"
                           style={{ color: item.stock > 0 ? "#22C55E" : "#EF4444" }}
                         >
                           {item.stock > 0 ? "In Stock" : "Out of Stock"}
-                        </Text>
+                        </AppText>
                       </View>
 
                       {/* Add to Cart Button (Small) */}

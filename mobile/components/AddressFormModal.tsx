@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   Modal,
   TouchableOpacity,
   ScrollView,
@@ -12,6 +11,8 @@ import {
 } from "react-native";
 import SafeScreen from "./SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
+import { AppText } from "./ui/AppText";
+import { useTheme } from "@/lib/useTheme";
 
 interface AddressFormData {
   label: string;
@@ -35,6 +36,8 @@ interface AddressFormModalProps {
   onFormChange: (form: AddressFormData) => void;
 }
 
+
+
 const AddressFormModal = ({
   addressForm,
   isAddingAddress,
@@ -45,6 +48,7 @@ const AddressFormModal = ({
   onSave,
   visible,
 }: AddressFormModalProps) => {
+  const {theme} = useTheme()
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
@@ -54,11 +58,11 @@ const AddressFormModal = ({
         <SafeScreen>
           {/* HEADER */}
           <View className="px-6 py-5 border-b border-surface flex-row items-center justify-between">
-            <Text className="text-text-primary text-2xl font-bold">
+            <AppText className="text-text-primary text-2xl font-bold">
               {isEditing ? "Edit Address" : "Add New Address"}
-            </Text>
+            </AppText>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color="#FFFFFF" />
+              <Ionicons name="close" size={28} color={theme === 'dark' ? '#FFFFFF' : '#000000'} />
             </TouchableOpacity>
           </View>
 
@@ -70,7 +74,7 @@ const AddressFormModal = ({
             <View className="p-6">
               {/* LABEL INPUT */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">Label</Text>
+                <AppText className="text-text-primary font-semibold mb-2">Label</AppText>
                 <TextInput
                   className="bg-surface text-text-primary p-4 rounded-2xl text-base"
                   placeholder="e.g., Home, Work, Office"
@@ -82,7 +86,7 @@ const AddressFormModal = ({
 
               {/* NAME INPUT */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">Full Name</Text>
+                <AppText className="text-text-primary font-semibold mb-2">Full Name</AppText>
                 <TextInput
                   className="bg-surface text-text-primary px-4 py-4 rounded-2xl text-base"
                   placeholder="Enter your full name"
@@ -94,7 +98,7 @@ const AddressFormModal = ({
 
               {/* Address Input */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">Street Address</Text>
+                <AppText className="text-text-primary font-semibold mb-2">Street Address</AppText>
                 <TextInput
                   className="bg-surface text-text-primary px-4 py-4 rounded-2xl text-base"
                   placeholder="Street address, apt/suite number"
@@ -107,7 +111,7 @@ const AddressFormModal = ({
 
               {/* City Input */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">City</Text>
+                <AppText className="text-text-primary font-semibold mb-2">City</AppText>
                 <TextInput
                   className="bg-surface text-text-primary px-4 py-4 rounded-2xl text-base"
                   placeholder="e.g., New York"
@@ -119,7 +123,7 @@ const AddressFormModal = ({
 
               {/* State Input */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">State</Text>
+                <AppText className="text-text-primary font-semibold mb-2">State</AppText>
                 <TextInput
                   className="bg-surface text-text-primary px-4 py-4 rounded-2xl text-base"
                   placeholder="e.g., NY"
@@ -131,7 +135,7 @@ const AddressFormModal = ({
 
               {/* ZIP Code Input */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">ZIP Code</Text>
+                <AppText className="text-text-primary font-semibold mb-2">ZIP Code</AppText>
                 <TextInput
                   className="bg-surface text-text-primary px-4 py-4 rounded-2xl text-base"
                   placeholder="e.g., 10001"
@@ -144,7 +148,7 @@ const AddressFormModal = ({
 
               {/* Phone Input */}
               <View className="mb-5">
-                <Text className="text-text-primary font-semibold mb-2">Phone Number</Text>
+                <AppText className="text-text-primary font-semibold mb-2">Phone Number</AppText>
                 <TextInput
                   className="bg-surface text-text-primary px-4 py-4 rounded-2xl text-base"
                   placeholder="+1 (555) 123-4567"
@@ -157,7 +161,7 @@ const AddressFormModal = ({
 
               {/* Default Address Toggle */}
               <View className="bg-surface rounded-2xl p-4 flex-row items-center justify-between mb-6">
-                <Text className="text-text-primary font-semibold">Set as default address</Text>
+                <AppText className="text-text-primary font-semibold">Set as default address</AppText>
                 <Switch
                   value={addressForm.isDefault}
                   onValueChange={(value) => onFormChange({ ...addressForm, isDefault: value })}
@@ -175,9 +179,9 @@ const AddressFormModal = ({
                 {isAddingAddress || isUpdatingAddress ? (
                   <ActivityIndicator size="small" color="#121212" />
                 ) : (
-                  <Text className="text-background font-bold text-lg">
+                  <AppText className="text-background font-bold text-lg">
                     {isEditing ? "Save Changes" : "Add Address"}
-                  </Text>
+                  </AppText>
                 )}
               </TouchableOpacity>
             </View>

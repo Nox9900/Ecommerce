@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon } from "lucide-react";
+import { PlusIcon, PencilIcon, Trash2Icon, XIcon, ImageIcon, CheckSquare, Square } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productApi, mobileApi, shopApi } from "../lib/api";
 import { getStockStatusBadge } from "../lib/utils";
+import toast from "react-hot-toast";
 
 function ProductsPage() {
   const [searchParams] = useSearchParams();
@@ -29,6 +30,11 @@ function ProductsPage() {
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
 
+  // Bulk operations state
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [showBulkStockModal, setShowBulkStockModal] = useState(false);
+  const [bulkStockValue, setBulkStockValue] = useState("");
+
   const queryClient = useQueryClient();
 
   // fetch some data
@@ -51,24 +57,63 @@ function ProductsPage() {
   const createProductMutation = useMutation({
     mutationFn: productApi.create,
     onSuccess: () => {
+      toast.success("Product created successfully");
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to create product");
     },
   });
 
   const updateProductMutation = useMutation({
     mutationFn: productApi.update,
     onSuccess: () => {
+      toast.success("Product updated successfully");
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to update product");
     },
   });
 
   const deleteProductMutation = useMutation({
     mutationFn: productApi.delete,
     onSuccess: () => {
+      toast.success("Product deleted successfully");
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to delete product");
+    },
+  });
+
+  // Bulk operations mutations
+  const bulkDeleteMutation = useMutation({
+    mutationFn: productApi.bulkDelete,
+    onSuccess: (data) => {
+      toast.success(data.message || "Products deleted successfully");
+      setSelectedProducts([]);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to delete products");
+    },
+  });
+
+  const bulkUpdateStockMutation = useMutation({
+    mutationFn: ({ productIds, stock }) => productApi.bulkUpdateStock(productIds, stock),
+    onSuccess: (data) => {
+      toast.success(data.message || "Stock updated successfully");
+      setSelectedProducts([]);
+      setShowBulkStockModal(false);
+      setBulkStockValue("");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to update stock");
     },
   });
 
@@ -162,6 +207,52 @@ function ProductsPage() {
     }
   };
 
+  // Bulk operations handlers
+  const handleSelectProduct = (productId) => {
+    setSelectedProducts((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProducts.length === products.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(products.map((p) => p._id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedProducts.length === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} product(s)?`)) {
+      bulkDeleteMutation.mutate(selectedProducts);
+    }
+  };
+
+  const handleBulkUpdateStock = () => {
+    if (selectedProducts.length === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+    setShowBulkStockModal(true);
+  };
+
+  const handleBulkStockSubmit = () => {
+    const stockNum = parseInt(bulkStockValue);
+    if (isNaN(stockNum) || stockNum < 0) {
+      toast.error("Please enter a valid stock number");
+      return;
+    }
+
+    bulkUpdateStockMutation.mutate({ productIds: selectedProducts, stock: stockNum });
+  };
+
   return (
     <div className="space-y-6">
       {/* HEADER */}
@@ -176,6 +267,57 @@ function ProductsPage() {
         </button>
       </div>
 
+      {/* BULK ACTIONS TOOLBAR */}
+      {selectedProducts.length > 0 && (
+        <div className="alert bg-primary/10 border-primary/20">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleSelectAll}
+                className="btn btn-sm btn-ghost gap-2"
+              >
+                {selectedProducts.length === products.length ? (
+                  <CheckSquare className="w-5 h-5" />
+                ) : (
+                  <Square className="w-5 h-5" />
+                )}
+                {selectedProducts.length === products.length ? "Deselect All" : "Select All"}
+              </button>
+              <span className="font-medium">
+                {selectedProducts.length} product(s) selected
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleBulkUpdateStock}
+                className="btn btn-sm btn-info gap-2"
+                disabled={bulkUpdateStockMutation.isPending}
+              >
+                {bulkUpdateStockMutation.isPending ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Update Stock"
+                )}
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="btn btn-sm btn-error gap-2"
+                disabled={bulkDeleteMutation.isPending}
+              >
+                {bulkDeleteMutation.isPending ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  <>
+                    <Trash2Icon className="w-4 h-4" />
+                    Delete Selected
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PRODUCTS GRID */}
       <div className="grid grid-cols-1 gap-4">
         {products?.map((product) => {
@@ -185,6 +327,18 @@ function ProductsPage() {
             <div key={product._id} className="card bg-base-100 shadow-xl">
               <div className="card-body">
                 <div className="flex items-center gap-6">
+                  {/* Checkbox for selection */}
+                  <div className="form-control">
+                    <label className="cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary"
+                        checked={selectedProducts.includes(product._id)}
+                        onChange={() => handleSelectProduct(product._id)}
+                      />
+                    </label>
+                  </div>
+
                   <div className="avatar">
                     <div className="w-20 rounded-xl">
                       <img src={product.images[0]} alt={product.name} />
@@ -711,6 +865,59 @@ function ProductsPage() {
           </form>
         </div>
       </div>
+
+      {/* BULK STOCK UPDATE MODAL */}
+      {showBulkStockModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4">Update Stock for Selected Products</h3>
+            <p className="text-sm text-base-content/70 mb-4">
+              Updating stock for {selectedProducts.length} product(s). Enter the new stock value:
+            </p>
+
+            <div className="form-control">
+              <label className="label">
+                <span>New Stock Value</span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Enter stock quantity"
+                className="input input-bordered w-full"
+                value={bulkStockValue}
+                onChange={(e) => setBulkStockValue(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="modal-action">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setShowBulkStockModal(false);
+                  setBulkStockValue("");
+                }}
+                disabled={bulkUpdateStockMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleBulkStockSubmit}
+                disabled={bulkUpdateStockMutation.isPending || !bulkStockValue}
+              >
+                {bulkUpdateStockMutation.isPending ? (
+                  <span className="loading loading-spinner"></span>
+                ) : (
+                  "Update Stock"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

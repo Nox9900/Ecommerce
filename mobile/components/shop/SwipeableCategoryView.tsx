@@ -1,5 +1,6 @@
-import { View, Dimensions, FlatList, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
-import { ReactNode, useEffect, useRef } from "react";
+import { View, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
+import React, { ReactNode, useEffect, useRef } from "react";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

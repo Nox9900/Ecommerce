@@ -7,12 +7,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 interface Notification {
     _id: string;
     recipient: string;
-    type: 'order' | 'message' | 'promotion' | 'system';
+    type: 'order' | 'message' | 'promotion' | 'system' | 'delivery' | 'wishlist';
     title: string;
     body: string;
     data?: any;
     read: boolean;
     createdAt: string;
+    translationKey?: string;
+    translationParams?: Record<string, any>;
 }
 
 interface NotificationContextType {
@@ -46,7 +48,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         queryFn: async () => {
             if (!isSignedIn) return [];
             const { data } = await api.get("/notifications");
-            return data;
+            return data.notifications || [];
         },
         enabled: !!isSignedIn,
     });
@@ -86,6 +88,28 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             socket.off("notification:new", handleNewNotification);
         };
     }, [socket, queryClient]);
+
+    // Register for push notifications and save token
+    useEffect(() => {
+        if (!isSignedIn) return;
+
+        const registerPushNotifications = async () => {
+            try {
+                const { registerForPushNotificationsAsync } = await import('@/lib/notifications');
+                const token = await registerForPushNotificationsAsync();
+
+                if (token) {
+                    // Save token to backend
+                    await api.post('/users/push-token', { expoPushToken: token });
+                    console.log('Push token saved to backend');
+                }
+            } catch (error) {
+                console.error('Error registering push notifications:', error);
+            }
+        };
+
+        registerPushNotifications();
+    }, [isSignedIn, api]);
 
     const markAsRead = async (id: string) => {
         try {

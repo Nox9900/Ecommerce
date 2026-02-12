@@ -1,7 +1,8 @@
 import ProductsGrid from "@/components/ProductsGrid";
 import SafeScreen from "@/components/SafeScreen";
 import useProducts from "@/hooks/useProducts";
-import { View, Text, ScrollView, RefreshControl, Alert } from "react-native";
+import { View, ScrollView, RefreshControl, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState, useEffect } from "react";
 import { useTheme } from "@/lib/useTheme";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
@@ -17,6 +18,10 @@ import useCategories from "@/hooks/useCategories";
 import { getTranslated } from "@/lib/i18n-utils";
 import { useTranslation } from "react-i18next";
 import FilterModal from "@/components/shop/FilterModal";
+import { ProductSection } from "@/components/shop/ProductSection";
+import { useTrendingProducts, usePersonalizedRecommendations } from "@/hooks/useRecommendations";
+import { ComparisonTray } from "@/components/ComparisonTray";
+import { useAuth } from "@clerk/clerk-expo";
 
 const ShopScreen = () => {
   const { theme } = useTheme();
@@ -48,7 +53,13 @@ const ShopScreen = () => {
 
   // Hooks
   const { t, i18n } = useTranslation();
+  const { isSignedIn } = useAuth();
   const { data: categories } = useCategories();
+
+  // Discovery Hooks
+  const { data: trendingProducts, isLoading: trendingLoading } = useTrendingProducts();
+  const { data: personalizedProducts, isLoading: personalizedLoading } = usePersonalizedRecommendations(!!isSignedIn);
+  const { data: newArrivals, isLoading: newArrivalsLoading } = useProducts({ sort: "latest", limit: 10 });
 
   // Derived State
   const activeCategory = useMemo(() => {
@@ -91,9 +102,9 @@ const ShopScreen = () => {
   const subcategories = useMemo(() => {
     if (selectedCategoryId === "all") {
       const allSubcats = categories?.reduce((acc: any[], cat: any) => [...acc, ...(cat.subcategories || [])], []) || [];
-      return [...allSubcats].sort(() => Math.random() - 0.5).slice(0, 15);
+      return [...allSubcats].sort(() => Math.random() - 0.5).slice(0, 10);
     }
-    return activeCategory?.subcategories || [];
+    return (activeCategory?.subcategories || []).slice(0, 10);
   }, [categories, activeCategory, selectedCategoryId]);
 
   // Handlers
@@ -200,6 +211,37 @@ const ShopScreen = () => {
                   <PromoBanners />
                 </AnimatedContainer>
 
+                {category._id === "all" && (
+                  <AnimatedContainer animation="fadeUp" delay={150}>
+                    {isSignedIn && personalizedProducts && personalizedProducts.length > 0 && (
+                      <ProductSection
+                        title="For You"
+                        products={personalizedProducts}
+                        isLoading={personalizedLoading}
+                        icon={<Ionicons name="heart" size={24} color="#ef4444" />}
+                      />
+                    )}
+
+                    {trendingProducts && trendingProducts.length > 0 && (
+                      <ProductSection
+                        title="Trending Now"
+                        products={trendingProducts}
+                        isLoading={trendingLoading}
+                        icon={<Ionicons name="flame" size={24} color="#f97316" />}
+                      />
+                    )}
+
+                    {newArrivals && newArrivals.length > 0 && (
+                      <ProductSection
+                        title="New Arrivals"
+                        products={newArrivals}
+                        isLoading={newArrivalsLoading}
+                        icon={<Ionicons name="sparkles" size={24} color="#3b82f6" />}
+                      />
+                    )}
+                  </AnimatedContainer>
+                )}
+
                 <AnimatedContainer animation="fadeUp" delay={200} className="px-2 mt-2">
                   <ProductsGrid
                     products={products || []}
@@ -219,6 +261,8 @@ const ShopScreen = () => {
           onApply={handleApplyFilters}
           initialFilters={filterParams}
         />
+
+        <ComparisonTray />
       </View>
     </SafeScreen>
   );

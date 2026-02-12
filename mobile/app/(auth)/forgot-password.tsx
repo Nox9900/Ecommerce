@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useSignIn } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/lib/useTheme";
+import { AppText } from "@/components/ui/AppText";
 
 const ForgotPassword = () => {
     const { signIn, setActive, isLoaded } = useSignIn();
@@ -84,14 +85,14 @@ const ForgotPassword = () => {
                         <Ionicons name="arrow-back" size={24} color={theme === 'dark' ? "white" : "black"} />
                     </TouchableOpacity>
 
-                    <Text className="text-3xl font-bold text-text-primary mb-2">
+                    <AppText className="text-3xl font-bold text-text-primary mb-2">
                         {successfulCreation ? "Reset Password" : "Forgot Password?"}
-                    </Text>
-                    <Text className="text-text-secondary mb-10">
+                    </AppText>
+                    <AppText className="text-text-secondary mb-10">
                         {successfulCreation
                             ? `Enter the code sent to ${emailAddress} and your new password`
                             : "Don't worry, it happens. Enter your email to receive a reset code."}
-                    </Text>
+                    </AppText>
 
                     <View className="gap-4">
                         {!successfulCreation ? (

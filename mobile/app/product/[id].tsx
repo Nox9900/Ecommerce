@@ -11,15 +11,16 @@ import { useStripe } from "@stripe/stripe-react-native";
 import { useApi } from "@/lib/api";
 import ReviewModal from "@/components/ReviewModal";
 import AddressSelectionModal from "@/components/AddressSelectionModal";
+import VariantSelectionModal from "@/components/VariantSelectionModal";
 import { Address } from "@/types";
 import { useTranslation } from "react-i18next";
 import { getTranslated } from "@/lib/i18n-utils";
 import { UserAvatar } from "@/components/UserAvatar";
 import * as Sentry from "@sentry/react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-expo";
 import {
@@ -39,8 +40,31 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/useTheme";
 import { LinearGradient } from "expo-linear-gradient";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
+import { Skeleton, ProductCardSkeleton } from "@/components/common/Skeleton";
+import { useToast } from "@/context/ToastContext";
 
 const { width } = Dimensions.get("window");
+
+const ProductDetailSkeleton = () => {
+  const insets = useSafeAreaInsets();
+  return (
+    <View className="flex-1 bg-background">
+      <Skeleton width="100%" height={400} borderRadius={0} />
+      <View className="px-6 pt-6 gap-4">
+        <Skeleton width={100} height={24} borderRadius={20} />
+        <Skeleton width="90%" height={32} />
+        <Skeleton width="40%" height={24} />
+        <View className="h-1 bg-black/5 dark:bg-white/5 my-4" />
+        <View className="flex-row gap-4">
+          <Skeleton width={80} height={80} borderRadius={12} />
+          <Skeleton width={80} height={80} borderRadius={12} />
+          <Skeleton width={80} height={80} borderRadius={12} />
+        </View>
+        <Skeleton width="100%" height={100} borderRadius={12} />
+      </View>
+    </View>
+  );
+};
 
 const ProductDetailScreen = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -58,9 +82,13 @@ const ProductDetailScreen = () => {
   const { getToken } = useAuth();
   const insets = useSafeAreaInsets();
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+  const [isVariantModalVisible, setIsVariantModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState<'cart' | 'buy'>('buy');
   const [viewerImageIndex, setViewerImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [startingChat, setStartingChat] = useState(false);
@@ -106,46 +134,14 @@ const ProductDetailScreen = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
-
-    // If product has variants but none is selected yet, prompt user
-    if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      Alert.alert("Selection Required", "Please select all options before adding to cart.");
-      return;
-    }
-
-    addToCart(
-      {
-        productId: product._id,
-        quantity,
-        selectedOptions,
-        variantId: selectedVariant?._id
-      },
-      {
-        onSuccess: () => Alert.alert("Success", `${product.name} added to cart!`),
-        onError: (error: any) => {
-          Alert.alert("Error", error?.response?.data?.error || "Failed to add to cart");
-        },
-      }
-    );
+    setModalMode('cart');
+    setIsVariantModalVisible(true);
   };
 
   const handleBuyNow = () => {
     if (!product) return;
-
-    // Check variant selection
-    if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      Alert.alert("Selection Required", "Please select all options before buying.");
-      return;
-    }
-
-    // Check addresses
-    if (!addresses || addresses.length === 0) {
-      Alert.alert("Address Required", "Please add a shipping address in your profile before buying.");
-      router.push("/(tabs)/profile");
-      return;
-    }
-
-    setAddressModalVisible(true);
+    setModalMode('buy');
+    setIsVariantModalVisible(true);
   };
 
   const handleProceedWithPayment = async (selectedAddress: Address) => {
@@ -231,7 +227,9 @@ const ProductDetailScreen = () => {
 
     try {
       setStartingChat(true);
-      const { data: conversation } = await api.post("/chats", { participantId: product.vendor });
+      // Ensure we're sending the vendor ID string, not the object
+      const vendorId = typeof product.vendor === 'object' ? (product.vendor as any)._id : product.vendor;
+      const { data: conversation } = await api.post("/chats", { participantId: vendorId });
 
       router.push({
         pathname: `/chat/${conversation._id}`,
@@ -257,17 +255,19 @@ const ProductDetailScreen = () => {
       .slice(0, 6); // Limit to 6 related products
   }, [product, allProducts]);
 
-  if (isLoading) return <LoadingUI />;
+  const { showToast } = useToast();
+
+  if (isLoading) return <ProductDetailSkeleton />;
   if (isError || !product) return <ErrorUI />;
 
 
   return (
-    <View className="flex-1 bg-background">
+    <SafeScreen>
       <StatusBar barStyle={theme === 'dark' ? "light-content" : "dark-content"} translucent backgroundColor="transparent" />
 
       {/* HEADER */}
       <View
-        className={`absolute left-0 right-0 z-50 px-6 flex-row items-center justify-between pb-3 transition-all duration-300 ${isScrolled ? (theme === 'dark' ? "bg-black border-white/10" : "bg-white border-black/5") : "bg-transparent"
+        className={`absolute left-0 right-0 z-50 px-6 flex-row items-center justify-between pb-3 transition-all duration-300 ${isScrolled ? (theme === 'dark' ? "bg-background border-white/10" : "bg-white border-black/5") : "bg-transparent"
           }`}
         style={{ paddingTop: insets.top + 10 }}
       >
@@ -276,7 +276,13 @@ const ProductDetailScreen = () => {
             ? (theme === 'dark' ? "bg-white/10 border-white/10" : "bg-black/5 border-black/10")
             : "bg-black/30 border-white/20"
             }`}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(tabs)");
+            }
+          }}
           activeOpacity={0.7}
         >
           <Ionicons
@@ -332,21 +338,27 @@ const ProductDetailScreen = () => {
         contentContainerStyle={{ paddingBottom: 150 }}
         onScroll={(e) => {
           const scrollY = e.nativeEvent.contentOffset.y;
-          setIsScrolled(scrollY > 50);
+          const newIsScrolled = scrollY > 50;
+          if (newIsScrolled !== isScrolled) {
+            setIsScrolled(newIsScrolled);
+          }
         }}
-        scrollEventThrottle={16}
+        scrollEventThrottle={32}
       >
         {/* IMAGE GALLERY */}
-        <View className="relative h-[450px]">
+        <View>
           <ScrollView
+            ref={scrollViewRef}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onScroll={(e) => {
               const index = Math.round(e.nativeEvent.contentOffset.x / width);
-              setSelectedImageIndex(index);
+              if (index !== selectedImageIndex) {
+                setSelectedImageIndex(index);
+              }
             }}
-            scrollEventThrottle={16}
+            scrollEventThrottle={32}
           >
             {product.images.map((image: string, index: number) => (
               <TouchableOpacity
@@ -356,31 +368,66 @@ const ProductDetailScreen = () => {
                   setViewerImageIndex(index);
                   setIsImageViewerVisible(true);
                 }}
-                style={{ width, height: 450 }}
+                style={{ width, height: 400 }}
               >
-                <Image source={image} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={500} />
-                <LinearGradient
-                  colors={['rgba(0,0,0,0.4)', 'transparent', 'transparent', 'rgba(0,0,0,0.4)']}
-                  className="absolute inset-0"
+                <OptimizedImage
+                  source={image}
+                  width={width * 2} // Retina width 
+                  height={800} // 400 * 2
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
                 />
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          {/* Image Indicators */}
-          <View className="absolute bottom-6 left-0 right-0 flex-row justify-center gap-2">
+          {/* Page Indicators - Simple dot overlay */}
+          <View className="absolute bottom-4 left-0 right-0 flex-row justify-center gap-1.5">
             {product.images.map((_: any, index: number) => (
               <View
                 key={index}
-                className={`h-1.5 rounded-full transition-all ${index === selectedImageIndex ? "bg-white w-6" : "bg-white/40 w-1.5"
-                  }`}
+                className={`h-1.5 rounded-full ${index === selectedImageIndex ? "bg-white w-4" : "bg-white/40 w-1.5"}`}
               />
             ))}
           </View>
         </View>
 
+        {/* Thumbnails Strip - Placed directly above content */}
+        <View className={`pt-4 pb-2 px-4 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingHorizontal: 2 }}
+          >
+            {product.images.map((image: string, index: number) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  setSelectedImageIndex(index);
+                  scrollViewRef.current?.scrollTo({ x: index * width, animated: true });
+                }}
+                className={`w-16 h-16 overflow-hidden ${selectedImageIndex === index ? "border-b-2 border-primary" : ""}`}
+                style={{
+                  transform: [{ scale: selectedImageIndex === index ? 1.05 : 1 }],
+                }}
+              >
+                <OptimizedImage
+                  source={image}
+                  width={128} // 64px * 2
+                  height={128}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
+                />
+                {selectedImageIndex !== index && (
+                  <View className="absolute inset-0 bg-black/10" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* CONTENT CONTAINER */}
-        <View className={`px-6 -mt-8 pt-8 rounded-[32px] overflow-hidden ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
+        <View className={`px-6 pt-6 ${theme === 'dark' ? 'bg-background' : 'bg-white'}`}>
 
 
           {/* Category & Rating */}
@@ -429,177 +476,9 @@ const ProductDetailScreen = () => {
             )}
           </AnimatedContainer>
 
-          {/* ATTRIBUTE SELECTORS */}
-          {product.attributes && product.attributes.length > 0 && (
-            <AnimatedContainer animation="fadeDown" delay={100} className="mb-6 gap-6">
-              {product.attributes.map((attr) => (
-                <View key={attr.name} className="gap-3">
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-text-primary font-bold text-sm uppercase tracking-wider opacity-60">
-                      {attr.name}
-                    </Text>
-                    {selectedOptions[attr.name] && (
-                      <LinearGradient
-                        colors={['#6366F1', '#8B5CF6']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        className="px-2 py-0.5 rounded-md"
-                      >
-                        <Text className="text-white text-[10px] font-bold uppercase tracking-wider">
-                          {selectedOptions[attr.name]}
-                        </Text>
-                      </LinearGradient>
-                    )}
-                  </View>
-                  <View className="flex-row flex-wrap gap-2">
-                    {attr.values.map((value) => {
-                      const isSelected = selectedOptions[attr.name] === value;
-                      return (
-                        <TouchableOpacity
-                          key={value}
-                          onPress={() => setSelectedOptions(prev => ({ ...prev, [attr.name]: value }))}
-                          activeOpacity={0.7}
-                        >
-                          <LinearGradient
-                            colors={isSelected ? ['#6366F1', '#8B5CF6'] : [theme === 'dark' ? '#18181B' : '#F4F4F5', theme === 'dark' ? '#18181B' : '#F4F4F5']}
-                            className={`px-5 py-2.5 rounded-xl border ${isSelected
-                              ? "border-transparent"
-                              : theme === 'dark' ? "border-white/10" : "border-black/5"
-                              }`}
-                          >
-                            <Text className={`text-sm font-semibold ${isSelected ? "text-white" : "text-text-secondary"}`}>
-                              {value}
-                            </Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              ))}
-            </AnimatedContainer>
-          )}
 
-          {/* PRODUCT VARIANTS */}
-          {product.variants && product.variants.length > 0 && (
-            <AnimatedContainer animation="fadeUp" delay={450} className="mb-8">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-text-primary text-lg font-bold">Available Variants</Text>
-                <View className={`px-3 py-1 rounded-full border ${theme === 'dark' ? "bg-primary/10 border-primary/20" : "bg-primary/5 border-primary/10"}`}>
-                  <Text className="text-primary font-bold text-xs">{product.variants.length} Options</Text>
-                </View>
-              </View>
 
-              <View className="gap-3">
-                {product.variants.map((variant, index) => {
-                  const isSelectedVariant = selectedVariant?._id === variant._id;
-                  const variantInStock = variant.stock > 0;
 
-                  return (
-                    <View
-                      key={variant._id || index}
-                      className={`p-4 rounded-2xl border ${isSelectedVariant
-                          ? "border-primary/50 bg-primary/5"
-                          : theme === 'dark'
-                            ? "bg-surface-light border-white/5"
-                            : "bg-gray-50 border-black/5"
-                        }`}
-                    >
-                      <View className="flex-row items-start justify-between">
-                        {/* Variant Info */}
-                        <View className="flex-1 mr-3">
-                          {/* Variant Name */}
-                          <View className="flex-row items-center mb-2">
-                            {isSelectedVariant && (
-                              <View className="w-2 h-2 bg-primary rounded-full mr-2" />
-                            )}
-                            <Text className="text-text-primary font-bold text-base flex-1">
-                              {variant.name || 'Variant'}
-                            </Text>
-                          </View>
-
-                          {/* Variant Options */}
-                          {variant.options && Object.keys(variant.options).length > 0 && (
-                            <View className="flex-row flex-wrap gap-2 mb-3">
-                              {Object.entries(variant.options).map(([key, value]) => (
-                                <View
-                                  key={key}
-                                  className={`px-2 py-1 rounded-md border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-white border-black/10"}`}
-                                >
-                                  <Text className="text-text-tertiary text-xs">
-                                    <Text className="font-semibold">{key}:</Text> {value}
-                                  </Text>
-                                </View>
-                              ))}
-                            </View>
-                          )}
-
-                          {/* Price & Stock Row */}
-                          <View className="flex-row items-center justify-between">
-                            {/* Price */}
-                            <View className="flex-row items-baseline gap-1">
-                              <Text className="text-primary text-xl font-black">
-                                ${variant.price.toFixed(2)}
-                              </Text>
-                              {variant.price !== product.price && (
-                                <Text className="text-text-tertiary text-sm line-through">
-                                  ${product.price.toFixed(2)}
-                                </Text>
-                              )}
-                            </View>
-
-                            {/* Stock Status */}
-                            <View className={`flex-row items-center px-2 py-1 rounded-full border ${variantInStock
-                                ? "bg-green-500/10 border-green-500/20"
-                                : "bg-red-500/10 border-red-500/20"
-                              }`}>
-                              <View className={`w-1.5 h-1.5 rounded-full mr-1.5 ${variantInStock ? "bg-green-500" : "bg-red-500"
-                                }`} />
-                              <Text className={`text-xs font-semibold ${variantInStock ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                }`}>
-                                {variantInStock ? `${variant.stock} in stock` : 'Out of stock'}
-                              </Text>
-                            </View>
-                          </View>
-
-                          {/* SKU */}
-                          {variant.sku && (
-                            <Text className="text-text-tertiary text-xs mt-2">
-                              SKU: <Text className="font-mono">{variant.sku}</Text>
-                            </Text>
-                          )}
-                        </View>
-
-                        {/* Variant Image (if available) */}
-                        {variant.image && (
-                          <View className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                            <Image
-                              source={variant.image}
-                              style={{ width: '100%', height: '100%' }}
-                              contentFit="cover"
-                              transition={300}
-                            />
-                          </View>
-                        )}
-                      </View>
-
-                      {/* Selected Badge */}
-                      {isSelectedVariant && (
-                        <View className="mt-3 pt-3 border-t border-primary/20">
-                          <View className="flex-row items-center">
-                            <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
-                            <Text className="text-primary text-xs font-bold ml-1.5 uppercase tracking-wide">
-                              Currently Selected
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            </AnimatedContainer>
-          )}
 
           {/* Description */}
           <AnimatedContainer animation="fadeUp" delay={500} className="mb-8">
@@ -664,116 +543,102 @@ const ProductDetailScreen = () => {
             )}
           </AnimatedContainer>
 
-          {/* Quantity Selector */}
-          {inStock && (
-            <AnimatedContainer animation="fadeUp" delay={700} className={`mb-8 p-4 rounded-2xl border flex-row items-center justify-between ${theme === 'dark' ? "bg-surface-light border-white/5" : "bg-gray-50 border-black/5"}`}>
-              <Text className="text-text-primary font-bold">Quantity</Text>
-              <View className="flex-row items-center gap-4">
-                <TouchableOpacity
-                  onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                  className={`w-10 h-10 rounded-full items-center justify-center border ${theme === 'dark' ? "bg-black/20 border-white/10" : "bg-white border-black/10"}`}
-                >
-                  <Ionicons name="remove" size={20} color={theme === 'dark' ? "#fff" : "#000"} />
-                </TouchableOpacity>
-                <Text className="text-xl font-bold text-text-primary w-6 text-center">{quantity}</Text>
-                <TouchableOpacity
-                  onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="w-10 h-10 rounded-full bg-primary items-center justify-center shadow-lg shadow-primary/30"
-                >
-                  <Ionicons name="add" size={20} color="white" />
-                </TouchableOpacity>
-              </View>
-            </AnimatedContainer>
-          )}
+
 
           {/* Related Products Section */}
           {relatedProducts.length > 0 && (
             <AnimatedContainer animation="fadeUp" delay={800} className="mt-4 mb-4">
               <View className="flex-row items-center justify-between px-0 mb-4">
                 <Text className="text-text-primary text-xl font-bold">You May Also Like</Text>
-                <TouchableOpacity onPress={() => router.push("/(tabs)/" as any)}>
+                <TouchableOpacity onPress={() => router.push("/(tabs)")}>
                   <Text className="text-primary font-semibold text-sm">See All</Text>
                 </TouchableOpacity>
               </View>
 
-              <FlatList
-                data={relatedProducts}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingRight: 20 }}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item, index }) => (
-                  <View style={{ width: width * 0.45 }}>
+              <View className="flex-row flex-wrap justify-between">
+                {relatedProducts.map((item, index) => (
+                  <View key={item._id} style={{ width: '48%', marginBottom: 16 }}>
                     <ProductCard product={item} index={index} />
                   </View>
-                )}
-              />
+                ))}
+              </View>
             </AnimatedContainer>
           )}
         </View>
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className={`flex-row items-center justify-between gap-4 absolute bottom-0 left-0 right-0 px-4 pt-4 pb-6 border-t ${theme === 'dark' ? 'bg-background border-white/5' : 'bg-white border-black/5'}`}>
+      <View
+        className={`flex-row items-center justify-between gap-8 absolute bottom-0 left-0 right-0 px-4 pt-4 border-t ${theme === 'dark' ? 'bg-background border-white/5' : 'bg-surface border-black/5'}`}
+        style={{ paddingBottom: insets.bottom + 16 }}
+      >
         <View className="flex-row items-center gap-2">
           {/* Chat Button */}
           <TouchableOpacity
-            className={`rounded-full p-2 items-center justify-center border ${theme === 'dark' ? "bg-surface-light border-white/10" : "bg-gray-100 border-black/5"}`}
-            activeOpacity={0.85}
+            className={`rounded-2xl p-3.5 items-center justify-center border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"}`}
+            activeOpacity={0.7}
             onPress={handleChatWithVendor}
             disabled={startingChat}
           >
             {startingChat ? (
-              <ActivityIndicator size="small" color="#6366F1" />
+              <ActivityIndicator size="small" color={theme === 'dark' ? "#fff" : "#000"} />
             ) : (
-              <Ionicons name="chatbubble-ellipses-outline" size={22} color={theme === 'dark' ? "#fff" : "#000"} />
+              <Ionicons name="chatbubble-ellipses-outline" size={24} color={theme === 'dark' ? "#fff" : "#000"} />
             )}
           </TouchableOpacity>
+
+          {/* Visit Store Button */}
+          {product.vendor && (
+            <TouchableOpacity
+              className={`rounded-2xl p-3.5 items-center justify-center border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"}`}
+              activeOpacity={0.7}
+              onPress={() => {
+                const vendorId = typeof product.vendor === 'object' ? (product.vendor as any)._id : product.vendor;
+                router.push(`/vendor/${vendorId}`);
+              }}
+            >
+              <Ionicons name="storefront-outline" size={24} color={theme === 'dark' ? "#fff" : "#000"} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Spacer */}
-        <View className="flex-1" />
-
         {/* Buy Now & Add to Cart Container */}
-        <View className="flex-1 flex-row gap-3">
-          {/* Buy Now*/}
+        <View className="flex-1 flex-row gap-3 justify-end">
+          {/* Add to Cart - Secondary/Outlined */}
           <TouchableOpacity
-            className={`flex-1 rounded-xl py-3.5 flex-row items-center justify-center border ${!inStock || paymentLoading
-              ? (theme === 'dark' ? "bg-white/5 border-white/5" : "bg-gray-100 border-black/5")
-              : (theme === 'dark' ? "bg-white border-white" : "bg-black border-black")}`}
-            activeOpacity={0.85}
-            onPress={handleBuyNow}
-            disabled={!inStock || paymentLoading}
-          >
-            {paymentLoading ? (
-              <ActivityIndicator size="small" color={theme === 'dark' ? "black" : "white"} />
-            ) : (
-              <Text className={`font-bold text-sm ${!inStock ? "text-text-secondary" : (theme === 'dark' ? "text-black" : "text-white")}`}>
-                {!inStock ? "Sold Out" : "Buy Now"}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Add to Cart */}
-          <TouchableOpacity
-            className={`flex-1 rounded-xl py-3.5 flex-row items-center justify-center shadow-lg ${!inStock || isAddingToCart
-              ? "bg-primary/50 shadow-none"
-              : "bg-primary shadow-primary/30"}`}
-            activeOpacity={0.85}
+            className={`flex-1 rounded-2xl py-3.5 flex-row items-center justify-center border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"}`}
+            activeOpacity={0.7}
             onPress={handleAddToCart}
             disabled={!inStock || isAddingToCart}
           >
             {isAddingToCart ? (
-              <ActivityIndicator color={theme === 'dark' ? "black" : "white"} size="small" />
+              <ActivityIndicator color={theme === 'dark' ? "#fff" : "#000"} size="small" />
             ) : (
               <>
-                <Ionicons name="cart" size={18} color={theme === 'dark' ? "black" : "white"} style={{ marginRight: 8 }} />
-                <Text className={`font-bold text-sm ${theme === 'dark' ? "text-black" : "text-white"}`}>Cart</Text>
+                <Ionicons name="cart-outline" size={20} color={theme === 'dark' ? "#fff" : "#000"} style={{ marginRight: 8 }} />
+                <Text className={`font-bold text-sm ${theme === 'dark' ? "text-white" : "text-black"}`}>Cart</Text>
               </>
+            )}
+          </TouchableOpacity>
+
+          {/* Buy Now - Primary/Filled */}
+          <TouchableOpacity
+            className={`flex-1 rounded-2xl py-3.5 flex-row items-center justify-center border ${theme === 'dark' ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5"}`}
+            activeOpacity={0.7}
+            onPress={handleBuyNow}
+            disabled={!inStock || paymentLoading}
+          >
+            {paymentLoading ? (
+              <ActivityIndicator size="small" color={theme === 'dark' ? "#fff" : "#000"} />
+            ) : (
+              <Text className={`font-bold text-sm ${!inStock ? "text-text-tertiary" : (theme === 'dark' ? "text-white" : "text-black")}`}>
+                {!inStock ? "Sold Out" : "Buy Now"}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
       </View>
+
 
       {/* Full Screen Image Viewer & Review Modal (Unchanged parts...) */}
       <Modal
@@ -803,8 +668,9 @@ const ProductDetailScreen = () => {
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
               <View style={{ width, height: '100%', justifyContent: 'center' }}>
-                <Image
+                <OptimizedImage
                   source={item}
+                  width={width * 2} // Retina width
                   style={{ width: '100%', height: '70%' }}
                   contentFit="contain"
                 />
@@ -825,13 +691,52 @@ const ProductDetailScreen = () => {
         />
       )}
 
+      <VariantSelectionModal
+        visible={isVariantModalVisible}
+        onClose={() => setIsVariantModalVisible(false)}
+        product={product}
+        initialSelectedOptions={selectedOptions}
+        confirmTitle={modalMode === 'cart' ? "Add to Cart" : "Buy Now"}
+        onConfirm={(options, qty, variant) => {
+          setSelectedOptions(options);
+          setQuantity(qty);
+          setIsVariantModalVisible(false);
+
+          if (modalMode === 'cart') {
+            addToCart(
+              {
+                productId: product._id,
+                quantity: qty,
+                selectedOptions: options,
+                variantId: variant?._id
+              },
+              {
+                onSuccess: () => showToast({ message: `${product.name} added to cart!`, type: 'success' }),
+                onError: (error: any) => {
+                  showToast({ message: error?.response?.data?.message || "Failed to add to cart", type: 'error' });
+                },
+              }
+            );
+
+          } else {
+            // Buy Now Logic - Check addresses
+            if (!addresses || addresses.length === 0) {
+              Alert.alert("Address Required", "Please add a shipping address in your profile before buying.");
+              router.push("/(tabs)/profile" as any);
+              return;
+            }
+            setAddressModalVisible(true);
+          }
+        }}
+      />
+
       <AddressSelectionModal
         visible={addressModalVisible}
         onClose={() => setAddressModalVisible(false)}
         onProceed={handleProceedWithPayment}
         isProcessing={paymentLoading}
       />
-    </View>
+    </SafeScreen>
   );
 };
 
