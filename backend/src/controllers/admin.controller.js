@@ -10,6 +10,8 @@ import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
 export const createProduct = catchAsync(async (req, res, next) => {
+  console.log("createProduct - Body:", req.body);
+  console.log("createProduct - Files:", req.files);
   const { name, description, price, originalPrice, stock, category, subcategory, brand, isSubsidy, soldCount, attributes, variants, shop } = req.body;
 
   if (!name || !price || !stock || !category) {

@@ -36,9 +36,12 @@ const sendErrorProd = (err, res) => {
     } else {
         // Programming or other unknown error: don't leak error details
         console.error("ERROR 💥", err);
+        // TEMPORARY DEBUGGING: Send error details to client
         res.status(500).json({
             status: "error",
             message: "Something went very wrong!",
+            devMessage: err.message,
+            stack: err.stack,
         });
     }
 };

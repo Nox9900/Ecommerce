@@ -42,6 +42,9 @@ export const getVendorProfile = catchAsync(async (req, res, next) => {
 });
 
 export const createVendorProduct = catchAsync(async (req, res, next) => {
+    console.log("createVendorProduct - Body:", req.body);
+    console.log("createVendorProduct - Files:", req.files);
+    console.log("createVendorProduct - User:", req.user._id);
     const { name, description, price, stock, category, shop, attributes } = req.body;
     const vendor = await Vendor.findOne({ owner: req.user._id });
 
