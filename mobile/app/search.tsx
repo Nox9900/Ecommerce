@@ -139,7 +139,7 @@ export default function SearchScreen() {
                             />
                         }
                     >
-                        <View className="py-40 px-2 mt-2">
+                        <View className="px-2 mt-2">
                             <ProductsGrid
                                 products={products || []}
                                 isLoading={isLoading}

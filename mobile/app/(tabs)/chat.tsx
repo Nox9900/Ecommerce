@@ -42,9 +42,12 @@ export default function ChatScreen() {
         isFetchingRef.current = true;
         try {
             const response = await api.get("/chats");
-            setConversations(response.data);
+            // Ensure we always set an array, even if response.data is undefined
+            setConversations(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error("Error fetching conversations:", error);
+            // Set empty array on error to prevent undefined
+            setConversations([]);
         } finally {
             setLoading(false);
             isFetchingRef.current = false;
