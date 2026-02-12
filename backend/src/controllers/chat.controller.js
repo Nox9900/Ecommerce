@@ -56,6 +56,28 @@ export const getMessages = catchAsync(async (req, res, next) => {
     });
 });
 
+export const getUnreadCount = catchAsync(async (req, res, next) => {
+    const user = req.user;
+
+    // Get all conversations for the user
+    const conversations = await Conversation.find({
+        participants: user._id,
+    }).select('_id').lean();
+
+    const conversationIds = conversations.map(c => c._id);
+
+    // Count messages in these conversations where user is NOT in readBy
+    const unreadCount = await Message.countDocuments({
+        conversationId: { $in: conversationIds },
+        sender: { $ne: user._id }, // Don't count user's own messages
+        readBy: { $ne: user._id }, // User is not in readBy array
+    });
+
+    res.status(200).json({
+        count: unreadCount,
+    });
+});
+
 export const startConversation = catchAsync(async (req, res, next) => {
     const { participantId } = req.body;
     const user = req.user;

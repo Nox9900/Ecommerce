@@ -1,7 +1,7 @@
 import SafeScreen from "@/components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -42,8 +42,8 @@ export default function ChatScreen() {
         isFetchingRef.current = true;
         try {
             const response = await api.get("/chats");
-            // Ensure we always set an array, even if response.data is undefined
-            setConversations(Array.isArray(response.data) ? response.data : []);
+            // Extract conversations array from response object
+            setConversations(response.data.conversations || []);
         } catch (error) {
             console.error("Error fetching conversations:", error);
             // Set empty array on error to prevent undefined
@@ -54,9 +54,17 @@ export default function ChatScreen() {
         }
     }, [api]);
 
+    // Fetch on mount
     useEffect(() => {
         fetchConversations();
     }, [fetchConversations]);
+
+    // Refetch when tab comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchConversations();
+        }, [fetchConversations])
+    );
 
     const getOtherParticipant = (participants: Conversation["participants"]) => {
         return participants.find((p) => p.clerkId !== userId) || participants[0];

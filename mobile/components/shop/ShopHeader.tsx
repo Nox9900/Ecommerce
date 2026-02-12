@@ -90,8 +90,8 @@ export default function ShopHeader({
                             >
                                 <Ionicons name="notifications-outline" size={22} className="text-text-primary" />
                                 {unreadCount > 0 && (
-                                    <View className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full items-center justify-center border border-white dark:border-black">
-                                        <AppText className="text-[9px] text-white font-bold">{unreadCount > 99 ? '99+' : unreadCount}</AppText>
+                                    <View className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full items-center justify-center border-2 border-white dark:border-background px-1">
+                                        <AppText className="text-[10px] text-white font-extrabold leading-none">{unreadCount > 99 ? '99+' : unreadCount}</AppText>
                                     </View>
                                 )}
                             </TouchableOpacity>

@@ -13,6 +13,8 @@ interface Notification {
     data?: any;
     read: boolean;
     createdAt: string;
+    translationKey?: string;
+    translationParams?: Record<string, any>;
 }
 
 interface NotificationContextType {
@@ -46,7 +48,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         queryFn: async () => {
             if (!isSignedIn) return [];
             const { data } = await api.get("/notifications");
-            return data;
+            return data.notifications || [];
         },
         enabled: !!isSignedIn,
     });

@@ -82,14 +82,14 @@ export default function NotificationsScreen() {
                                             <View className="flex-1">
                                                 <View className="flex-row justify-between items-start mb-1">
                                                     <AppText className={`text-text-primary font-bold text-base flex-1 mr-2 leading-tight ${!item.read ? 'font-extrabold' : ''}`} numberOfLines={1}>
-                                                        {item.translationKey ? t(item.translationKey, item.translationParams || {}) : item.title}
+                                                        {item.translationKey ? String(t(item.translationKey, item.translationParams || {})) : item.title}
                                                     </AppText>
                                                     <AppText className="text-text-tertiary text-[10px] font-bold uppercase tracking-tighter mt-1">
                                                         {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                                                     </AppText>
                                                 </View>
                                                 <AppText className={`text-text-secondary text-sm opacity-80 leading-5 ${!item.read ? 'text-text-primary' : ''}`} numberOfLines={2}>
-                                                    {item.translationKey ? t(item.translationKey + '_body', item.translationParams || {}) : item.body}
+                                                    {item.translationKey ? String(t(item.translationKey + '_body', item.translationParams || {})) : item.body}
                                                 </AppText>
                                             </View>
 
