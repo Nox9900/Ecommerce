@@ -13,7 +13,7 @@ import {
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
-import { addressSchema, wishlistSchema } from "../lib/zod.js";
+import { addressSchema, wishlistSchema, updateAddressSchema } from "../lib/zod.js";
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.use(protectRoute);
 // address routes
 router.post("/addresses", validate(addressSchema), addAddress);
 router.get("/addresses", getAddresses);
-router.put("/addresses/:addressId", validate(addressSchema), updateAddress);
+router.put("/addresses/:addressId", validate(updateAddressSchema), updateAddress);
 router.delete("/addresses/:addressId", deleteAddress);
 
 // wishlist routes

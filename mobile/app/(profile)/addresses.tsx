@@ -102,7 +102,7 @@ function AddressesScreen() {
             Alert.alert("Success", "Address updated successfully");
           },
           onError: (error: any) => {
-            Alert.alert("Error", error?.response?.data?.error || "Failed to update address");
+            Alert.alert("Error", error?.response?.data?.message || error?.response?.data?.error || "Failed to update address");
           },
         }
       );
@@ -114,7 +114,7 @@ function AddressesScreen() {
           Alert.alert("Success", "Address added successfully");
         },
         onError: (error: any) => {
-          Alert.alert("Error", error?.response?.data?.error || "Failed to add address");
+          Alert.alert("Error", error?.response?.data?.message || error?.response?.data?.error || "Failed to add address");
         },
       });
     }

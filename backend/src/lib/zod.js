@@ -4,12 +4,27 @@ import { z } from "zod";
 
 export const addressSchema = z.object({
     body: z.object({
-        street: z.string().min(1, "Street is required"),
+        label: z.string().min(1, "Label is required"),
+        fullName: z.string().min(1, "Full name is required"),
+        streetAddress: z.string().min(1, "Street address is required"),
         city: z.string().min(1, "City is required"),
         state: z.string().min(1, "State is required"),
         zipCode: z.string().min(1, "Zip code is required"),
-        country: z.string().min(1, "Country is required"),
-        mobile: z.string().min(1, "Mobile number is required"),
+        phoneNumber: z.string().min(1, "Phone number is required"),
+        isDefault: z.boolean().optional(),
+    }),
+});
+
+export const updateAddressSchema = z.object({
+    body: z.object({
+        label: z.string().min(1, "Label is required").optional(),
+        fullName: z.string().min(1, "Full name is required").optional(),
+        streetAddress: z.string().min(1, "Street address is required").optional(),
+        city: z.string().min(1, "City is required").optional(),
+        state: z.string().min(1, "State is required").optional(),
+        zipCode: z.string().min(1, "Zip code is required").optional(),
+        phoneNumber: z.string().min(1, "Phone number is required").optional(),
+        isDefault: z.boolean().optional(),
     }),
 });
 
