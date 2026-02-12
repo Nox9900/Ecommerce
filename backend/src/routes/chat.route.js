@@ -5,7 +5,6 @@ import {
     getMessages,
     startConversation,
     sendMessage,
-    sendMessage,
     getUnreadCount,
     markConversationAsRead,
 } from "../controllers/chat.controller.js";
