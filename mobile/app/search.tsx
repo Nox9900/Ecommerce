@@ -1,4 +1,4 @@
-import { View, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { View, TextInput, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
@@ -8,6 +8,8 @@ import SearchHistory from "@/components/shop/SearchHistory";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useTheme } from "@/lib/useTheme";
 import { AppText } from "@/components/ui/AppText";
+import ProductsGrid from "@/components/ProductsGrid";
+import useProducts from "@/hooks/useProducts";
 
 export default function SearchScreen() {
     const { t } = useTranslation();
@@ -16,31 +18,71 @@ export default function SearchScreen() {
     const initialQuery = typeof params.q === 'string' ? params.q : "";
 
     const [query, setQuery] = useState(initialQuery);
+    const [searchQuery, setSearchQuery] = useState(initialQuery);
+    const [hasSearched, setHasSearched] = useState(!!initialQuery);
+    const [refreshing, setRefreshing] = useState(false);
+
     const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
     const inputRef = useRef<TextInput>(null);
 
+    // Fetch products based on search query
+    const queryParams = searchQuery ? { q: searchQuery } : {};
+    const { data: products, isLoading, isError, refetch } = useProducts(queryParams);
+
+
     useEffect(() => {
-        // Auto-focus on mount
-        const timer = setTimeout(() => {
-            inputRef.current?.focus();
-        }, 100);
-        return () => clearTimeout(timer);
+        // Auto-focus on mount only if there's no initial query
+        if (!initialQuery) {
+            const timer = setTimeout(() => {
+                inputRef.current?.focus();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
     }, []);
+
+    // Debounced search: automatically search after user stops typing for 500ms
+    useEffect(() => {
+        if (query.trim().length >= 2) {
+            const debounceTimer = setTimeout(() => {
+                setSearchQuery(query.trim());
+                setHasSearched(true);
+            }, 500);
+            return () => clearTimeout(debounceTimer);
+        } else if (query.trim().length === 0 && hasSearched) {
+            // Clear search when query is empty
+            setSearchQuery("");
+            setHasSearched(false);
+        }
+    }, [query]);
+
+    // Sync params.q to query
+    useEffect(() => {
+        if (typeof params.q === 'string') {
+            setQuery(params.q);
+            setSearchQuery(params.q);
+            setHasSearched(true);
+        }
+    }, [params.q]);
 
     const handleSearchSubmit = (term: string) => {
         if (!term.trim()) return;
         addToHistory(term);
-        // Navigate back to Shop (Home) with query param
-        // We use 'replace' to avoid building up history stack of search pages? 
-        // Actually, push is better for 'back' behavior if user wants to change search.
-        // But since this IS the search page, we want to go back to results.
-        // Using `router.navigate` to existing tab with params.
-        router.navigate({ pathname: "/(tabs)", params: { q: term } });
+        setSearchQuery(term);
+        setHasSearched(true);
+        // Keep user on this page instead of navigating away
     };
 
     const clearQuery = () => {
         setQuery("");
+        setSearchQuery("");
+        setHasSearched(false);
         inputRef.current?.focus();
+    };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
     };
 
     return (
@@ -73,16 +115,40 @@ export default function SearchScreen() {
                 </View>
 
                 {/* Content */}
-                <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-                    {/* History */}
-                    <SearchHistory
-                        history={history}
-                        onSelect={handleSearchSubmit}
-                        onClear={clearHistory}
-                        onRemove={removeFromHistory}
-                        visible={true}
-                    />
-                </ScrollView>
+                {!hasSearched || !searchQuery ? (
+                    <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+                        {/* History */}
+                        <SearchHistory
+                            history={history}
+                            onSelect={handleSearchSubmit}
+                            onClear={clearHistory}
+                            onRemove={removeFromHistory}
+                            visible={true}
+                        />
+                    </ScrollView>
+                ) : (
+                    <ScrollView
+                        className="flex-1"
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        keyboardShouldPersistTaps="handled"
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                tintColor={theme === 'dark' ? "#fff" : "#000"}
+                            />
+                        }
+                    >
+                        <View className="py-40 px-2 mt-2">
+                            <ProductsGrid
+                                products={products || []}
+                                isLoading={isLoading}
+                                isError={isError}
+                                showVendorSlider={false}
+                            />
+                        </View>
+                    </ScrollView>
+                )}
             </View>
         </SafeScreen>
     );

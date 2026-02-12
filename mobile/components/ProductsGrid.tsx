@@ -130,6 +130,7 @@ const ProductsGrid = ({
       showsVerticalScrollIndicator={false}
       scrollEnabled={scrollEnabled}
       ListEmptyComponent={NoProductsFound}
+      style={{ marginTop: 10 }}
     />
   );
 };

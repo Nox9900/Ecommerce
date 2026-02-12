@@ -51,7 +51,11 @@ export const searchProducts = catchAsync(async (req, res, next) => {
 
   if (q) {
     query.$or = [
+      { name: { $regex: q, $options: "i" } },
+      { description: { $regex: q, $options: "i" } },
       { brand: { $regex: q, $options: "i" } },
+      { category: { $regex: q, $options: "i" } },
+      { subcategory: { $regex: q, $options: "i" } },
     ];
 
     // Track search query if authenticated
