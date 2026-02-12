@@ -76,7 +76,7 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
     // Handle variant images
     let parsedVariants = [];
     if (req.body.variants) {
-        parsedVariants = JSON.parse(req.body.variants);
+        parsedVariants = Array.isArray(req.body.variants) ? req.body.variants : JSON.parse(req.body.variants);
 
         // Upload variant images
         const variantImagePromises = parsedVariants.map(async (variant, index) => {
@@ -107,7 +107,7 @@ export const createVendorProduct = catchAsync(async (req, res, next) => {
         brand: req.body.brand,
         isSubsidy: req.body.isSubsidy === "true" || req.body.isSubsidy === true,
         soldCount: req.body.soldCount ? parseInt(req.body.soldCount) : 0,
-        attributes: attributes ? JSON.parse(attributes) : [],
+        attributes: attributes ? (Array.isArray(attributes) ? attributes : JSON.parse(attributes)) : [],
         images: imageUrls,
         variants: parsedVariants,
         vendor: vendor._id,
@@ -175,13 +175,13 @@ export const updateVendorProduct = catchAsync(async (req, res, next) => {
         brand,
         isSubsidy: isSubsidy !== undefined ? (isSubsidy === "true" || isSubsidy === true) : undefined,
         soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
-        attributes: attributes ? JSON.parse(attributes) : undefined,
+        attributes: attributes ? (Array.isArray(attributes) ? attributes : JSON.parse(attributes)) : undefined,
         shop: shop || undefined,
     };
 
     // Handle variants update
     if (req.body.variants) {
-        let parsedVariants = JSON.parse(req.body.variants);
+        let parsedVariants = Array.isArray(req.body.variants) ? req.body.variants : JSON.parse(req.body.variants);
 
         // Upload new variant images
         const variantImagePromises = parsedVariants.map(async (variant, index) => {

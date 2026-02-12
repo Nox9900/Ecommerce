@@ -56,7 +56,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
   // Parse and validate variants if provided
   let parsedVariants = [];
   if (variants) {
-    const variantsData = JSON.parse(variants);
+    const variantsData = Array.isArray(variants) ? variants : JSON.parse(variants);
     parsedVariants = variantsData.map((v) => ({
       name: v.name,
       options: v.options || {},
@@ -78,7 +78,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
     brand,
     isSubsidy: isSubsidy === "true" || isSubsidy === true,
     soldCount: soldCount ? parseInt(soldCount) : 0,
-    attributes: attributes ? JSON.parse(attributes) : [],
+    attributes: Array.isArray(attributes) ? attributes : (attributes ? JSON.parse(attributes) : []),
     variants: parsedVariants,
     images: imageUrls,
     vendor: vendorId,
@@ -155,7 +155,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   // Parse and validate variants if provided
   let parsedVariants = undefined;
   if (variants) {
-    const variantsData = JSON.parse(variants);
+    const variantsData = Array.isArray(variants) ? variants : JSON.parse(variants);
     parsedVariants = variantsData.map((v) => ({
       name: v.name,
       options: v.options || {},
@@ -177,7 +177,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
     brand,
     isSubsidy: isSubsidy !== undefined ? isSubsidy === "true" || isSubsidy === true : undefined,
     soldCount: soldCount !== undefined ? parseInt(soldCount) : undefined,
-    attributes: attributes ? JSON.parse(attributes) : undefined,
+    attributes: attributes ? (Array.isArray(attributes) ? attributes : JSON.parse(attributes)) : undefined,
     variants: parsedVariants,
     shop: shop || undefined,
   };
