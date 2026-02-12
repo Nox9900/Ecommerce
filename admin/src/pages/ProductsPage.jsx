@@ -57,24 +57,36 @@ function ProductsPage() {
   const createProductMutation = useMutation({
     mutationFn: productApi.create,
     onSuccess: () => {
+      toast.success("Product created successfully");
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to create product");
     },
   });
 
   const updateProductMutation = useMutation({
     mutationFn: productApi.update,
     onSuccess: () => {
+      toast.success("Product updated successfully");
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to update product");
     },
   });
 
   const deleteProductMutation = useMutation({
     mutationFn: productApi.delete,
     onSuccess: () => {
+      toast.success("Product deleted successfully");
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to delete product");
     },
   });
 

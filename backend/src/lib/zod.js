@@ -63,17 +63,26 @@ export const createProductSchema = z.object({
             (val) => parseFloat(val),
             z.number().positive("Price must be positive")
         ),
-        category: z.string().min(1, "Category is required"),
-        subCategory: z.string().optional(),
-        brand: z.string().optional(),
+        originalPrice: z.preprocess(
+            (val) => (val ? parseFloat(val) : undefined),
+            z.number().positive("Original price must be positive").optional()
+        ),
         stock: z.preprocess(
             (val) => parseInt(val),
             z.number().int().min(0, "Stock cannot be negative")
         ),
+        category: z.string().min(1, "Category is required"),
+        subcategory: z.string().optional(),
+        brand: z.string().optional(),
         isSubsidy: z.preprocess((val) => val === "true" || val === true, z.boolean()).optional(),
-        originalPrice: z.preprocess(
-            (val) => (val ? parseFloat(val) : undefined),
-            z.number().positive("Original price must be positive").optional()
+        soldCount: z.preprocess((val) => (val ? parseInt(val) : 0), z.number().int().min(0).optional()),
+        shop: z.string().optional(),
+        attributes: z.preprocess(
+            (val) => (typeof val === 'string' ? JSON.parse(val) : val),
+            z.array(z.object({
+                name: z.string(),
+                values: z.array(z.string()),
+            })).optional()
         ),
         variants: z.preprocess(
             (val) => (typeof val === 'string' ? JSON.parse(val) : val),
@@ -83,6 +92,7 @@ export const createProductSchema = z.object({
                 price: z.number().positive("Variant price must be positive"),
                 stock: z.number().int().min(0, "Variant stock cannot be negative"),
                 sku: z.string().optional(),
+                image: z.string().optional(),
             })).optional()
         ),
     }),

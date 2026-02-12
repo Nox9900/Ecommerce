@@ -14,7 +14,6 @@ import { startConversationSchema, sendMessageSchema } from "../lib/zod.js";
 const router = express.Router();
 
 import { protectRoute } from "../middleware/auth.middleware.js";
-
 import { upload } from "../middleware/multer.middleware.js";
 
 router.get("/", protectRoute, getConversations);
