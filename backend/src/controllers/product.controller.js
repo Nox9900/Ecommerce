@@ -1,6 +1,13 @@
 import { Product } from "../models/product.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
+import {
+  parsePaginationParams,
+  buildCursorQuery,
+  buildPaginationResponse,
+  selectFields,
+  buildProductSearchPipeline,
+} from "../utils/queryOptimization.js";
 
 export const getProductById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -37,7 +44,8 @@ export const getProductById = catchAsync(async (req, res, next) => {
 });
 
 export const searchProducts = catchAsync(async (req, res, next) => {
-  const { q, category, subcategory, minPrice, maxPrice, sort, minRating, page = 1, limit = 20, vendor } = req.query;
+  const { q, category, subcategory, minPrice, maxPrice, sort, minRating, vendor } = req.query;
+  const { page, limit, cursor, useCursor, skip } = parsePaginationParams(req.query);
 
   const query = {};
 
@@ -108,23 +116,45 @@ export const searchProducts = catchAsync(async (req, res, next) => {
     }
   }
 
+  // Use cursor-based pagination if requested
+  if (useCursor) {
+    const cursorQuery = buildCursorQuery(cursor, sortOption);
+    Object.assign(query, cursorQuery);
+
+    // Fetch one extra to check if there's a next page
+    const products = await Product.find(query)
+      .select('name description price originalPrice brand soldCount stock category subcategory images averageRating totalReviews variants createdAt updatedAt vendor shop')
+      .populate(selectFields('vendor', 'shopName _id'))
+      .populate(selectFields('shop', 'name logoUrl _id'))
+      .sort(sortOption)
+      .limit(limit + 1)
+      .lean();
+
+    const paginationResult = buildPaginationResponse(products, limit, sortOption);
+
+    return res.status(200).json({
+      products: paginationResult.results,
+      hasNextPage: paginationResult.hasNextPage,
+      nextCursor: paginationResult.nextCursor,
+      useCursor: true,
+    });
+  }
+
+  // Traditional offset-based pagination with aggregation
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
 
-  const products = await Product.find(query)
-    .populate("vendor", "shopName")
-    .populate("shop", "name logoUrl")
-    .sort(sortOption)
-    .skip(skip)
-    .limit(limitNum);
-
-  const total = await Product.countDocuments(query);
+  // Use aggregation pipeline for better performance
+  const pipeline = buildProductSearchPipeline(query, sortOption, skip, limitNum);
+  const [products, countResult] = await Promise.all([
+    Product.aggregate(pipeline),
+    Product.countDocuments(query),
+  ]);
 
   res.status(200).json({
     products,
-    total,
+    total: countResult,
     page: pageNum,
-    pages: Math.ceil(total / limitNum),
+    pages: Math.ceil(countResult / limitNum),
   });
 });

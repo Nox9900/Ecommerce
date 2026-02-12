@@ -5,7 +5,9 @@ import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
 export const getCart = catchAsync(async (req, res, next) => {
-  let cart = await Cart.findOne({ clerkId: req.user.clerkId }).populate("items.product");
+  let cart = await Cart.findOne({ clerkId: req.user.clerkId })
+    .populate("items.product")
+    .lean();
 
   if (!cart) {
     const user = req.user;
@@ -76,15 +78,13 @@ export const getCart = catchAsync(async (req, res, next) => {
     }
   }
 
-  // Need to convert mongoose doc to object to add custom fields?
-  // .toJSON() or .toObject() is needed if we want to append fields to the root that aren't in schema
-  const cartObj = cart.toObject();
-  cartObj.subtotal = subtotal;
-  cartObj.discountAmount = discountAmount;
-  cartObj.totalPrice = subtotal - discountAmount;
-  cartObj.couponDetails = couponDetails;
+  // Cart is already a plain object from lean(), directly add custom fields
+  cart.subtotal = subtotal;
+  cart.discountAmount = discountAmount;
+  cart.totalPrice = subtotal - discountAmount;
+  cart.couponDetails = couponDetails;
 
-  res.status(200).json({ cart: cartObj });
+  res.status(200).json({ cart });
 });
 
 export const addToCart = catchAsync(async (req, res, next) => {
