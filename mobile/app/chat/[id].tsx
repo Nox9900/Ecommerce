@@ -47,6 +47,8 @@ interface Message {
     createdAt: string;
 }
 
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+
 export default function ChatScreen() {
     const { id: receiverId, productId, productName, productImage } = useLocalSearchParams<{
         id: string;
@@ -63,6 +65,14 @@ export default function ChatScreen() {
     const [isRecording, setIsRecording] = useState(false);
     const [conversationId] = useState<string>(receiverId);
     const flatListRef = useRef<FlatList>(null);
+    const { markAsRead } = useUnreadMessages();
+
+    // Mark as read on mount
+    useEffect(() => {
+        if (conversationId) {
+            markAsRead(conversationId);
+        }
+    }, [conversationId, markAsRead]);
 
     // Expo Audio Hooks
     const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -73,7 +83,7 @@ export default function ChatScreen() {
         queryFn: async () => {
             if (!conversationId) return [];
             const { data } = await api.get(`/chats/${conversationId}/messages`);
-            return data;
+            return data.messages || [];
         },
         enabled: !!conversationId,
     });

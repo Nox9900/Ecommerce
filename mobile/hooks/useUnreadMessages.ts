@@ -1,35 +1,35 @@
-import { useState, useEffect } from 'react';
 import { useApi } from '@/lib/api';
 import { useAuth } from '@clerk/clerk-expo';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const useUnreadMessages = () => {
-    const [unreadCount, setUnreadCount] = useState(0);
     const api = useApi();
-    const { userId } = useAuth();
+    const { userId, isSignedIn } = useAuth();
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        if (!userId) {
-            setUnreadCount(0);
-            return;
-        }
+    const query = useQuery({
+        queryKey: ['unread-messages'],
+        queryFn: async () => {
+            if (!isSignedIn) return 0;
+            const { data } = await api.get('/chats/unread-count');
+            return data.count || 0;
+        },
+        enabled: !!isSignedIn,
+        refetchInterval: 30000, // Poll every 30 seconds
+    });
 
-        const fetchUnreadCount = async () => {
-            try {
-                const response = await api.get('/chats/unread-count');
-                setUnreadCount(response.data.count || 0);
-            } catch (error) {
-                console.error('Error fetching unread message count:', error);
-                setUnreadCount(0);
-            }
-        };
+    const markAsRead = useMutation({
+        mutationFn: async (conversationId: string) => {
+            await api.put(`/chats/${conversationId}/read`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['unread-messages'] });
+        },
+    });
 
-        fetchUnreadCount();
-
-        // Poll every 30 seconds for updates
-        const interval = setInterval(fetchUnreadCount, 30000);
-
-        return () => clearInterval(interval);
-    }, [userId, api]);
-
-    return unreadCount;
+    return {
+        count: query.data || 0,
+        refetch: query.refetch,
+        markAsRead: markAsRead.mutate,
+    };
 };

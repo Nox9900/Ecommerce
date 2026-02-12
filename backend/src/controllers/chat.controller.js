@@ -76,6 +76,27 @@ export const getUnreadCount = catchAsync(async (req, res, next) => {
     res.status(200).json({
         count: unreadCount,
     });
+    res.status(200).json({
+        count: unreadCount,
+    });
+});
+
+export const markConversationAsRead = catchAsync(async (req, res, next) => {
+    const { conversationId } = req.params;
+    const user = req.user;
+
+    await Message.updateMany(
+        {
+            conversationId,
+            sender: { $ne: user._id },
+            readBy: { $ne: user._id },
+        },
+        {
+            $addToSet: { readBy: user._id },
+        }
+    );
+
+    res.status(200).json({ status: "success" });
 });
 
 export const startConversation = catchAsync(async (req, res, next) => {

@@ -180,11 +180,11 @@ export const shopApi = {
 export const chatApi = {
   getConversations: async () => {
     const { data } = await axiosInstance.get("/chats");
-    return data;
+    return data.conversations || [];
   },
   getMessages: async (conversationId) => {
     const { data } = await axiosInstance.get(`/chats/${conversationId}/messages`);
-    return data;
+    return data.messages || [];
   },
   sendMessage: async (messageData) => {
     const { data } = await axiosInstance.post("/chats/message", messageData);

@@ -15,7 +15,7 @@ const TabsLayout = () => {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { unreadCount: unreadNotifications } = useNotifications();
-  const unreadMessages = useUnreadMessages();
+  const { count: unreadMessages } = useUnreadMessages();
 
   if (!isLoaded) return null; // for a better ux
   if (!isSignedIn) return <Redirect href={"/(auth)/welcome"} />;
