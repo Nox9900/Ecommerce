@@ -2,6 +2,7 @@ import AddressCard from "@/components/AddressCard";
 import Header from "@/components/Header";
 import AddressFormModal from "@/components/AddressFormModal";
 import { useAddresses } from "@/hooks/useAddressess";
+import { useToast } from "@/context/ToastContext";
 import { Address } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -11,6 +12,7 @@ import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { router } from "expo-router";
 import LoadingUI from "@/components/ui/Loading";
 import ErrorUI from "@/components/ui/Error";
+import EmptyUI from "@/components/ui/Empty";
 
 function AddressesScreen() {
   const {
@@ -36,6 +38,8 @@ function AddressesScreen() {
     phoneNumber: "",
     isDefault: false,
   });
+
+  const { showToast } = useToast();
 
   const handleAddAddress = () => {
     setShowAddressForm(true);
@@ -68,9 +72,20 @@ function AddressesScreen() {
   };
 
   const handleDeleteAddress = (addressId: string, label: string) => {
-    Alert.alert("Delete Address", `Are you sure you want to delete ${label}`, [
+    Alert.alert("Delete Address", `Are you sure you want to delete ${label}?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteAddress(addressId) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => deleteAddress(addressId, {
+          onSuccess: () => {
+            showToast({ message: "Address deleted successfully", type: "success" });
+          },
+          onError: (error: any) => {
+            showToast({ message: error?.response?.data?.message || "Failed to delete address", type: "error" });
+          }
+        })
+      },
     ]);
   };
 
@@ -84,7 +99,7 @@ function AddressesScreen() {
       !addressForm.zipCode ||
       !addressForm.phoneNumber
     ) {
-      Alert.alert("Error", "Please fill in all fields");
+      showToast({ message: "Please fill in all fields", type: "error" });
       return;
     }
 
@@ -99,10 +114,13 @@ function AddressesScreen() {
           onSuccess: () => {
             setShowAddressForm(false);
             setEditingAddressId(null);
-            Alert.alert("Success", "Address updated successfully");
+            showToast({ message: "Address updated successfully", type: "success" });
           },
           onError: (error: any) => {
-            Alert.alert("Error", error?.response?.data?.message || error?.response?.data?.error || "Failed to update address");
+            showToast({
+              message: error?.response?.data?.message || error?.response?.data?.error || "Failed to update address",
+              type: "error"
+            });
           },
         }
       );
@@ -111,10 +129,13 @@ function AddressesScreen() {
       addAddress(addressForm, {
         onSuccess: () => {
           setShowAddressForm(false);
-          Alert.alert("Success", "Address added successfully");
+          showToast({ message: "Address added successfully", type: "success" });
         },
         onError: (error: any) => {
-          Alert.alert("Error", error?.response?.data?.message || error?.response?.data?.error || "Failed to add address");
+          showToast({
+            message: error?.response?.data?.message || error?.response?.data?.error || "Failed to add address",
+            type: "error"
+          });
         },
       });
     }
@@ -137,20 +158,7 @@ function AddressesScreen() {
       {/* ADDRESSES LIST */}
       {addresses.length === 0 ? (
         <AnimatedContainer animation="fadeUp" className="flex-1 items-center justify-center px-6">
-          <View className="w-24 h-24 bg-surface-light rounded-full items-center justify-center mb-6">
-            <Ionicons name="location-outline" size={48} color="#6366F1" />
-          </View>
-          <AppText className="text-text-primary font-bold text-2xl mt-4 text-center">No addresses yet</AppText>
-          <AppText className="text-text-secondary text-center mt-2 mx-8 text-base">
-            Add your primary delivery address to speed up the checkout process.
-          </AppText>
-          <TouchableOpacity
-            className="bg-primary rounded-2xl px-10 py-4 mt-10 shadow-lg shadow-primary/20"
-            activeOpacity={0.8}
-            onPress={handleAddAddress}
-          >
-            <AppText className="text-white font-black uppercase tracking-tight">Add Address</AppText>
-          </TouchableOpacity>
+          <EmptyUI title="No addresses yet" subtitle="Add your primary delivery address to speed up the checkout process." buttonTitle="Add Address" buttonAction={handleAddAddress} icon="location-outline" />
         </AnimatedContainer>
       ) : (
         <ScrollView

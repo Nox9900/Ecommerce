@@ -3,7 +3,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { TouchableOpacity, View, ScrollView, Alert, Switch, Linking } from "react-native";
+import { TouchableOpacity, View, ScrollView,Text, Alert, Switch, Linking } from "react-native";
 import { useTheme } from "@/lib/useTheme";
 import { useTranslation } from "react-i18next";
 import { GlassView } from "@/components/ui/GlassView";
@@ -201,18 +201,14 @@ export default function ProfileScreen() {
 
                 {/* User Info */}
                 <View className="flex-1">
-                  <AppText className="text-2xl font-black">
-                    {user?.fullName || "Guest User"}
-                  </AppText>
-                  <AppText className="text-text-tertiary text-[10px] font-bold opacity-80 mt-1 mb-4">
-                    {user?.primaryEmailAddress?.emailAddress || "Sign in to sync data"}
-                  </AppText>
+                  <Text className={`text-2xl uppercase ${theme == 'dark' ? 'text-white' : 'text-dark'}`}>{user?.fullName || "Guest User"}</Text>
+                  <Text className={`font-bold opacity-80 mt-1 mb-4 ${theme == 'dark' ? 'text-white' : 'text-dark'}`}>{user?.primaryEmailAddress?.emailAddress || "Sign in to sync data"}</Text>
 
                   {/* Badge */}
-                  <View className="bg-primary/10 self-start px-2 py-1.5 rounded-full border border-primary/20">
-                    <AppText className="text-primary text-sm font-black uppercase tracking-widest">
+                  <View className="bg-primary/10 self-start border-b border-primary/20 py-1.5 ">
+                    <Text className="text-primary font-black uppercase ">
                       {user?.publicMetadata?.role as string || "Customer"} MEMBER
-                    </AppText>
+                    </Text>
                   </View>
                 </View>
               </View>

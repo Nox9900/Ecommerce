@@ -30,7 +30,7 @@ export default function Header({ onAdd, primaryText, secondaryText, rightCompone
             <Ionicons name="arrow-back" size={20} color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
           </TouchableOpacity>
           <View className="ml-2">
-            <AppText className="text-text-primary text-2xl font-bold">{primaryText}</AppText>
+            <AppText className="text-text-primary text-3xl font-bold">{primaryText}</AppText>
           </View>
         </View>
 

@@ -12,6 +12,7 @@ import {
 import SafeScreen from "./SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "./ui/AppText";
+import { useTheme } from "@/lib/useTheme";
 
 interface AddressFormData {
   label: string;
@@ -35,6 +36,8 @@ interface AddressFormModalProps {
   onFormChange: (form: AddressFormData) => void;
 }
 
+
+
 const AddressFormModal = ({
   addressForm,
   isAddingAddress,
@@ -45,6 +48,7 @@ const AddressFormModal = ({
   onSave,
   visible,
 }: AddressFormModalProps) => {
+  const {theme} = useTheme()
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
@@ -58,7 +62,7 @@ const AddressFormModal = ({
               {isEditing ? "Edit Address" : "Add New Address"}
             </AppText>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color="#FFFFFF" />
+              <Ionicons name="close" size={28} color={theme === 'dark' ? '#FFFFFF' : '#000000'} />
             </TouchableOpacity>
           </View>
 

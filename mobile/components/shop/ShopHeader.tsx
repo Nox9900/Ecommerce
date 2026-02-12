@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/useTheme";
@@ -65,8 +65,8 @@ export default function ShopHeader({
                     // Default Header Mode
                     <>
                         <View>
-                            <AppText className="text-text-primary text-2xl font-bold">{t('common.discover')}</AppText>
-                            <AppText className="text-text-primary text-sm">{t('common.discover_desc')}</AppText>
+                            <Text className="text-text-primary text-2xl font-bold">{t('common.discover')}</Text>
+                            <Text className="text-text-primary text-sm">{t('common.discover_desc')}</Text>
                         </View>
 
                         <View className="flex-row items-center gap-3">

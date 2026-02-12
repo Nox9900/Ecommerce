@@ -88,7 +88,7 @@ export default function FilterModal({ visible, onClose, onApply, initialFilters 
                                     >
                                         <AppText
                                             className={`${filters.sort === option.value
-                                                ? "text-white font-bold"
+                                                ? "text-primary-foreground font-bold"
                                                 : "text-text-primary"
                                                 }`}
                                         >

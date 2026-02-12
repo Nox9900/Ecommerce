@@ -2,7 +2,7 @@ import SafeScreen from "@/components/SafeScreen";
 import { useAddresses } from "@/hooks/useAddressess";
 import useCart from "@/hooks/useCart";
 import { useApi } from "@/lib/api";
-import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View, RefreshControl } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, Text, View, RefreshControl } from "react-native";
 import EmptyUI from "@/components/ui/Empty";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useState } from "react";
@@ -201,7 +201,7 @@ const CartScreen = () => {
   return (
     <SafeScreen>
       <AnimatedContainer animation="fadeDown">
-        <AppText className="pt-4 px-6 pb-5 text-text-primary text-3xl font-bold tracking-tight">{t('tabs.cart')}</AppText>
+        <Text className="pt-4 px-6 pb-5 text-text-primary text-2xl font-bold tracking-tight">{t('tabs.cart')}</Text>
       </AnimatedContainer>
 
       <ScrollView
@@ -388,7 +388,7 @@ function LoadingUI() {
   const { t } = useTranslation();
   return (
     <View className="flex-1 bg-background items-center justify-center">
-      <ActivityIndicator size="large" color={theme === 'dark' ? "#fff" : "#000"} />
+      <ActivityIndicator size="large"color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
       <AppText className="text-text-secondary mt-4">{t('cart.loading')}</AppText>
     </View>
   );

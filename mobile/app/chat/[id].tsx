@@ -25,6 +25,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useAudioPlayer, useAudioRecorder, RecordingPresets, useAudioRecorderState } from "expo-audio";
 import { useVideoPlayer, VideoView } from "expo-video"; // Import expo-video
 import { useSocket } from "@/context/SocketContext";
+import { useTheme } from "@/lib/useTheme";
 
 interface Attachment {
     type: "image" | "file" | "audio" | "video"; // Added video type
@@ -311,13 +312,13 @@ export default function ChatScreen() {
                         ) : null}
 
                         <View className="flex-row justify-end mt-1">
-                            <Text className={`text-[10px] ${isMe ? "text-background/70" : "text-text-secondary"}`}>
+                            <Text className={`text-[10px] ${isMe ? "text-primary-foreground opacity-70" : "text-text-secondary"}`}>
                                 {new Date(item.createdAt).toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                 })}
                             </Text>
-                            {isMe && <Ionicons name="checkmark-done" size={12} color="rgba(0,0,0,0.5)" style={{ marginLeft: 4 }} />}
+                            {isMe && <Ionicons name="checkmark-done" size={12} color={theme === 'dark' ? '#262626' : '#FAFAFA'} style={{ marginLeft: 4 }} />}
                         </View>
                     </View>
                 </View>
@@ -325,6 +326,8 @@ export default function ChatScreen() {
         );
     };
 
+
+    const { theme } = useTheme();
     return (
         <SafeScreen>
             <KeyboardAvoidingView
@@ -335,7 +338,7 @@ export default function ChatScreen() {
                 {/* Header */}
                 <View className="flex-row items-center px-4 py-3 border-b border-white/5 bg-background z-10">
                     <TouchableOpacity onPress={() => router.back()} className="mr-4 p-1">
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                        <Ionicons name="arrow-back" size={24} color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
                     </TouchableOpacity>
                     <View className="flex-1">
                         <Text className="text-lg font-bold text-text-primary">Chat with Vendor</Text>

@@ -14,7 +14,7 @@ const resources = {
             common: {
                 search: 'Search', categories: 'Categories', see_all: 'See All', view_all: 'View All',
                 add_to_cart: 'Add to Cart', total: 'Total', checkout: 'Checkout', featured: 'Featured',
-                discover: 'Discover', discover_desc: 'Explore products', items: 'items', item: 'item',
+                discover: 'Yaamaan', discover_desc: 'Shop your way', items: 'items', item: 'item',
                 all: 'All', shops_to_explore: 'Shops to Explore', remove_item: 'Remove Item',
                 remove_item_desc: 'Remove {{name}} from cart?', cancel: 'Cancel', remove: 'Remove',
                 success: 'Success', payment_success: 'Your payment was successful! Your order is being processed.',

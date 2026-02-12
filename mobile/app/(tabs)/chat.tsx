@@ -1,6 +1,6 @@
 import SafeScreen from "@/components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
-import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
@@ -65,7 +65,7 @@ export default function ChatScreen() {
                 {/* Header */}
                 <GlassView intensity={theme === 'dark' ? 20 : 40} className="px-6 pt-4 pb-6 border-b border-white/5">
                     <AnimatedContainer animation="fadeDown">
-                        <AppText className="text-3xl font-bold text-text-primary tracking-tight">{t('chat.title')}</AppText>
+                        <Text className="text-2xl font-bold text-text-primary tracking-tight">{t('chat.title')}</Text>
                         <AppText className="text-text-secondary text-sm font-medium mt-1">
                             {loading ? "..." : t('chat.conversations', { count: conversations.length })}
                         </AppText>

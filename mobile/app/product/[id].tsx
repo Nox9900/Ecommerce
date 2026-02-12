@@ -227,7 +227,9 @@ const ProductDetailScreen = () => {
 
     try {
       setStartingChat(true);
-      const { data: conversation } = await api.post("/chats", { participantId: product.vendor });
+      // Ensure we're sending the vendor ID string, not the object
+      const vendorId = typeof product.vendor === 'object' ? (product.vendor as any)._id : product.vendor;
+      const { data: conversation } = await api.post("/chats", { participantId: vendorId });
 
       router.push({
         pathname: `/chat/${conversation._id}`,
