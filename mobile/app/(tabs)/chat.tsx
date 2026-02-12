@@ -4,7 +4,7 @@ import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "re
 import { router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { useApi } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { GlassView } from "@/components/ui/GlassView";
@@ -31,8 +31,15 @@ export default function ChatScreen() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
+    const isFetchingRef = useRef(false);
 
-    const fetchConversations = async () => {
+    const fetchConversations = useCallback(async () => {
+        // Prevent duplicate requests
+        if (isFetchingRef.current) {
+            return;
+        }
+
+        isFetchingRef.current = true;
         try {
             const response = await api.get("/chats");
             setConversations(response.data);
@@ -40,12 +47,13 @@ export default function ChatScreen() {
             console.error("Error fetching conversations:", error);
         } finally {
             setLoading(false);
+            isFetchingRef.current = false;
         }
-    };
+    }, [api]);
 
     useEffect(() => {
         fetchConversations();
-    }, []);
+    }, [fetchConversations]);
 
     const getOtherParticipant = (participants: Conversation["participants"]) => {
         return participants.find((p) => p.clerkId !== userId) || participants[0];

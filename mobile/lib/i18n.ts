@@ -25,8 +25,8 @@ const resources = {
             },
             cart: {
                 title: 'Cart', loading: 'Loading cart...', empty_title: 'Your cart is empty',
-                empty_desc: 'Add some products to get started', error_title: 'Failed to load cart',
-                error_desc: 'Please check your connection and try again',
+                empty_desc: 'Add some products to get started', start_shopping: 'Start Shopping',
+                error_title: 'Failed to load cart', error_desc: 'Please check your connection and try again',
                 no_address: 'No Address', no_address_desc: 'Please add a shipping address in your profile before checking out.',
                 checkout_button: 'Checkout'
             },
@@ -84,8 +84,8 @@ const resources = {
             },
             cart: {
                 title: 'Panier', loading: 'Chargement du panier...', empty_title: 'Votre panier est vide',
-                empty_desc: 'Ajoutez des produits pour commencer', error_title: 'Échec du chargement du panier',
-                error_desc: 'Veuillez vérifier votre connexion et réessayer',
+                empty_desc: 'Ajoutez des produits pour commencer', start_shopping: 'Commencer les achats',
+                error_title: 'Échec du chargement du panier', error_desc: 'Veuillez vérifier votre connexion et réessayer',
                 no_address: 'Pas d\'adresse', no_address_desc: 'Veuillez ajouter une adresse de livraison dans votre profil avant de payer.',
                 checkout_button: 'Payer'
             },
@@ -143,8 +143,8 @@ const resources = {
             },
             cart: {
                 title: 'Carrito', loading: 'Cargando carrito...', empty_title: 'Tu carrito está vacío',
-                empty_desc: 'Añade algunos productos para empezar', error_title: 'Error al cargar el carrito',
-                error_desc: 'Por favor, compruebe su conexión e inténtelo de nuevo',
+                empty_desc: 'Añade algunos productos para empezar', start_shopping: 'Empezar a comprar',
+                error_title: 'Error al cargar el carrito', error_desc: 'Por favor, compruebe su conexión e inténtelo de nuevo',
                 no_address: 'Sin dirección', no_address_desc: 'Por favor, añade una dirección de envío en tu perfil antes de pagar.',
                 checkout_button: 'Pagar'
             },
@@ -202,8 +202,8 @@ const resources = {
             },
             cart: {
                 title: 'السلة', loading: 'جاري تحميل السلة...', empty_title: 'سلتك فارغة',
-                empty_desc: 'أضف بعض المنتجات للبدء', error_title: 'فشل تحميل السلة',
-                error_desc: 'يرجى التحقق من اتصالك والمحاولة مرة أخرى',
+                empty_desc: 'أضف بعض المنتجات للبدء', start_shopping: 'بدء التسوق',
+                error_title: 'فشل تحميل السلة', error_desc: 'يرجى التحقق من اتصالك والمحاولة مرة أخرى',
                 no_address: 'لا يوجد عنوان', no_address_desc: 'يرجى إضافة عنوان شحن في ملفك الشخصي قبل الدفع.',
                 checkout_button: 'الدفع'
             },
@@ -261,8 +261,8 @@ const resources = {
             },
             cart: {
                 title: '购物车', loading: '正在加载购物车...', empty_title: '您的购物车是空的',
-                empty_desc: '添加一些产品开始使用', error_title: '无法加载购物车',
-                error_desc: '请检查您的连接并重试',
+                empty_desc: '添加一些产品开始使用', start_shopping: '开始购物',
+                error_title: '无法加载购物车', error_desc: '请检查您的连接并重试',
                 no_address: '无地址', no_address_desc: '请在结账前在您的档案中添加送货地址。',
                 checkout_button: '结算'
             },
@@ -320,8 +320,8 @@ const resources = {
             },
             cart: {
                 title: 'Корзина', loading: 'Загрузка корзины...', empty_title: 'Ваша корзина пуста',
-                empty_desc: 'Добавьте товары, чтобы начать', error_title: 'Не удалось загрузить корзину',
-                error_desc: 'Пожалуйста, проверьте соединение и попробуйте снова',
+                empty_desc: 'Добавьте товары, чтобы начать', start_shopping: 'Начать покупки',
+                error_title: 'Не удалось загрузить корзину', error_desc: 'Пожалуйста, проверьте соединение и попробуйте снова',
                 no_address: 'Нет адреса', no_address_desc: 'Пожалуйста, добавьте адрес доставки в профиле перед оформлением заказа.',
                 checkout_button: 'Оформить заказ'
             },

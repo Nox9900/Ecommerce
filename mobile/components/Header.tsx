@@ -30,10 +30,7 @@ export default function Header({ onAdd, primaryText, secondaryText, rightCompone
             <Ionicons name="arrow-back" size={20} color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
           </TouchableOpacity>
           <View className="ml-2">
-            <AppText className="text-text-primary text-xl font-bold">{primaryText}</AppText>
-            <AppText className="text-text-tertiary text-[10px] font-bold uppercase tracking-widest">
-              {secondaryText}
-            </AppText>
+            <AppText className="text-text-primary text-2xl font-bold">{primaryText}</AppText>
           </View>
         </View>
 
@@ -42,7 +39,7 @@ export default function Header({ onAdd, primaryText, secondaryText, rightCompone
           {onAdd && (
             <TouchableOpacity
               onPress={onAdd}
-              className="w-10 h-10 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
+              className="w-10 h-10 mr-4 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
             >
               <Ionicons name="add" size={24} color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
             </TouchableOpacity>

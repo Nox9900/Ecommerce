@@ -132,7 +132,7 @@ function AddressesScreen() {
   return (
     <View className="flex-1 bg-background">
       {/* HEADER */}
-      <Header onAdd={handleAddAddress} primaryText="My Addresses" secondaryText="Your addresses list" />
+      <Header onAdd={handleAddAddress} primaryText="My Addresses" />
 
       {/* ADDRESSES LIST */}
       {addresses.length === 0 ? (

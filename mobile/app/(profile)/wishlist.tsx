@@ -120,7 +120,7 @@ function WishlistScreen() {
         rightComponent={
           <TouchableOpacity
             onPress={handleShare}
-            className="w-10 h-10 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
+            className="w-10 h-10 mr-4 rounded-full bg-surface-light items-center justify-center border border-black/10 dark:border-white/10"
           >
             <Ionicons
               name={isWishlistPublic ? "share-social" : "lock-closed"}

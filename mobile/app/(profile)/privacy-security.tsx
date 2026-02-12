@@ -1,7 +1,7 @@
 import SafeScreen from "@/components/SafeScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollView, Switch, TouchableOpacity, View, Alert, Modal, TextInput, ActivityIndicator, I18nManager } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { useUser, useAuth } from "@clerk/clerk-expo";
@@ -12,6 +12,11 @@ import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/useTheme";
 import Header from "@/components/Header";
+import {
+  getNotificationPreferences,
+  setPushNotificationEnabled,
+  setEmailNotificationEnabled
+} from "@/lib/notificationPreferences";
 
 type SecurityOption = {
   id: string;
@@ -30,8 +35,8 @@ function PrivacyAndSecurityScreen() {
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(false);
 
   // Password Change Modal State
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -86,23 +91,54 @@ function PrivacyAndSecurityScreen() {
     },
   ];
 
+  // Load notification preferences on mount
+  useEffect(() => {
+    loadNotificationPreferences();
+  }, []);
+
+  const loadNotificationPreferences = async () => {
+    try {
+      const prefs = await getNotificationPreferences();
+      setPushNotifications(prefs.pushEnabled);
+      setEmailNotifications(prefs.emailEnabled);
+    } catch (error) {
+      console.error('Error loading notification preferences:', error);
+    }
+  };
+
   const handleToggle = async (id: string, value: boolean) => {
     switch (id) {
-      case "two-factor": setTwoFactorEnabled(value); break;
-      case "biometric": setBiometricEnabled(value); break;
+      case "two-factor":
+        setTwoFactorEnabled(value);
+        break;
+      case "biometric":
+        setBiometricEnabled(value);
+        break;
       case "push":
         if (value) {
+          // Request permission and register for push notifications
           const token = await registerForPushNotificationsAsync();
           if (token) {
             setPushNotifications(true);
+            await setPushNotificationEnabled(true);
           } else {
             setPushNotifications(false);
+            await setPushNotificationEnabled(false);
+            Alert.alert(
+              "Permission Denied",
+              "Please enable notifications in your device settings to receive push notifications."
+            );
           }
         } else {
+          // Disable push notifications
           setPushNotifications(false);
+          await setPushNotificationEnabled(false);
         }
         break;
-      case "email": setEmailNotifications(value); break;
+      case "email":
+        setEmailNotifications(value);
+        await setEmailNotificationEnabled(value);
+        break;
     }
   };
 

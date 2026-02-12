@@ -2,16 +2,20 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { isPushNotificationEnabled } from './notificationPreferences';
 
 // Configure how notifications are displayed when the app is in the foreground
 Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-    }),
+    handleNotification: async () => {
+        const enabled = await isPushNotificationEnabled();
+        return {
+            shouldShowAlert: enabled,
+            shouldPlaySound: enabled,
+            shouldSetBadge: enabled,
+            shouldShowBanner: enabled,
+            shouldShowList: enabled,
+        };
+    },
 });
 
 export async function registerForPushNotificationsAsync() {
