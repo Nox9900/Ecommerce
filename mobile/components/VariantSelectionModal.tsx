@@ -9,7 +9,6 @@ import {
     Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/lib/useTheme';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -20,7 +19,7 @@ interface VariantSelectionModalProps {
     onClose: () => void;
     product: any;
     initialSelectedOptions: Record<string, string>;
-    onConfirm: (selectedOptions: Record<string, string>, quantity: number) => void;
+    onConfirm: (selectedOptions: Record<string, string>, quantity: number, variant: any) => void;
     confirmTitle?: string;
 }
 
@@ -32,7 +31,8 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
     onConfirm,
     confirmTitle = "Buy Now",
 }) => {
-    const { theme } = useTheme();
+    // const { theme } = useTheme(); // Temporary disabled to debug navigation error
+    const theme = 'light';
     const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(initialSelectedOptions || {});
     const [quantity, setQuantity] = useState(1);
 
@@ -99,7 +99,7 @@ const VariantSelectionModal: React.FC<VariantSelectionModalProps> = ({
 
     const handleConfirm = () => {
         if (canBuy) {
-            onConfirm(selectedOptions, quantity);
+            onConfirm(selectedOptions, quantity, exactVariant);
         }
     };
 

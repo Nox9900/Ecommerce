@@ -697,19 +697,12 @@ const ProductDetailScreen = () => {
         product={product}
         initialSelectedOptions={selectedOptions}
         confirmTitle={modalMode === 'cart' ? "Add to Cart" : "Buy Now"}
-        onConfirm={(options, qty) => {
+        onConfirm={(options, qty, variant) => {
           setSelectedOptions(options);
           setQuantity(qty);
           setIsVariantModalVisible(false);
 
           if (modalMode === 'cart') {
-            // Add to cart logic
-            // Need to find variantId first
-            const variant = product.variants?.find((v: any) => {
-              const attributeNames = (product.attributes || []).map((a: any) => a.name);
-              return attributeNames.every((name: string) => v.options[name] === options[name]);
-            });
-
             addToCart(
               {
                 productId: product._id,
