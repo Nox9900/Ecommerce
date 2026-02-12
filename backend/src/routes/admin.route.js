@@ -17,6 +17,10 @@ import {
   searchAll,
 } from "../controllers/admin.controller.js";
 import {
+  bulkDeleteProducts,
+  bulkUpdateProductStock,
+} from "../controllers/bulk-operations.controller.js";
+import {
   getAllWithdrawals,
   updateWithdrawalStatus
 } from "../controllers/withdrawal.controller.js";
@@ -39,6 +43,8 @@ router.post("/products", upload.array("images", 3), validate(createProductSchema
 router.get("/products", getAllProducts);
 router.put("/products/:id", upload.array("images", 3), validate(createProductSchema), updateProduct);
 router.delete("/products/:id", deleteProduct);
+router.post("/products/bulk-delete", bulkDeleteProducts);
+router.post("/products/bulk-update-stock", bulkUpdateProductStock);
 router.get("/shops", getAllShops);
 
 router.get("/orders", getAllOrders);

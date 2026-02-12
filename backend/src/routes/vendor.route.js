@@ -10,6 +10,10 @@ import {
     getPublicVendorProfile,
 } from "../controllers/vendor.controller.js";
 import {
+    vendorBulkDeleteProducts,
+    vendorBulkUpdateProductStock,
+} from "../controllers/bulk-operations.controller.js";
+import {
     createConnectAccount,
     createAccountLink,
     getConnectAccountStatus,
@@ -36,6 +40,8 @@ router.get("/stats", protectRoute, vendorOnly, getVendorStats);
 router.get("/products", protectRoute, vendorOnly, getVendorProducts);
 router.post("/products", protectRoute, vendorOnly, upload.any(), validate(createProductSchema), createVendorProduct);
 router.put("/products/:id", protectRoute, vendorOnly, upload.any(), validate(createProductSchema), updateVendorProduct);
+router.post("/products/bulk-delete", protectRoute, vendorOnly, vendorBulkDeleteProducts);
+router.post("/products/bulk-update-stock", protectRoute, vendorOnly, vendorBulkUpdateProductStock);
 router.post("/withdrawals", protectRoute, vendorOnly, validate(requestWithdrawalSchema), requestWithdrawal);
 router.get("/withdrawals", protectRoute, vendorOnly, getVendorWithdrawals);
 router.get("/search", protectRoute, vendorOnly, vendorSearch);
