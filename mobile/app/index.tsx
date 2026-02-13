@@ -62,26 +62,16 @@ export default function RootIndex() {
     return (
         <SafeScreen>
             <View className="flex-1 px-8 justify-between py-12 bg-background">
-                <View className="items-center mt-10">
-                    <View className="w-24 h-24 bg-primary rounded-3xl items-center justify-center mb-6 shadow-xl">
-                        <AppText className="text-primary-foreground text-4xl font-bold">{t('splash.title').charAt(0)}</AppText>
-                    </View>
-                    <AppText className="text-4xl font-bold text-text-primary text-center mb-4">
-                        {t('splash.title')}<AppText className="text-text-tertiary">{t('splash.subtitle')}</AppText>
-                    </AppText>
-                    <AppText className="text-text-secondary text-center text-lg px-4">
-                        {t('splash.desc')}
-                    </AppText>
+                <View className="items-center mt-10 w-full flex-1 justify-center">
+                    <Image
+                        source={require("../assets/images/yaamaan.jpg")}
+                        style={{ width: '100%', height: 300 }}
+                        resizeMode="contain"
+                    />
                 </View>
 
                 <View className="items-center">
-                    <View className="w-full mb-8 overflow-hidden rounded-4xl border border-border">
-                        <Image
-                            source={require("../assets/images/auth-image.png")}
-                            style={{ width: '100%', height: 300 }}
-                            resizeMode="cover"
-                        />
-                    </View>
+
 
                     <View className="w-full gap-4">
                         <Button

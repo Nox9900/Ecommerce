@@ -41,13 +41,13 @@ const AuthScreen = () => {
         </TouchableOpacity>
 
         {/* EMAIL SIGN IN BTN */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className="flex-row items-center justify-center bg-primary rounded-2xl px-6 py-4"
           onPress={() => router.push("/(auth)/email-signin")}
           disabled={loadingStrategy !== null}
         >
           <Text className="text-primary-foreground font-semibold text-base">Continue with Email</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* PHONE SIGN IN BTN */}
         <TouchableOpacity
