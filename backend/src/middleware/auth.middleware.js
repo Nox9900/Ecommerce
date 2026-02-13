@@ -1,5 +1,4 @@
 import { requireAuth } from "@clerk/express";
-import { clerkClient } from "@clerk/express";
 import { User } from "../models/user.model.js";
 import { ENV } from "../config/env.js";
 
@@ -10,28 +9,8 @@ export const protectRoute = [
       const clerkId = req.auth().userId;
       if (!clerkId) return res.status(401).json({ message: "Unauthorized - invalid token" });
 
-      let user = await User.findOne({ clerkId });
-
-      // If user not found in DB, try to sync from Clerk
-      if (!user) {
-        try {
-          const clerkUser = await clerkClient.users.getUser(clerkId);
-
-          user = await User.create({
-            clerkId: clerkUser.id,
-            email: clerkUser.emailAddresses[0]?.emailAddress,
-            name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "User",
-            imageUrl: clerkUser.imageUrl,
-            addresses: [],
-            wishlist: [],
-          });
-
-          console.log(`User synced from Clerk: ${user.email}`);
-        } catch (clerkError) {
-          console.error("Error fetching user from Clerk:", clerkError);
-          return res.status(404).json({ message: "User not found and failed to sync" });
-        }
-      }
+      const user = await User.findOne({ clerkId });
+      if (!user) return res.status(404).json({ message: "User not found" });
 
       req.user = user;
 
