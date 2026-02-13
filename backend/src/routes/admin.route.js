@@ -19,6 +19,8 @@ import {
 import {
   bulkDeleteProducts,
   bulkUpdateProductStock,
+  bulkUpdateOrderStatus,
+  bulkDeleteOrders,
 } from "../controllers/bulk-operations.controller.js";
 import {
   getAllWithdrawals,
@@ -48,6 +50,8 @@ router.post("/products/bulk-update-stock", bulkUpdateProductStock);
 router.get("/shops", getAllShops);
 
 router.get("/orders", getAllOrders);
+router.post("/orders/bulk-status", bulkUpdateOrderStatus);
+router.post("/orders/bulk-delete", bulkDeleteOrders);
 router.patch("/orders/:orderId/status", validate(updateStatusSchema), updateOrderStatus);
 
 router.get("/customers", getAllCustomers);

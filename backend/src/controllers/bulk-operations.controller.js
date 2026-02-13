@@ -1,6 +1,7 @@
 import cloudinary from "../config/cloudinary.js";
 import { Product } from "../models/product.model.js";
 import { Vendor } from "../models/vendor.model.js";
+import { Order } from "../models/order.model.js";
 import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 
@@ -163,5 +164,99 @@ export const vendorBulkUpdateProductStock = catchAsync(async (req, res, next) =>
         message: `Successfully updated stock for ${result.modifiedCount} product(s)`,
         modifiedCount: result.modifiedCount,
         matchedCount: result.matchedCount,
+    });
+});
+
+// Admin Bulk Update Order Status
+export const bulkUpdateOrderStatus = catchAsync(async (req, res, next) => {
+    const { orderIds, status } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+        return next(new AppError("Order IDs array is required", 400));
+    }
+
+    if (!["pending", "processing", "shipped", "delivered", "cancelled", "refunded"].includes(status)) {
+        return next(new AppError("Invalid status", 400));
+    }
+
+    const updateData = { status };
+    if (status === "shipped") updateData.shippedAt = new Date();
+    if (status === "delivered") updateData.deliveredAt = new Date();
+
+    // Update orders
+    const result = await Order.updateMany(
+        { _id: { $in: orderIds } },
+        { $set: updateData }
+    );
+
+    // Send notifications (fire and forget to avoid blocking response)
+    // We fetch the updated orders to get user details for notifications
+    (async () => {
+        try {
+            const orders = await Order.find({ _id: { $in: orderIds } }).populate("user");
+            const { Notification } = await import("../models/notification.model.js");
+            const { sendOrderStatusNotification } = await import("../services/pushNotification.service.js");
+            const io = req.app.get("io");
+
+            for (const order of orders) {
+                if (!order.user) continue;
+
+                const orderShortId = order._id.toString().slice(-6);
+                const notificationMessages = {
+                    pending: { title: "Order Placed", body: `Your order #${orderShortId} has been placed successfully!` },
+                    processing: { title: "Order Processing", body: `Your order #${orderShortId} is being processed.` },
+                    shipped: { title: "Order Shipped", body: `Great news! Your order #${orderShortId} has been shipped!` },
+                    delivered: { title: "Order Delivered", body: `Your order #${orderShortId} has been delivered. Enjoy!` },
+                    cancelled: { title: "Order Cancelled", body: `Your order #${orderShortId} has been cancelled.` },
+                    refunded: { title: "Order Refunded", body: `Your order #${orderShortId} has been refunded.` },
+                };
+
+                const notifMsg = notificationMessages[status] || {
+                    title: "Order Update",
+                    body: `Your order #${orderShortId} status has been updated to ${status}.`,
+                };
+
+                // Create in-app notification
+                const notification = await Notification.create({
+                    recipient: order.user._id,
+                    type: status === "shipped" || status === "delivered" ? "delivery" : "order",
+                    title: notifMsg.title,
+                    body: notifMsg.body,
+                    data: { orderId: order._id },
+                });
+
+                // Send socket notification
+                if (io) {
+                    io.to(order.user._id.toString()).emit("notification:new", notification);
+                }
+
+                // Send push notification
+                await sendOrderStatusNotification(order.user, order._id, status);
+            }
+        } catch (error) {
+            console.error("Error sending bulk order notifications:", error);
+        }
+    })();
+
+    res.status(200).json({
+        message: `Successfully updated status for ${result.modifiedCount} order(s)`,
+        modifiedCount: result.modifiedCount,
+        matchedCount: result.matchedCount,
+    });
+});
+
+// Admin Bulk Delete Orders
+export const bulkDeleteOrders = catchAsync(async (req, res, next) => {
+    const { orderIds } = req.body;
+
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+        return next(new AppError("Order IDs array is required", 400));
+    }
+
+    const result = await Order.deleteMany({ _id: { $in: orderIds } });
+
+    res.status(200).json({
+        message: `Successfully deleted ${result.deletedCount} order(s)`,
+        deletedCount: result.deletedCount,
     });
 });
