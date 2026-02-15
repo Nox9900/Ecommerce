@@ -76,7 +76,10 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <FontSizeProvider>
             <ToastProvider>
-              <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
+              <StripeProvider
+                publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
+                merchantIdentifier="merchant.com.yaamaan.ecommerce"
+              >
                 <SocketProvider>
                   <NotificationProvider>
                     <ComparisonProvider>

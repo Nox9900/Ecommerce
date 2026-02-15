@@ -64,7 +64,7 @@ export default function RootIndex() {
             <View className="flex-1 px-8 justify-between py-12 bg-background">
                 <View className="items-center mt-10 w-full flex-1 justify-center">
                     <Image
-                        source={require("../assets/images/yaamaan.jpg")}
+                        source={require("../assets/images/logo.png")}
                         style={{ width: '100%', height: 300 }}
                         resizeMode="contain"
                     />

@@ -130,7 +130,11 @@ const CartScreen = () => {
 
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
-        merchantDisplayName: "Your Store Name",
+        merchantDisplayName: "Yaamaan Store",
+        merchantIdentifier: "merchant.com.yaamaan.ecommerce",
+        applePay: {
+          merchantCountryCode: 'US',
+        },
       });
 
       if (initError) {
@@ -388,7 +392,7 @@ function LoadingUI() {
   const { t } = useTranslation();
   return (
     <View className="flex-1 bg-background items-center justify-center">
-      <ActivityIndicator size="large"color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
+      <ActivityIndicator size="large" color={theme === 'dark' ? '#FAFAFA' : '#262626'} />
       <AppText className="text-text-secondary mt-4">{t('cart.loading')}</AppText>
     </View>
   );

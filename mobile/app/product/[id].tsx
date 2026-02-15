@@ -179,7 +179,11 @@ const ProductDetailScreen = () => {
 
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
-        merchantDisplayName: "E-Commerce App",
+        merchantDisplayName: "Yaamaan Store",
+        merchantIdentifier: "merchant.com.yaamaan.ecommerce",
+        applePay: {
+          merchantCountryCode: 'US',
+        },
       });
 
       if (initError) {
