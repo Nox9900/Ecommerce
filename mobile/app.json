@@ -44,18 +44,10 @@
           }
         }
       ],
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "ecommerce-tut",
-          "organization": "codesistency-gs"
-        }
-      ],
+    
       "expo-audio",
       "expo-video",
       "expo-notifications",
-      "@sentry/react-native",
       [
         "@stripe/stripe-react-native",
         {

@@ -19,7 +19,6 @@ import { GlassView } from "@/components/ui/GlassView";
 import { AnimatedContainer } from "@/components/ui/AnimatedContainer";
 import { AppText } from "@/components/ui/AppText";
 
-import * as Sentry from "@sentry/react-native";
 
 const CartScreen = () => {
   const api = useApi();
@@ -104,8 +103,8 @@ const CartScreen = () => {
   const handleProceedWithPayment = async (selectedAddress: Address) => {
     setAddressModalVisible(false);
 
-    // log chechkout initiated
-    Sentry.logger.info("Checkout initiated", {
+    // log checkout initiated
+    console.log("Checkout initiated", {
       itemCount: cartItemCount,
       total: total.toFixed(2),
       city: selectedAddress.city,
@@ -131,14 +130,14 @@ const CartScreen = () => {
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: "Yaamaan Store",
-        merchantIdentifier: "merchant.com.yaamaan.ecommerce",
+        // merchantIdentifier: "merchant.com.yaamaan.ecommerce",
         applePay: {
           merchantCountryCode: 'US',
         },
       });
 
       if (initError) {
-        Sentry.logger.error("Payment sheet init failed", {
+        console.error("Payment sheet init failed", {
           errorCode: initError.code,
           errorMessage: initError.message,
           cartTotal: total,
@@ -154,7 +153,7 @@ const CartScreen = () => {
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        Sentry.logger.error("Payment cancelled", {
+        console.warn("Payment cancelled", {
           errorCode: presentError.code,
           errorMessage: presentError.message,
           cartTotal: total,
@@ -163,7 +162,7 @@ const CartScreen = () => {
 
         Alert.alert("Payment cancelled", presentError.message);
       } else {
-        Sentry.logger.info("Payment successful", {
+        console.log("Payment successful", {
           total: total.toFixed(2),
           itemCount: cartItems.length,
         });
@@ -174,7 +173,7 @@ const CartScreen = () => {
         clearCart();
       }
     } catch (error) {
-      Sentry.logger.error("Payment failed", {
+      console.error("Payment failed", {
         error: error instanceof Error ? error.message : "Unknown error",
         cartTotal: total,
         itemCount: cartItems.length,

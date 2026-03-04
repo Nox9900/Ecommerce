@@ -16,7 +16,6 @@ import { Address } from "@/types";
 import { useTranslation } from "react-i18next";
 import { getTranslated } from "@/lib/i18n-utils";
 import { UserAvatar } from "@/components/UserAvatar";
-import * as Sentry from "@sentry/react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { OptimizedImage } from "@/components/common/OptimizedImage";
 import { router, useLocalSearchParams } from "expo-router";
@@ -148,7 +147,8 @@ const ProductDetailScreen = () => {
     if (!product) return;
     setAddressModalVisible(false);
 
-    Sentry.logger.info("Direct Buy initiated", {
+    // Direct Buy initiated
+    console.log("Direct Buy initiated", {
       productId: product._id,
       variantId: selectedVariant?._id,
       quantity,
@@ -180,7 +180,7 @@ const ProductDetailScreen = () => {
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: data.clientSecret,
         merchantDisplayName: "Yaamaan Store",
-        merchantIdentifier: "merchant.com.yaamaan.ecommerce",
+        // merchantIdentifier: "merchant.com.yaamaan.ecommerce",
         applePay: {
           merchantCountryCode: 'US',
         },
