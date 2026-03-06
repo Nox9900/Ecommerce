@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../models/product.dart';
-import '../core/theme.dart';
-import '../providers/shop_provider.dart';
+import 'package:flutter_mobile_app/models/product.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
+import 'package:flutter_mobile_app/providers/shop_provider.dart';
+import 'package:flutter_mobile_app/providers/cart_provider.dart';
+import 'package:flutter_mobile_app/providers/auth_provider.dart';
+import 'package:flutter_mobile_app/providers/wishlist_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -16,6 +19,7 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _selectedImageIndex = 0;
+  int _quantity = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +59,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 icon: const Icon(Icons.share_outlined),
                 onPressed: () {},
               ),
-              IconButton(
-                icon: const Icon(Icons.favorite_border),
-                onPressed: () {},
+              Consumer<WishlistProvider>(
+                builder: (context, wishlist, child) {
+                  final isWishlisted = wishlist.isWishlisted(widget.product.id);
+                  return IconButton(
+                    icon: Icon(
+                      isWishlisted ? Icons.favorite : Icons.favorite_border,
+                      color: isWishlisted ? Colors.red : null,
+                    ),
+                    onPressed: () => wishlist.toggleWishlist(widget.product),
+                  );
+                },
               ),
             ],
           ),
@@ -109,13 +121,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    '\$${widget.product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.primaryDefault,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '\$${widget.product.price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.primaryDefault,
+                        ),
+                      ),
+                      // Quantity Picker
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove, size: 18),
+                              onPressed: () {
+                                if (_quantity > 1) {
+                                  setState(() => _quantity--);
+                                }
+                              },
+                            ),
+                            Text(
+                              '$_quantity',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add, size: 18),
+                              onPressed: () {
+                                setState(() => _quantity++);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   const Text(
@@ -130,6 +176,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       height: 1.6,
                       color: AppTheme.textSecondary,
                     ),
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  
+                  // Reviews Placeholder
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Reviews',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('See All'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (widget.product.totalReviews == 0)
+                    const Text('No reviews yet', style: TextStyle(color: AppTheme.textMuted))
+                  else
+                    // Static review item for now
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      title: const Text('John Doe'),
+                      subtitle: const Text('Great quality and fast delivery!'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(5, (index) => Icon(
+                          Icons.star, 
+                          size: 14, 
+                          color: index < 4 ? Colors.amber : Colors.grey[300]
+                        )),
+                      ),
+                    ),
+                    
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Related Products',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  // This will be populated by fetchRelatedProducts in a real scenario
+                  const Center(
+                    child: Text('Loading recommendations...', style: TextStyle(color: AppTheme.textMuted)),
                   ),
                 ],
               ),
@@ -159,7 +254,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.read<CartProvider>().addItem(widget.product, quantity: _quantity);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Added $_quantity to cart!'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDefault,
                     foregroundColor: Colors.white,
@@ -172,7 +275,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.read<CartProvider>().addItem(widget.product, quantity: _quantity);
+                    // Navigate to cart tab? 
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primaryDefault,
                     side: const BorderSide(color: AppTheme.primaryDefault),

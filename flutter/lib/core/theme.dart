@@ -105,4 +105,27 @@ class AppTheme {
       thickness: 1,
     ),
   );
+
+  static InputDecoration inputDecoration(String label, {IconData? prefixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      alignLabelWithHint: true,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: borderColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: primaryDefault, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
 }

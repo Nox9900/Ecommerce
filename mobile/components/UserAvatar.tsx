@@ -17,7 +17,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ source, name, size = 48,
     // Use default avatar if source is missing or empty or error
     const showDefault = !source || imageError;
     const imageSource = showDefault
-        ? require("@/assets/images/default-avatar.png")
+        ? require("@/assets/images/default-avatar.jpg")
         : { uri: source };
 
     return (

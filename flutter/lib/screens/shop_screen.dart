@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/product_card.dart';
-import '../core/theme.dart';
-import '../providers/shop_provider.dart';
-import 'product_detail_screen.dart';
+import 'package:flutter_mobile_app/widgets/product_card.dart';
+import 'package:flutter_mobile_app/widgets/promo_banners.dart';
+import 'package:flutter_mobile_app/widgets/product_section.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
+import 'package:flutter_mobile_app/providers/shop_provider.dart';
+import 'package:flutter_mobile_app/providers/auth_provider.dart';
+import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
+import 'package:flutter_mobile_app/screens/search_screen.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -20,20 +24,33 @@ class _ShopScreenState extends State<ShopScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final shopProvider = context.read<ShopProvider>();
+      final authProvider = context.read<AuthProvider>();
+      
       shopProvider.fetchCategories();
+      shopProvider.fetchPromoBanners();
+      shopProvider.fetchTrendingProducts();
+      if (authProvider.isAuthenticated) {
+        shopProvider.fetchPersonalizedProducts();
+      }
       shopProvider.fetchProducts();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yaamaan'),
+        title: const Text('YAAMAAN', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchScreen()),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -43,21 +60,22 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {
-          if (shopProvider.isLoading && shopProvider.products.isEmpty) {
+          if (shopProvider.isLoading && shopProvider.products.isEmpty && shopProvider.categories.isEmpty) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          if (shopProvider.error.isNotEmpty && shopProvider.products.isEmpty) {
-            return Center(child: Text(shopProvider.error));
           }
 
           return RefreshIndicator(
             onRefresh: () async {
               await shopProvider.fetchCategories();
+              await shopProvider.fetchPromoBanners();
+              await shopProvider.fetchTrendingProducts();
+              if (authProvider.isAuthenticated) {
+                await shopProvider.fetchPersonalizedProducts();
+              }
               await shopProvider.fetchProducts(categoryId: _selectedCategoryId);
             },
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.only(bottom: 100),
               child: Column(
                 children: [
                   // Category Slider
@@ -95,12 +113,47 @@ class _ShopScreenState extends State<ShopScreen> {
                     ),
                   ),
 
-                  // Products Grid
-                  if (shopProvider.isLoading && shopProvider.products.isNotEmpty)
-                    const LinearProgressIndicator(),
-                  
+                  if (_selectedCategoryId == 'all') ...[
+                    // Discovery Features
+                    PromoBanners(banners: shopProvider.promoBanners),
+                    
+                    if (authProvider.isAuthenticated)
+                      ProductSection(
+                        title: 'For You',
+                        products: shopProvider.personalizedProducts,
+                        icon: const Icon(Icons.favorite, color: Colors.red),
+                      ),
+                    
+                    ProductSection(
+                      title: 'Trending Now',
+                      products: shopProvider.trendingProducts,
+                      icon: const Icon(Icons.flash_on, color: Colors.orange),
+                    ),
+                  ],
+
+                  // Products Grid Header
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Our Products',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const Spacer(),
+                        if (shopProvider.isLoading)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  // Products Grid
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),

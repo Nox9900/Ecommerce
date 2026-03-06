@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../core/theme.dart';
+import 'package:flutter_mobile_app/providers/auth_provider.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
+import 'package:flutter_mobile_app/screens/email_signup_screen.dart';
+import 'package:flutter_mobile_app/screens/forgot_password_screen.dart';
 
 class EmailSignInScreen extends StatefulWidget {
   const EmailSignInScreen({super.key});
@@ -13,10 +15,12 @@ class EmailSignInScreen extends StatefulWidget {
 class _EmailSignInScreenState extends State<EmailSignInScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -45,11 +49,7 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
               // Email Input
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email Address',
-                  hintText: 'name@example.com',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                decoration: AppTheme.inputDecoration('Email Address', prefixIcon: Icons.email_outlined),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
@@ -57,11 +57,12 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
               // Password Input
               TextField(
                 controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Your password',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                obscureText: !_isPasswordVisible,
+                decoration: AppTheme.inputDecoration('Password', prefixIcon: Icons.lock_outline).copyWith(
+                  suffixIcon: IconButton(
+                    icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -70,7 +71,12 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                    );
+                  },
                   child: const Text("Forgot Password?", style: TextStyle(color: AppTheme.textMuted)),
                 ),
               ),
@@ -80,14 +86,10 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    setState(() => _isLoading = true);
-                    // Mock login logic
-                    await Future.delayed(const Duration(seconds: 1));
-                    if (mounted) {
-                      context.read<AuthProvider>().login("mock_token", {"name": "Test User"});
-                      Navigator.pop(context);
-                    }
+                  onPressed: authProvider.isLoading ? null : () async {
+                    // TODO: Replace with real login logic
+                    context.read<AuthProvider>().login("mock_token", {"name": "Test User"});
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDefault,
@@ -95,7 +97,7 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: _isLoading 
+                  child: authProvider.isLoading 
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : const Text("Sign In", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
@@ -109,7 +111,12 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
                 children: [
                   const Text("Don't have an account? ", style: TextStyle(color: AppTheme.textSecondary)),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const EmailSignUpScreen()),
+                      );
+                    },
                     child: const Text(
                       "Sign Up",
                       style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../screens/shop_screen.dart';
-import '../screens/profile_screen.dart';
-import '../core/theme.dart';
+import 'package:flutter_mobile_app/screens/shop_screen.dart';
+import 'package:flutter_mobile_app/screens/profile_screen.dart';
+import 'package:flutter_mobile_app/screens/cart_screen.dart';
+import 'package:flutter_mobile_app/screens/chat_list_screen.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -15,8 +17,8 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _screens = [
     const ShopScreen(),
-    const Scaffold(body: Center(child: Text('Search Screen'))), // Placeholder
-    const Scaffold(body: Center(child: Text('Cart Screen'))),   // Placeholder
+    const ChatListScreen(),
+    const CartScreen(),
     const ProfileScreen(),
   ];
 
@@ -38,13 +40,14 @@ class _MainNavigationState extends State<MainNavigation> {
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.shop_outlined),
-            activeIcon: Icon(Icons.shop),
+            icon: Icon(Icons.grid_view_outlined),
+            activeIcon: Icon(Icons.grid_view),
             label: 'Shop',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
+            icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: const Icon(Icons.chat_bubble),
+            label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart_outlined),

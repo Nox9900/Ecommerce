@@ -117,7 +117,7 @@ export default function ChatScreen() {
                                                 <View className="relative">
                                                     <View className="w-16 h-16 rounded-full mr-4 bg-background border border-white/5 overflow-hidden shadow-sm">
                                                         <Image
-                                                            source={other?.imageUrl ? { uri: other.imageUrl } : require("@/assets/images/default-avatar.png")}
+                                                            source={other?.imageUrl ? { uri: other.imageUrl } : require("@/assets/images/default-avatar.jpg")}
                                                             className="w-full h-full"
                                                         />
                                                     </View>

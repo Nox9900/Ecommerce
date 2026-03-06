@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../models/product.dart';
-import '../core/theme.dart';
+import 'package:flutter_mobile_app/models/product.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
+import 'package:flutter_mobile_app/providers/cart_provider.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -26,24 +28,52 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: CachedNetworkImage(
-                  imageUrl: product.image ?? '',
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(child: CircularProgressIndicator()),
+            // Product Image with Add Button
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Hero(
+                      tag: 'product_image_${product.id}',
+                      child: CachedNetworkImage(
+                        imageUrl: product.image ?? '',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.error),
-                  ),
-                  fit: BoxFit.cover,
                 ),
-              ),
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: GestureDetector(
+                    onTap: () {
+                      context.read<CartProvider>().addItem(product);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Added to cart!'),
+                          duration: const Duration(seconds: 1),
+                          action: SnackBarAction(
+                            label: 'View',
+                            onPressed: () {
+                              // Logic to navigate to cart tab could be added here
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primaryDefault,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add_shopping_cart, size: 20, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
             
             // Product Info
@@ -54,35 +84,26 @@ class ProductCard extends StatelessWidget {
                 children: [
                   Text(
                     product.name,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '\$${product.price.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.primaryDefault,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: const TextStyle(
+                      color: AppTheme.primaryDefault,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 16, color: Colors.amber),
+                      const Icon(Icons.star, size: 14, color: Colors.amber),
                       const SizedBox(width: 4),
                       Text(
                         product.averageRating.toString(),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${product.totalReviews})',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textMuted,
-                            ),
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ],
                   ),
