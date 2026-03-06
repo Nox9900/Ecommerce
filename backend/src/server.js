@@ -86,7 +86,8 @@ io.on("connection", (socket) => {
   });
 });
 
-const __dirname = path.resolve();
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
 // special handling: Stripe webhook needs raw body BEFORE any body parsing middleware
 // apply raw body parser conditionally only to webhook endpoint
 
@@ -119,11 +120,6 @@ app.use(limiter);
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-app.get("/", (req, res) => {
-  const adminDistPath = path.join(__dirname, "../admin/dist");
-  res.sendFile(path.join(adminDistPath, "index.html"));
-});
-
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
@@ -141,7 +137,9 @@ app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/delivery", deliveryRoutes);
 
 // Helper for admin dist path
-const adminDistPath = path.join(__dirname, "../admin/dist");
+// In Docker, we'll copy admin/dist to the backend folder or a known location
+// Assuming standard structure where backend/src is where this file answers
+const adminDistPath = path.join(__dirname, "../../admin/dist");
 
 // Serve static files from the admin frontend app
 app.use(express.static(adminDistPath));

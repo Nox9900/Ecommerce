@@ -54,6 +54,16 @@ export const orderApi = {
     const { data } = await axiosInstance.patch(`/admin/orders/${orderId}/status`, { status });
     return data;
   },
+
+  bulkUpdateStatus: async ({ orderIds, status }) => {
+    const { data } = await axiosInstance.post("/admin/orders/bulk-status", { orderIds, status });
+    return data;
+  },
+
+  bulkDelete: async (orderIds) => {
+    const { data } = await axiosInstance.post("/admin/orders/bulk-delete", { orderIds });
+    return data;
+  },
 };
 
 export const statsApi = {
