@@ -87,9 +87,32 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: authProvider.isLoading ? null : () async {
-                    // TODO: Replace with real login logic
-                    context.read<AuthProvider>().login("mock_token", {"name": "Test User"});
-                    Navigator.pop(context);
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text;
+
+                    if (email.isEmpty || password.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter email and password')),
+                      );
+                      return;
+                    }
+
+                    await context.read<AuthProvider>().signIn(
+                      email: email,
+                      password: password,
+                    );
+
+                    if (mounted) {
+                      final error = context.read<AuthProvider>().error;
+                      if (error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error)),
+                        );
+                        context.read<AuthProvider>().clearError();
+                      } else if (context.read<AuthProvider>().isAuthenticated) {
+                        Navigator.pop(context);
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDefault,

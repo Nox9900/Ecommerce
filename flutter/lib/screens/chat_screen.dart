@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_mobile_app/providers/chat_provider.dart';
+import 'package:flutter_mobile_app/providers/auth_provider.dart';
 import 'package:flutter_mobile_app/core/theme.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String receiverId;
+  final String conversationId;
   final String receiverName;
 
   const ChatScreen({
     super.key,
-    required this.receiverId,
+    required this.conversationId,
     required this.receiverName,
   });
 
@@ -22,6 +23,15 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    final chatProvider = context.read<ChatProvider>();
+    chatProvider.joinConversation(widget.conversationId);
+    chatProvider.fetchMessages(widget.conversationId);
+    chatProvider.markConversationAsRead(widget.conversationId);
+  }
+
+  @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
@@ -31,17 +41,18 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage() {
     if (_messageController.text.trim().isNotEmpty) {
       context.read<ChatProvider>().sendMessage(
+        widget.conversationId,
         _messageController.text.trim(),
-        widget.receiverId,
       );
       _messageController.clear();
-      // Scroll to bottom
       Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
     }
   }
@@ -49,6 +60,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatProvider = context.watch<ChatProvider>();
+    final currentUserId = context.read<AuthProvider>().user?.id;
+    final messages = chatProvider.getMessages(widget.conversationId);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,36 +69,39 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: chatProvider.messages.length,
-              itemBuilder: (context, index) {
-                final message = chatProvider.messages[index];
-                final isMe = message['receiverId'] != widget.receiverId; // Simplified check
+          if (chatProvider.isLoading && messages.isEmpty)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final message = messages[index];
+                  final isMe = message.senderId == currentUserId;
 
-                return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isMe ? AppTheme.primaryDefault : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(20).copyWith(
-                        bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(20),
-                        bottomLeft: isMe ? const Radius.circular(20) : const Radius.circular(0),
+                  return Align(
+                    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isMe ? AppTheme.primaryDefault : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(20).copyWith(
+                          bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(20),
+                          bottomLeft: isMe ? const Radius.circular(20) : const Radius.circular(0),
+                        ),
+                      ),
+                      child: Text(
+                        message.content,
+                        style: TextStyle(color: isMe ? Colors.white : Colors.black),
                       ),
                     ),
-                    child: Text(
-                      message['text'],
-                      style: TextStyle(color: isMe ? Colors.white : Colors.black),
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

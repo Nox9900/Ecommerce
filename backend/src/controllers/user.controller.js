@@ -3,6 +3,23 @@ import AppError from "../lib/AppError.js";
 import { catchAsync } from "../lib/catchAsync.js";
 import crypto from "crypto";
 
+export const getMe = catchAsync(async (req, res) => {
+  const user = req.user;
+  res.json({
+    _id: user._id,
+    email: user.email,
+    name: user.name,
+    imageUrl: user.imageUrl,
+    clerkId: user.clerkId,
+    role: user.role,
+    wishlist: user.wishlist,
+    isWishlistPublic: user.isWishlistPublic,
+    wishlistToken: user.wishlistToken,
+    stripeCustomerId: user.stripeCustomerId,
+    expoPushToken: user.expoPushToken,
+  });
+});
+
 export const addAddress = catchAsync(async (req, res, next) => {
   const { label, fullName, streetAddress, city, state, zipCode, phoneNumber, isDefault } =
     req.body;

@@ -45,8 +45,36 @@ void main() {
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  bool _providersInitialized = false;
+  String? _lastToken;
+
+  void _initProviders(BuildContext context, AuthProvider auth) {
+    final token = auth.token;
+    // Only re-init when auth state actually changes
+    if (_providersInitialized && _lastToken == token) return;
+
+    final apiClient = context.read<ApiClient>();
+    final isAuth = auth.isAuthenticated;
+
+    context.read<CartProvider>().init(apiClient, isAuthenticated: isAuth);
+    context.read<WishlistProvider>().init(apiClient, isAuthenticated: isAuth);
+    context.read<ChatProvider>().init(
+      apiClient,
+      token: token,
+      userId: auth.user?.id,
+    );
+
+    _providersInitialized = true;
+    _lastToken = token;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +87,14 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
+          if (auth.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          _initProviders(context, auth);
+
           if (auth.isAuthenticated) {
             return const MainNavigation();
           }

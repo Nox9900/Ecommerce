@@ -4,6 +4,7 @@ import {
   addToWishlist,
   deleteAddress,
   getAddresses,
+  getMe,
   getPublicWishlist,
   getWishlist,
   removeFromWishlist,
@@ -18,6 +19,9 @@ import { addressSchema, wishlistSchema, updateAddressSchema } from "../lib/zod.j
 const router = Router();
 
 router.use(protectRoute);
+
+// current user profile
+router.get("/me", getMe);
 
 // address routes
 router.post("/addresses", validate(addressSchema), addAddress);

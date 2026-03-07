@@ -86,7 +86,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       scrollDirection: Axis.horizontal,
                       itemCount: shopProvider.categories.length + 1,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         final isAll = index == 0;
                         final categoryId = isAll ? 'all' : shopProvider.categories[index - 1].id;

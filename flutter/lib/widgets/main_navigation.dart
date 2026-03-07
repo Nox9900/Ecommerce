@@ -46,7 +46,7 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: const Icon(Icons.chat_bubble),
+            activeIcon: Icon(Icons.chat_bubble),
             label: 'Chat',
           ),
           BottomNavigationBarItem(

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_mobile_app/providers/auth_provider.dart';
 import 'package:flutter_mobile_app/providers/theme_provider.dart';
 import 'package:flutter_mobile_app/core/theme.dart';
-import 'package:flutter_mobile_app/screens/welcome_screen.dart';
 import 'package:flutter_mobile_app/screens/wishlist_screen.dart';
+import 'package:flutter_mobile_app/screens/orders_screen.dart';
+import 'package:flutter_mobile_app/screens/addresses_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
     final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
@@ -34,7 +37,18 @@ class ProfileScreen extends StatelessWidget {
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: AppTheme.primaryDefault.withOpacity(0.1),
-                  child: const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                  child: user?.imageUrl.isNotEmpty == true
+                      ? ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: user!.imageUrl,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                            errorWidget: (_, __, ___) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                          ),
+                        )
+                      : const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
                 ),
                 Positioned(
                   right: 0,
@@ -49,18 +63,28 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              user?['name'] ?? 'User Name',
+              user?.name ?? 'User Name',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              user?['email'] ?? 'user@example.com',
+              user?.email ?? 'user@example.com',
               style: const TextStyle(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 32),
 
             // Profile Options
-            _buildOption(context, icon: Icons.shopping_bag_outlined, label: 'My Orders'),
+            _buildOption(
+              context,
+              icon: Icons.shopping_bag_outlined,
+              label: 'My Orders',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                );
+              },
+            ),
             _buildOption(
               context, 
               icon: Icons.favorite_border, 
@@ -72,7 +96,17 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
             ),
-            _buildOption(context, icon: Icons.location_on_outlined, label: 'Addresses'),
+            _buildOption(
+              context,
+              icon: Icons.location_on_outlined,
+              label: 'Addresses',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddressesScreen()),
+                );
+              },
+            ),
             _buildOption(context, icon: Icons.payment_outlined, label: 'Payment Methods'),
             
             const Padding(
@@ -88,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
               trailing: Switch(
                 value: themeProvider.themeMode == ThemeMode.dark,
                 onChanged: (value) => themeProvider.toggleTheme(value),
-                activeColor: AppTheme.primaryDefault,
+                activeThumbColor: AppTheme.primaryDefault,
               ),
             ),
             _buildOption(
@@ -98,7 +132,7 @@ class ProfileScreen extends StatelessWidget {
               trailing: const Text('English', style: TextStyle(color: AppTheme.textMuted)),
             ),
             
-            if (user?['role'] == 'vendor' || true) // Placeholder true for visualization
+            if (user?.isVendor == true)
               _buildOption(
                 context, 
                 icon: Icons.store_outlined, 

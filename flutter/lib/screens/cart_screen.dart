@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_mobile_app/providers/cart_provider.dart';
 import 'package:flutter_mobile_app/core/theme.dart';
+import 'package:flutter_mobile_app/screens/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -15,6 +16,28 @@ class CartScreen extends StatelessWidget {
       ),
       body: Consumer<CartProvider>(
         builder: (context, cart, child) {
+          if (cart.isLoading && cart.items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (cart.error != null && cart.items.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(cart.error!, style: TextStyle(color: Colors.grey[600])),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => cart.fetchCart(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           if (cart.items.isEmpty) {
             return Center(
               child: Column(
@@ -28,9 +51,7 @@ class CartScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {
-                      // TODO: Navigate to Shop tab
-                    },
+                    onPressed: () => Navigator.pop(context),
                     child: const Text('Start Shopping'),
                   ),
                 ],
@@ -101,13 +122,13 @@ class CartScreen extends StatelessWidget {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                onPressed: () => cart.removeItem(item.product.id, variantId: item.variantId),
+                                onPressed: () async => await cart.removeItem(item.product.id, variantId: item.variantId),
                               ),
                               Row(
                                 children: [
                                   _QtyButton(
                                     icon: Icons.remove,
-                                    onTap: () => cart.updateQuantity(item.product.id, item.quantity - 1, variantId: item.variantId),
+                                    onTap: () async => await cart.updateQuantity(item.product.id, item.quantity - 1, variantId: item.variantId),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -115,7 +136,7 @@ class CartScreen extends StatelessWidget {
                                   ),
                                   _QtyButton(
                                     icon: Icons.add,
-                                    onTap: () => cart.updateQuantity(item.product.id, item.quantity + 1, variantId: item.variantId),
+                                    onTap: () async => await cart.updateQuantity(item.product.id, item.quantity + 1, variantId: item.variantId),
                                   ),
                                 ],
                               ),
@@ -154,11 +175,30 @@ class CartScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
+                    if (cart.appliedCoupon != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.discount_outlined, size: 16, color: AppTheme.accentSuccess),
+                            const SizedBox(width: 8),
+                            Text('Coupon: ${cart.appliedCoupon}', style: const TextStyle(color: AppTheme.accentSuccess)),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () async => await cart.removeCoupon(),
+                              child: const Icon(Icons.close, size: 16, color: AppTheme.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement Checkout
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),

@@ -32,6 +32,7 @@ import notificationRoutes from "./routes/notification.route.js";
 import couponRoutes from "./routes/coupon.route.js";
 import recommendationRoutes from "./routes/recommendation.routes.js";
 import deliveryRoutes from "./routes/delivery.route.js";
+import authRoutes from "./routes/auth.route.js";
 
 const app = express();
 app.use(
@@ -135,6 +136,7 @@ app.use("/api/promo-banners", promoBannerRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/delivery", deliveryRoutes);
+app.use("/api/auth", authRoutes);
 
 // Helper for admin dist path
 // In Docker, we'll copy admin/dist to the backend folder or a known location

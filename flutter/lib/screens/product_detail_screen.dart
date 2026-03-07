@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_mobile_app/models/product.dart';
+import 'package:flutter_mobile_app/models/review.dart';
+import 'package:flutter_mobile_app/core/api_client.dart';
 import 'package:flutter_mobile_app/core/theme.dart';
-import 'package:flutter_mobile_app/providers/shop_provider.dart';
 import 'package:flutter_mobile_app/providers/cart_provider.dart';
-import 'package:flutter_mobile_app/providers/auth_provider.dart';
 import 'package:flutter_mobile_app/providers/wishlist_provider.dart';
+import 'package:flutter_mobile_app/providers/chat_provider.dart';
+import 'package:flutter_mobile_app/providers/auth_provider.dart';
+import 'package:flutter_mobile_app/services/review_service.dart';
+import 'package:flutter_mobile_app/screens/chat_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -18,8 +22,61 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  int _selectedImageIndex = 0;
   int _quantity = 1;
+  List<Review> _reviews = [];
+  bool _loadingReviews = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    setState(() => _loadingReviews = true);
+    final reviewService = ReviewService(context.read<ApiClient>());
+    final result = await reviewService.getProductReviews(widget.product.id);
+    if (result.isSuccess && result.data != null) {
+      _reviews = result.data!;
+    }
+    if (mounted) setState(() => _loadingReviews = false);
+  }
+
+  Future<void> _contactVendor() async {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to chat with the vendor')),
+      );
+      return;
+    }
+
+    final vendorId = widget.product.vendorId;
+    if (vendorId == null || vendorId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vendor information not available')),
+      );
+      return;
+    }
+
+    final chatProvider = context.read<ChatProvider>();
+    await chatProvider.startConversation(vendorId);
+
+    // Find the newly created conversation
+    final conversations = chatProvider.conversations;
+    if (conversations.isNotEmpty && mounted) {
+      final conv = conversations.first;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            conversationId: conv.id,
+            receiverName: widget.product.shopName.isNotEmpty ? widget.product.shopName : 'Vendor',
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +92,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 tag: 'product_image_${widget.product.id}',
                 child: PageView.builder(
                   itemCount: widget.product.images.isNotEmpty ? widget.product.images.length : 1,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _selectedImageIndex = index;
-                    });
-                  },
                   itemBuilder: (context, index) {
                     final imageUrl = widget.product.images.isNotEmpty 
                         ? widget.product.images[index] 
@@ -67,7 +119,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       isWishlisted ? Icons.favorite : Icons.favorite_border,
                       color: isWishlisted ? Colors.red : null,
                     ),
-                    onPressed: () => wishlist.toggleWishlist(widget.product),
+                    onPressed: () async => await wishlist.toggleWishlist(widget.product),
                   );
                 },
               ),
@@ -182,7 +234,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const Divider(),
                   const SizedBox(height: 16),
                   
-                  // Reviews Placeholder
+                  // Reviews Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -197,24 +249,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  if (widget.product.totalReviews == 0)
+                  if (_loadingReviews)
+                    const Center(child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ))
+                  else if (_reviews.isEmpty)
                     const Text('No reviews yet', style: TextStyle(color: AppTheme.textMuted))
                   else
-                    // Static review item for now
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(child: Icon(Icons.person)),
-                      title: const Text('John Doe'),
-                      subtitle: const Text('Great quality and fast delivery!'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(5, (index) => Icon(
-                          Icons.star, 
-                          size: 14, 
-                          color: index < 4 ? Colors.amber : Colors.grey[300]
-                        )),
+                    ..._reviews.take(3).map((review) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundImage: review.userImage != null
+                              ? NetworkImage(review.userImage!)
+                              : null,
+                          child: review.userImage == null ? const Icon(Icons.person) : null,
+                        ),
+                        title: Text(review.userName ?? 'User'),
+                        subtitle: Text(review.comment ?? ''),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (index) => Icon(
+                            Icons.star,
+                            size: 14,
+                            color: index < review.rating ? Colors.amber : Colors.grey[300],
+                          )),
+                        ),
                       ),
-                    ),
+                    )),
                     
                   const SizedBox(height: 32),
                   const Text(
@@ -248,20 +312,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.chat_bubble_outline),
-                  onPressed: () {},
+                  onPressed: _contactVendor,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    context.read<CartProvider>().addItem(widget.product, quantity: _quantity);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added $_quantity to cart!'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
+                  onPressed: () async {
+                    await context.read<CartProvider>().addItem(widget.product, quantity: _quantity);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Added $_quantity to cart!'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryDefault,
@@ -275,9 +341,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {
-                    context.read<CartProvider>().addItem(widget.product, quantity: _quantity);
-                    // Navigate to cart tab? 
+                  onPressed: () async {
+                    await context.read<CartProvider>().addItem(widget.product, quantity: _quantity);
+                    // Navigate to cart tab?
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primaryDefault,

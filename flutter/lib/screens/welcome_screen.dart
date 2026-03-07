@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 import '../core/theme.dart';
+import '../providers/auth_provider.dart';
 import 'email_signin_screen.dart';
+import 'email_signup_screen.dart';
+import 'phone_signin_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -34,7 +36,7 @@ class WelcomeScreen extends StatelessWidget {
                 context,
                 icon: Icons.g_mobiledata,
                 label: 'Continue with Google',
-                onPressed: () {},
+                onPressed: () => _handleGoogleSignIn(context),
                 isPrimary: false,
               ),
               const SizedBox(height: 12),
@@ -59,7 +61,12 @@ class WelcomeScreen extends StatelessWidget {
                 context,
                 icon: Icons.phone_android,
                 label: 'Continue with Phone',
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PhoneSignInScreen()),
+                  );
+                },
                 isPrimary: false,
               ),
               const SizedBox(height: 24),
@@ -70,7 +77,12 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   const Text("Don't have an account? ", style: TextStyle(color: AppTheme.textSecondary)),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const EmailSignUpScreen()),
+                      );
+                    },
                     child: const Text(
                       "Sign Up",
                       style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
@@ -91,6 +103,19 @@ class WelcomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _handleGoogleSignIn(BuildContext context) async {
+    await context.read<AuthProvider>().signInWithGoogle();
+    if (context.mounted) {
+      final error = context.read<AuthProvider>().error;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+        context.read<AuthProvider>().clearError();
+      }
+    }
   }
 
   Widget _buildAuthButton(
