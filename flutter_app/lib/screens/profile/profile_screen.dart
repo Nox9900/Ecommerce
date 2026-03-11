@@ -83,14 +83,6 @@ class ProfileScreen extends StatelessWidget {
                       fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '@${user.username}',
-                    style: TextStyle(
-                      color: Colors.white.withAlpha(140),
-                      fontSize: 12,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -106,15 +98,6 @@ class ProfileScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (_) => const EditProfileScreen()),
-                );
-              },
-            ),
-            _menuItem(
-              Icons.lock_outline_rounded,
-              'Change Password',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Coming soon')),
                 );
               },
             ),

@@ -1,28 +1,36 @@
-class HeroBanner {
-  final int id;
+class PromoBanner {
+  final String id;
   final String title;
-  final String? image;
-  final String? link;
-  final int order;
+  final String? label;
+  final String? imageUrl;
+  final double? price;
+  final String type;
   final bool isActive;
+  final int displayOrder;
 
-  HeroBanner({
+  PromoBanner({
     required this.id,
     required this.title,
-    this.image,
-    this.link,
-    this.order = 0,
+    this.label,
+    this.imageUrl,
+    this.price,
+    this.type = 'subsidy',
     this.isActive = true,
+    this.displayOrder = 0,
   });
 
-  factory HeroBanner.fromJson(Map<String, dynamic> json) {
-    return HeroBanner(
-      id: json['id'] ?? 0,
+  factory PromoBanner.fromJson(Map<String, dynamic> json) {
+    return PromoBanner(
+      id: json['_id']?.toString() ?? '',
       title: json['title'] ?? '',
-      image: json['image'],
-      link: json['link'],
-      order: json['order'] ?? 0,
-      isActive: json['is_active'] ?? true,
+      label: json['label'],
+      imageUrl: json['imageUrl'],
+      price: json['price'] != null
+          ? double.tryParse('${json['price']}')
+          : null,
+      type: json['type'] ?? 'subsidy',
+      isActive: json['isActive'] ?? true,
+      displayOrder: json['displayOrder'] ?? 0,
     );
   }
 }

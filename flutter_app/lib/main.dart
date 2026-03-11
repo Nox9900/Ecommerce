@@ -12,14 +12,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final api = ApiService();
   final auth = AuthProvider(api);
-  final cart = CartProvider();
+  final cart = CartProvider()..setApi(api);
 
   // Auto-logout on 401 responses
   api.onUnauthorized = () => auth.logout();
 
-  // Restore persisted auth token & cart before first frame
+  // Restore persisted auth token before first frame
   await auth.init();
-  await cart.init();
+
+  // If the user is logged in, fetch their server-side cart
+  if (auth.isLoggedIn) {
+    await cart.fetchCart();
+  }
 
   runApp(
     MultiProvider(

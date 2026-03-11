@@ -20,7 +20,7 @@ class CartScreen extends StatelessWidget {
         backgroundColor: AppTheme.white,
         surfaceTintColor: Colors.transparent,
         actions: [
-          if (cart.itemList.isNotEmpty)
+          if (cart.items.isNotEmpty)
             TextButton(
               onPressed: () {
                 showDialog(
@@ -107,7 +107,7 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCart(BuildContext context, CartProvider cart) {
-    final items = cart.itemList;
+    final items = cart.items;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       itemCount: items.length,
@@ -154,8 +154,8 @@ class CartScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
               clipBehavior: Clip.antiAlias,
-              child: item.product.imageUrl != null
-                  ? Image.network(item.product.imageUrl!,
+              child: (item.product.primaryImage ?? '').isNotEmpty
+                  ? Image.network(item.product.primaryImage!,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _placeholder())
                   : _placeholder(),
@@ -177,7 +177,7 @@ class CartScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$${item.product.sellingPrice.toStringAsFixed(2)} / unit',
+                    '\$${item.product.price.toStringAsFixed(2)} / unit',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondary,
@@ -268,7 +268,7 @@ class CartScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Free shipping progress
-            if (cart.shippingCost > 0) ...[
+            if (cart.subtotal < 500) ...[
               Row(
                 children: [
                   const Icon(Icons.local_shipping_outlined,
@@ -291,7 +291,7 @@ class CartScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
               const SizedBox(height: 10),
-            ] else ...[
+            ] else if (cart.subtotal >= 500) ...[
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

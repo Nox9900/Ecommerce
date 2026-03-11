@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 /// Callback type for handling 401 unauthorized responses.
 typedef OnUnauthorized = void Function();
 
-/// Central HTTP service for communicating with the Django REST API.
+/// Central HTTP service for communicating with the Node.js/Express backend.
+/// Uses Bearer token authentication (Clerk JWT).
 class ApiService {
   String? _token;
   OnUnauthorized? onUnauthorized;
@@ -17,7 +18,7 @@ class ApiService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    if (_token != null) h['Authorization'] = 'Token $_token';
+    if (_token != null) h['Authorization'] = 'Bearer $_token';
     return h;
   }
 
@@ -54,8 +55,12 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  Future<dynamic> delete(String url) async {
-    final response = await http.delete(Uri.parse(url), headers: _headers);
+  Future<dynamic> delete(String url, {Map<String, dynamic>? body}) async {
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: _headers,
+      body: body != null ? jsonEncode(body) : null,
+    );
     if (response.statusCode == 204) return null;
     return _handleResponse(response);
   }
@@ -76,16 +81,10 @@ class ApiService {
       try {
         final body = jsonDecode(response.body);
         if (body is Map) {
-          if (body.containsKey('detail')) {
-            msg = body['detail'].toString();
-          } else if (body.containsKey('non_field_errors')) {
-            msg = (body['non_field_errors'] as List).join(', ');
-          } else {
-            final errors = <String>[];
-            body.forEach((key, value) {
-              if (value is List) errors.add('$key: ${value.join(", ")}');
-            });
-            if (errors.isNotEmpty) msg = errors.join('\n');
+          if (body.containsKey('message')) {
+            msg = body['message'].toString();
+          } else if (body.containsKey('error')) {
+            msg = body['error'].toString();
           }
         }
       } catch (_) {}

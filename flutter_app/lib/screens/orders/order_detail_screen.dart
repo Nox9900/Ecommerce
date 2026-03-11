@@ -13,7 +13,7 @@ class OrderDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${order.orderNumber}'),
+        title: Text('Order #${order.id.substring(order.id.length - 8)}'),
         backgroundColor: AppTheme.white,
         surfaceTintColor: Colors.transparent,
       ),
@@ -36,7 +36,7 @@ class OrderDetailScreen extends StatelessWidget {
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
-            ...order.items.map((item) => _itemTile(item)),
+            ...order.orderItems.map((item) => _itemTile(item)),
 
             // ── Summary ──
             const SizedBox(height: 16),
@@ -49,10 +49,10 @@ class OrderDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _row('Subtotal',
-                      '\$${order.totalAmount.toStringAsFixed(2)}'),
+                      '\$${order.totalPrice.toStringAsFixed(2)}'),
                   _row('Shipping', 'Included'),
                   const Divider(height: 16),
-                  _row('Total', '\$${order.totalAmount.toStringAsFixed(2)}',
+                  _row('Total', '\$${order.totalPrice.toStringAsFixed(2)}',
                       bold: true),
                 ],
               ),
@@ -202,19 +202,25 @@ class OrderDetailScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _infoRow('Order Number', '#${order.orderNumber}'),
+          _infoRow('Order Number', '#${order.id.substring(order.id.length - 8)}'),
           _infoRow(
               'Date', DateFormat('MMMM d, yyyy').format(order.createdAt)),
           _infoRow(
               'Status',
               order.status[0].toUpperCase() + order.status.substring(1)),
-          _infoRow('Payment', order.paymentMethod.isNotEmpty
-              ? order.paymentMethod[0].toUpperCase() +
-                  order.paymentMethod.substring(1)
-              : 'Pending'),
+          _infoRow('Payment', _paymentLabel()),
         ],
       ),
     );
+  }
+
+  String _paymentLabel() {
+    final pr = order.paymentResult;
+    if (pr == null) return 'Pending';
+    final method = pr['method']?.toString() ?? '';
+    return method.isNotEmpty
+        ? method[0].toUpperCase() + method.substring(1)
+        : 'Pending';
   }
 
   Widget _infoRow(String label, String value) {
@@ -252,13 +258,13 @@ class OrderDetailScreen extends StatelessWidget {
               color: AppTheme.surfaceVariant,
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
-            child: item.productImage != null
+            child: item.image != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     child: CachedNetworkImage(
-                      imageUrl: item.productImage!.startsWith('http')
-                          ? item.productImage!
-                          : '${ApiConfig.baseUrl}${item.productImage}',
+                      imageUrl: item.image!.startsWith('http')
+                          ? item.image!
+                          : '${ApiConfig.baseUrl}${item.image}',
                       fit: BoxFit.cover,
                       errorWidget: (_, __, ___) => const Icon(
                           Icons.inventory_2_outlined,
@@ -275,7 +281,7 @@ class OrderDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName,
+                  item.name,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -284,7 +290,7 @@ class OrderDetailScreen extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Qty: ${item.quantity} × \$${item.priceAtPurchase.toStringAsFixed(2)}',
+                  'Qty: ${item.quantity} × \$${item.price.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppTheme.textHint,

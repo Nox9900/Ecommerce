@@ -1,47 +1,49 @@
 class Review {
-  final int id;
-  final int productId;
-  final String productName;
-  final String reviewerName;
-  final String reviewerEmail;
+  final String id;
+  final String productId;
+  final String? userId;
+  final String? userName;
+  final String? userImage;
+  final String? orderId;
   final int rating;
-  final String title;
   final String comment;
-  final bool isVerifiedPurchase;
-  final bool isApproved;
-  final int helpfulCount;
   final DateTime createdAt;
 
   Review({
     required this.id,
     required this.productId,
-    this.productName = '',
-    required this.reviewerName,
-    this.reviewerEmail = '',
+    this.userId,
+    this.userName,
+    this.userImage,
+    this.orderId,
     required this.rating,
-    this.title = '',
     this.comment = '',
-    this.isVerifiedPurchase = false,
-    this.isApproved = false,
-    this.helpfulCount = 0,
     required this.createdAt,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
+    String? userId;
+    String? userName;
+    String? userImage;
+    if (json['userId'] is Map) {
+      userId = json['userId']['_id']?.toString();
+      userName = json['userId']['name'];
+      userImage = json['userId']['imageUrl'];
+    } else if (json['userId'] != null) {
+      userId = json['userId'].toString();
+    }
+
     return Review(
-      id: json['id'] ?? 0,
-      productId: json['product'] ?? 0,
-      productName: json['product_name'] ?? '',
-      reviewerName: json['reviewer_name'] ?? '',
-      reviewerEmail: json['reviewer_email'] ?? '',
+      id: json['_id']?.toString() ?? '',
+      productId: json['productId']?.toString() ?? '',
+      userId: userId,
+      userName: userName,
+      userImage: userImage,
+      orderId: json['orderId']?.toString(),
       rating: json['rating'] ?? 0,
-      title: json['title'] ?? '',
       comment: json['comment'] ?? '',
-      isVerifiedPurchase: json['is_verified_purchase'] ?? false,
-      isApproved: json['is_approved'] ?? false,
-      helpfulCount: json['helpful_count'] ?? 0,
       createdAt:
-          DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+          DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
     );
   }
 

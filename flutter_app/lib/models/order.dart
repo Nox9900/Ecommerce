@@ -1,99 +1,149 @@
 class OrderItem {
-  final int id;
-  final int productId;
-  final String productName;
-  final String productSku;
-  final String? productImage;
+  final String? productId;
+  final String? variantId;
+  final String name;
+  final double price;
   final int quantity;
-  final double priceAtPurchase;
-  final double totalPrice;
+  final String? image;
+  final Map<String, dynamic>? selectedOptions;
 
   OrderItem({
-    required this.id,
-    required this.productId,
-    required this.productName,
-    this.productSku = '',
-    this.productImage,
-    required this.quantity,
-    required this.priceAtPurchase,
-    required this.totalPrice,
+    this.productId,
+    this.variantId,
+    this.name = '',
+    this.price = 0,
+    this.quantity = 0,
+    this.image,
+    this.selectedOptions,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      id: json['id'] ?? 0,
-      productId: json['product'] ?? 0,
-      productName: json['product_name'] ?? '',
-      productSku: json['product_sku'] ?? '',
-      productImage: json['product_image'],
+      productId: json['product']?.toString(),
+      variantId: json['variantId']?.toString(),
+      name: json['name'] ?? '',
+      price: double.tryParse('${json['price']}') ?? 0,
       quantity: json['quantity'] ?? 0,
-      priceAtPurchase: double.tryParse('${json['price_at_purchase']}') ?? 0,
-      totalPrice: double.tryParse('${json['total_price']}') ?? 0,
+      image: json['image'],
+      selectedOptions: json['selectedOptions'] is Map
+          ? Map<String, dynamic>.from(json['selectedOptions'])
+          : null,
     );
   }
+
+  double get totalPrice => price * quantity;
+}
+
+class ShippingAddress {
+  final String fullName;
+  final String streetAddress;
+  final String city;
+  final String state;
+  final String zipCode;
+  final String phoneNumber;
+
+  ShippingAddress({
+    this.fullName = '',
+    this.streetAddress = '',
+    this.city = '',
+    this.state = '',
+    this.zipCode = '',
+    this.phoneNumber = '',
+  });
+
+  factory ShippingAddress.fromJson(Map<String, dynamic> json) {
+    return ShippingAddress(
+      fullName: json['fullName'] ?? '',
+      streetAddress: json['streetAddress'] ?? '',
+      city: json['city'] ?? '',
+      state: json['state'] ?? '',
+      zipCode: json['zipCode'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'fullName': fullName,
+        'streetAddress': streetAddress,
+        'city': city,
+        'state': state,
+        'zipCode': zipCode,
+        'phoneNumber': phoneNumber,
+      };
 }
 
 class Order {
-  final int id;
-  final String orderNumber;
-  final String customerName;
-  final String customerEmail;
-  final String customerPhone;
-  final String customerAddress;
-  final String customerCity;
-  final String customerCountry;
+  final String id;
+  final String? userId;
+  final List<OrderItem> orderItems;
+  final ShippingAddress? shippingAddress;
+  final Map<String, dynamic>? paymentResult;
+  final double totalPrice;
+  final String? couponCode;
+  final double discountAmount;
+  final double subtotalBeforeDiscount;
   final String status;
-  final String paymentMethod;
-  final double subtotal;
-  final double shippingCost;
-  final double totalAmount;
-  final String notes;
+  final String? trackingNumber;
+  final String? carrier;
+  final DateTime? estimatedDelivery;
+  final DateTime? deliveredAt;
+  final DateTime? shippedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final List<OrderItem> items;
 
   Order({
     required this.id,
-    required this.orderNumber,
-    this.customerName = '',
-    this.customerEmail = '',
-    this.customerPhone = '',
-    this.customerAddress = '',
-    this.customerCity = '',
-    this.customerCountry = '',
+    this.userId,
+    this.orderItems = const [],
+    this.shippingAddress,
+    this.paymentResult,
+    this.totalPrice = 0,
+    this.couponCode,
+    this.discountAmount = 0,
+    this.subtotalBeforeDiscount = 0,
     required this.status,
-    this.paymentMethod = '',
-    this.subtotal = 0,
-    this.shippingCost = 0,
-    required this.totalAmount,
-    this.notes = '',
+    this.trackingNumber,
+    this.carrier,
+    this.estimatedDelivery,
+    this.deliveredAt,
+    this.shippedAt,
     required this.createdAt,
     required this.updatedAt,
-    this.items = const [],
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'] ?? 0,
-      orderNumber: json['order_number'] ?? '',
-      customerName: json['customer_name'] ?? '',
-      customerEmail: json['customer_email'] ?? '',
-      customerPhone: json['customer_phone'] ?? '',
-      customerAddress: json['customer_address'] ?? '',
-      customerCity: json['customer_city'] ?? '',
-      customerCountry: json['customer_country'] ?? '',
-      status: json['status'] ?? '',
-      paymentMethod: json['payment_method'] ?? '',
-      subtotal: double.tryParse('${json['subtotal']}') ?? 0,
-      shippingCost: double.tryParse('${json['shipping_cost']}') ?? 0,
-      totalAmount: double.tryParse('${json['total_amount']}') ?? 0,
-      notes: json['notes'] ?? '',
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
-      items: (json['items'] as List?)
+      id: json['_id']?.toString() ?? '',
+      userId: json['user']?.toString(),
+      orderItems: (json['orderItems'] as List?)
               ?.map((e) => OrderItem.fromJson(e))
               .toList() ??
           [],
+      shippingAddress: json['shippingAddress'] != null
+          ? ShippingAddress.fromJson(json['shippingAddress'])
+          : null,
+      paymentResult: json['paymentResult'] is Map
+          ? Map<String, dynamic>.from(json['paymentResult'])
+          : null,
+      totalPrice: double.tryParse('${json['totalPrice']}') ?? 0,
+      couponCode: json['couponCode'],
+      discountAmount: double.tryParse('${json['discountAmount']}') ?? 0,
+      subtotalBeforeDiscount:
+          double.tryParse('${json['subtotalBeforeDiscount']}') ?? 0,
+      status: json['status'] ?? 'pending',
+      trackingNumber: json['trackingNumber'],
+      carrier: json['carrier'],
+      estimatedDelivery: json['estimatedDelivery'] != null
+          ? DateTime.tryParse(json['estimatedDelivery'])
+          : null,
+      deliveredAt: json['deliveredAt'] != null
+          ? DateTime.tryParse(json['deliveredAt'])
+          : null,
+      shippedAt: json['shippedAt'] != null
+          ? DateTime.tryParse(json['shippedAt'])
+          : null,
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
     );
   }
 
@@ -101,8 +151,6 @@ class Order {
     switch (status) {
       case 'pending':
         return 'Pending';
-      case 'confirmed':
-        return 'Confirmed';
       case 'processing':
         return 'Processing';
       case 'shipped':
@@ -111,8 +159,15 @@ class Order {
         return 'Delivered';
       case 'cancelled':
         return 'Cancelled';
+      case 'refunded':
+        return 'Refunded';
+      case 'failed':
+        return 'Failed';
       default:
         return status;
     }
   }
+
+  int get totalItemCount =>
+      orderItems.fold(0, (sum, item) => sum + item.quantity);
 }

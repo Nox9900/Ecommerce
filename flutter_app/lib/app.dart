@@ -9,7 +9,6 @@ import 'screens/cart/cart_screen.dart';
 import 'screens/cart/checkout_screen.dart';
 import 'screens/orders/orders_screen.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/auth/register_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
 
@@ -30,13 +29,13 @@ class YaamaanApp extends StatelessWidget {
           case '/products':
             return MaterialPageRoute(builder: (_) => const ProductsScreen());
           case '/product-detail':
-            final id = settings.arguments as int;
+            final id = settings.arguments as String;
             return MaterialPageRoute(
                 builder: (_) => ProductDetailScreen(productId: id));
           case '/vendors':
             return MaterialPageRoute(builder: (_) => const VendorsScreen());
           case '/vendor-detail':
-            final id = settings.arguments as int;
+            final id = settings.arguments as String;
             return MaterialPageRoute(
                 builder: (_) => VendorDetailScreen(vendorId: id));
           case '/cart':
@@ -47,8 +46,6 @@ class YaamaanApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const OrdersScreen());
           case '/login':
             return MaterialPageRoute(builder: (_) => const LoginScreen());
-          case '/register':
-            return MaterialPageRoute(builder: (_) => const RegisterScreen());
           case '/profile':
             return MaterialPageRoute(builder: (_) => const ProfileScreen());
           case '/edit-profile':

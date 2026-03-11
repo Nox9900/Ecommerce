@@ -144,7 +144,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       key: const ValueKey('review'),
       padding: const EdgeInsets.all(16),
       children: [
-        ...cart.itemList.map((item) => Container(
+        ...cart.items.map((item) => Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -180,7 +180,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Qty: ${item.quantity} × \$${item.product.sellingPrice.toStringAsFixed(2)}',
+                          'Qty: ${item.quantity} × \$${item.product.price.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppTheme.textSecondary,
@@ -203,8 +203,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _summaryRow('Subtotal', '\$${cart.subtotal.toStringAsFixed(2)}'),
         _summaryRow(
           'Shipping',
-          cart.shippingCost == 0 ? 'FREE' : 'Calculated at next step',
-          valueColor: cart.shippingCost == 0 ? AppTheme.success : null,
+          cart.subtotal >= 500 ? 'FREE' : 'Calculated at next step',
+          valueColor: cart.subtotal >= 500 ? AppTheme.success : null,
         ),
         const Divider(height: 16),
         _summaryRow(
@@ -360,8 +360,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   '${cart.totalQuantity} items', '\$${cart.subtotal.toStringAsFixed(2)}'),
               _summaryRow(
                 'Shipping',
-                cart.shippingCost == 0 ? 'FREE' : 'TBD',
-                valueColor: cart.shippingCost == 0 ? AppTheme.success : null,
+                cart.subtotal >= 500 ? 'FREE' : 'TBD',
+                valueColor: cart.subtotal >= 500 ? AppTheme.success : null,
               ),
               const Divider(height: 16),
               _summaryRow(
@@ -512,24 +512,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _placing = true);
     try {
       final op = context.read<OrderProvider>();
-      final auth = context.read<AuthProvider>();
-      final items = cart.itemList
+      final items = cart.items
           .map((i) => {
-                'product_id': i.product.id,
+                'product': i.product.id,
+                'name': i.product.name,
+                'price': i.product.price,
                 'quantity': i.quantity,
+                'image': i.product.primaryImage,
               })
           .toList();
 
       await op.placeOrder({
-        'items': items,
-        'customer_name': _nameC.text,
-        'customer_email': auth.user?.email ?? '',
-        'customer_phone': _phoneC.text,
-        'customer_address': _addressC.text,
-        'customer_city': _cityC.text,
-        'customer_country': _countryC.text,
-        'payment_method': 'bank_transfer',
-        'notes': _notesC.text,
+        'orderItems': items,
+        'shippingAddress': {
+          'fullName': _nameC.text,
+          'streetAddress': _addressC.text,
+          'city': _cityC.text,
+          'state': _countryC.text,
+          'zipCode': '',
+          'phoneNumber': _phoneC.text,
+        },
       });
 
       cart.clear();

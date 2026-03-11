@@ -1,84 +1,56 @@
 class Vendor {
-  final int id;
-  final String storeName;
-  final String slug;
+  final String id;
+  final String? ownerId;
+  final String shopName;
   final String description;
-  final String? logo;
-  final String? banner;
-  final String? phone;
-  final String country;
-  final String city;
-  final String verificationLevel;
-  final Map<String, dynamic>? verificationBadge;
-  final bool isTradeAssurance;
-  final double rating;
-  final int totalReviews;
-  final double responseRate;
-  final String responseTimeDisplay;
-  final double onTimeDeliveryRate;
-  final int totalTransactions;
-  final int followerCount;
-  final bool isApproved;
-  final bool isActive;
+  final String status;
+  final double commissionRate;
+  final double earnings;
+  final String? logoUrl;
+  final String? bannerUrl;
+  final String? stripeConnectId;
+  final bool payoutsEnabled;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   Vendor({
     required this.id,
-    required this.storeName,
-    this.slug = '',
+    this.ownerId,
+    required this.shopName,
     this.description = '',
-    this.logo,
-    this.banner,
-    this.phone,
-    this.country = '',
-    this.city = '',
-    this.verificationLevel = 'basic',
-    this.verificationBadge,
-    this.isTradeAssurance = false,
-    this.rating = 0,
-    this.totalReviews = 0,
-    this.responseRate = 0,
-    this.responseTimeDisplay = '',
-    this.onTimeDeliveryRate = 0,
-    this.totalTransactions = 0,
-    this.followerCount = 0,
-    this.isApproved = false,
-    this.isActive = false,
+    this.status = 'pending',
+    this.commissionRate = 10,
+    this.earnings = 0,
+    this.logoUrl,
+    this.bannerUrl,
+    this.stripeConnectId,
+    this.payoutsEnabled = false,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory Vendor.fromJson(Map<String, dynamic> json) {
     return Vendor(
-      id: json['id'] ?? 0,
-      storeName: json['store_name'] ?? '',
-      slug: json['slug'] ?? '',
+      id: json['_id']?.toString() ?? '',
+      ownerId: json['owner'] is Map
+          ? json['owner']['_id']?.toString()
+          : json['owner']?.toString(),
+      shopName: json['shopName'] ?? '',
       description: json['description'] ?? '',
-      logo: json['logo'],
-      banner: json['banner'],
-      phone: json['phone'],
-      country: json['country'] ?? '',
-      city: json['city'] ?? '',
-      verificationLevel: json['verification_level'] ?? 'basic',
-      verificationBadge: json['verification_badge'] is Map
-          ? Map<String, dynamic>.from(json['verification_badge'])
-          : null,
-      isTradeAssurance: json['is_trade_assurance'] ?? false,
-      rating: double.tryParse('${json['rating']}') ?? 0,
-      totalReviews: json['total_reviews'] ?? 0,
-      responseRate: double.tryParse('${json['response_rate']}') ?? 0,
-      responseTimeDisplay: json['response_time_display'] ?? '',
-      onTimeDeliveryRate:
-          double.tryParse('${json['on_time_delivery_rate']}') ?? 0,
-      totalTransactions: json['total_transactions'] ?? 0,
-      followerCount: json['follower_count'] ?? 0,
-      isApproved: json['is_approved'] ?? false,
-      isActive: json['is_active'] ?? false,
+      status: json['status'] ?? 'pending',
+      commissionRate:
+          double.tryParse('${json['commissionRate']}') ?? 10,
+      earnings: double.tryParse('${json['earnings']}') ?? 0,
+      logoUrl: json['logoUrl'],
+      bannerUrl: json['bannerUrl'],
+      stripeConnectId: json['stripeConnectId'],
+      payoutsEnabled: json['payoutsEnabled'] ?? false,
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
     );
   }
 
-  String get badgeLabel =>
-      verificationBadge?['label'] ?? verificationLevel.toUpperCase();
-
-  String get location {
-    if (city.isNotEmpty && country.isNotEmpty) return '$city, $country';
-    return country.isNotEmpty ? country : city;
-  }
+  bool get isApproved => status == 'approved';
+  bool get isPending => status == 'pending';
+  bool get isRejected => status == 'rejected';
 }

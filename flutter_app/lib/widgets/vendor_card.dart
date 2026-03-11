@@ -32,9 +32,9 @@ class VendorCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
               clipBehavior: Clip.antiAlias,
-              child: vendor.logo != null
+              child: vendor.logoUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: vendor.logo!,
+                      imageUrl: vendor.logoUrl!,
                       fit: BoxFit.cover,
                       errorWidget: (_, __, ___) => _logoPlaceholder(),
                     )
@@ -51,7 +51,7 @@ class VendorCard extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          vendor.storeName,
+                          vendor.shopName,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -60,82 +60,48 @@ class VendorCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      _verificationBadge(),
+                      if (vendor.isApproved) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.verified_rounded,
+                            size: 16, color: AppTheme.info),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 3),
-                  if (vendor.location.isNotEmpty)
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 12, color: AppTheme.textHint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            vendor.location,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                  if (vendor.description.isNotEmpty)
+                    Text(
+                      vendor.description,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      // Rating
-                      Icon(Icons.star_rounded,
-                          size: 14, color: Colors.amber.shade700),
-                      const SizedBox(width: 3),
-                      Text(
-                        vendor.rating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: vendor.isApproved
+                              ? AppTheme.success.withAlpha(25)
+                              : AppTheme.warning.withAlpha(25),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      ),
-                      Text(
-                        ' (${vendor.totalReviews})',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textHint,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Response rate
-                      const Icon(Icons.speed_rounded,
-                          size: 13, color: AppTheme.textHint),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${vendor.responseRate.toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      if (vendor.isTradeAssurance) ...[
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.success.withAlpha(25),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'Trade Assurance',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.success,
-                            ),
+                        child: Text(
+                          vendor.status[0].toUpperCase() +
+                              vendor.status.substring(1),
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: vendor.isApproved
+                                ? AppTheme.success
+                                : AppTheme.warning,
                           ),
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ],
@@ -154,7 +120,7 @@ class VendorCard extends StatelessWidget {
   Widget _logoPlaceholder() {
     return Center(
       child: Text(
-        vendor.storeName.isNotEmpty ? vendor.storeName[0].toUpperCase() : 'V',
+        vendor.shopName.isNotEmpty ? vendor.shopName[0].toUpperCase() : 'V',
         style: const TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w700,
@@ -162,27 +128,5 @@ class VendorCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _verificationBadge() {
-    Color color;
-    IconData icon;
-    switch (vendor.verificationLevel) {
-      case 'gold':
-        color = Colors.amber.shade700;
-        icon = Icons.workspace_premium_rounded;
-        break;
-      case 'premium':
-        color = AppTheme.primary;
-        icon = Icons.verified_rounded;
-        break;
-      case 'verified':
-        color = AppTheme.info;
-        icon = Icons.verified_outlined;
-        break;
-      default:
-        return const SizedBox.shrink();
-    }
-    return Icon(icon, size: 16, color: color);
   }
 }

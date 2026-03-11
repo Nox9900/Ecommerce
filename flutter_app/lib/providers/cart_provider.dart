@@ -1,178 +1,164 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 import '../models/cart_item.dart';
-import '../models/product.dart';
+import '../services/api_service.dart';
 
+/// Server-side cart provider that syncs with the backend.
+/// Cart operations go through /api/cart endpoints.
 class CartProvider extends ChangeNotifier {
-  final Map<int, CartItem> _items = {};
-  static const _storageKey = 'cart_items';
+  ApiService? _api;
+  Cart _cart = Cart();
+  bool _loading = false;
+  String? _error;
 
-  Map<int, CartItem> get items => {..._items};
-  List<CartItem> get itemList => _items.values.toList();
-  int get itemCount => _items.length;
-  bool get isEmpty => _items.isEmpty;
+  Cart get cart => _cart;
+  List<CartItem> get items => _cart.items;
+  int get itemCount => _cart.itemCount;
+  bool get isEmpty => _cart.isEmpty;
+  double get subtotal => _cart.subtotal;
+  double get discountAmount => _cart.discountAmount;
+  double get total => _cart.totalPrice;
+  int get totalQuantity => _cart.totalQuantity;
+  bool get loading => _loading;
+  String? get error => _error;
+  String? get couponCode => _cart.couponCode;
+  Map<String, dynamic>? get couponDetails => _cart.couponDetails;
 
-  /// Effective price for a cart item, applying tiered pricing if available.
-  double effectivePrice(CartItem item) {
-    final p = item.product;
-    if (p.tieredPrices.isEmpty) return p.sellingPrice;
-    // tieredPrices are sorted by minQuantity (ascending from API)
-    double price = p.sellingPrice;
-    for (final tier in p.tieredPrices) {
-      if (item.quantity >= tier.minQuantity) {
-        price = tier.price;
-      }
-    }
-    return price;
+  void setApi(ApiService api) => _api = api;
+
+  bool isInCart(String productId) {
+    return _cart.items.any((item) => item.product.id == productId);
   }
 
-  double get subtotal => _items.values.fold(
-      0, (sum, item) => sum + effectivePrice(item) * item.quantity);
-
-  double get shippingCost => subtotal >= 500 ? 0 : (subtotal > 0 ? 25.00 : 0);
-
-  double get total => subtotal + shippingCost;
-
-  int get totalQuantity =>
-      _items.values.fold(0, (sum, item) => sum + item.quantity);
-
-  bool isInCart(int productId) => _items.containsKey(productId);
-
-  /// Restore cart from SharedPreferences
-  Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    if (raw != null) {
-      try {
-        final List list = jsonDecode(raw);
-        for (final entry in list) {
-          final product = Product.fromJson(entry['product']);
-          _items[product.id] =
-              CartItem(product: product, quantity: entry['quantity'] ?? 1);
-        }
-      } catch (_) {
-        // Corrupted data — start fresh
-      }
-    }
+  /// Fetch the cart from the server: GET /api/cart
+  Future<void> fetchCart() async {
+    if (_api == null) return;
+    _loading = true;
     notifyListeners();
+    try {
+      final data = await _api!.get(ApiConfig.cart);
+      if (data != null && data['cart'] != null) {
+        _cart = Cart.fromJson(data['cart']);
+      }
+      _loading = false;
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _loading = false;
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
-  Future<void> _persist() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = _items.values
-        .map((item) => {
-              'product': _productToJson(item.product),
-              'quantity': item.quantity,
-            })
-        .toList();
-    await prefs.setString(_storageKey, jsonEncode(data));
-  }
-
-  Map<String, dynamic> _productToJson(Product p) => {
-        'id': p.id,
-        'name': p.name,
-        'sku': p.sku,
-        'description': p.description,
-        'category': p.categoryId,
-        'category_name': p.categoryName,
-        'vendor': p.vendorId,
-        'vendor_name': p.vendorName,
-        'purchase_price': p.purchasePrice,
-        'selling_price': p.sellingPrice,
-        'moq': p.moq,
-        'stock_quantity': p.stockQuantity,
-        'low_stock_threshold': p.lowStockThreshold,
-        'stock_status': p.stockStatus,
-        'image': p.imageUrl,
-        'image_2': p.image2,
-        'image_3': p.image3,
-        'image_4': p.image4,
-        'is_active': p.isActive,
-        'sample_available': p.sampleAvailable,
-        'sample_price': p.samplePrice,
-        'sample_price_display': p.samplePriceDisplay,
-        'custom_specifications': p.customSpecifications,
-        'tiered_prices': p.tieredPrices
-            .map((t) =>
-                {'id': t.id, 'min_quantity': t.minQuantity, 'price': t.price})
-            .toList(),
-        'profit_margin': p.profitMargin,
-        'profit_amount': p.profitAmount,
-        'created_at': p.createdAt.toIso8601String(),
-        'updated_at': p.updatedAt.toIso8601String(),
+  /// Add an item to the cart: POST /api/cart
+  Future<String?> addItem(
+    String productId, {
+    int quantity = 1,
+    String? variantId,
+    Map<String, dynamic>? selectedOptions,
+  }) async {
+    if (_api == null) return 'Not authenticated';
+    try {
+      final body = <String, dynamic>{
+        'productId': productId,
+        'quantity': quantity,
       };
+      if (variantId != null) body['variantId'] = variantId;
+      if (selectedOptions != null) body['selectedOptions'] = selectedOptions;
 
-  /// Add item enforcing MOQ. Returns error string or null on success.
-  String? addItem(Product product, {int quantity = 1}) {
-    final minQty = product.moq > 0 ? product.moq : 1;
-    if (_items.containsKey(product.id)) {
-      _items[product.id]!.quantity += quantity;
-    } else {
-      // Enforce MOQ on first add
-      final effectiveQty = quantity < minQty ? minQty : quantity;
-      _items[product.id] =
-          CartItem(product: product, quantity: effectiveQty);
-    }
-    notifyListeners();
-    _persist();
-    return null;
-  }
-
-  void removeItem(int productId) {
-    _items.remove(productId);
-    notifyListeners();
-    _persist();
-  }
-
-  void updateQuantity(int productId, int quantity) {
-    if (_items.containsKey(productId)) {
-      final minQty = _items[productId]!.product.moq;
-      if (quantity <= 0) {
-        _items.remove(productId);
-      } else {
-        _items[productId]!.quantity =
-            quantity < minQty ? minQty : quantity;
+      final data = await _api!.post(ApiConfig.cart, body: body);
+      if (data != null && data['cart'] != null) {
+        _cart = Cart.fromJson(data['cart']);
       }
       notifyListeners();
-      _persist();
+      return null;
+    } catch (e) {
+      return e.toString();
     }
   }
 
-  void decreaseQuantity(int productId) {
-    if (_items.containsKey(productId)) {
-      final item = _items[productId]!;
-      final minQty = item.product.moq > 0 ? item.product.moq : 1;
-      if (item.quantity > minQty) {
-        item.quantity--;
-      } else {
-        _items.remove(productId);
+  /// Update item quantity: PUT /api/cart/:productId
+  Future<void> updateQuantity(String productId, int quantity) async {
+    if (_api == null) return;
+    try {
+      final data = await _api!.put(
+        ApiConfig.cartItem(productId),
+        body: {'quantity': quantity},
+      );
+      if (data != null && data['cart'] != null) {
+        _cart = Cart.fromJson(data['cart']);
       }
       notifyListeners();
-      _persist();
-    }
-  }
-
-  void increaseQuantity(int productId) {
-    if (_items.containsKey(productId)) {
-      _items[productId]!.quantity++;
+    } catch (e) {
+      _error = e.toString();
       notifyListeners();
-      _persist();
     }
   }
 
-  void clear() {
-    _items.clear();
-    notifyListeners();
-    _persist();
+  /// Remove item from cart: DELETE /api/cart/:productId
+  Future<void> removeItem(String productId) async {
+    if (_api == null) return;
+    try {
+      final data = await _api!.delete(ApiConfig.cartItem(productId));
+      if (data != null && data['cart'] != null) {
+        _cart = Cart.fromJson(data['cart']);
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
-  List<Map<String, dynamic>> toOrderItems() {
-    return _items.values
-        .map((item) => {
-              'product_id': item.product.id,
-              'quantity': item.quantity,
-            })
-        .toList();
+  /// Clear the entire cart: DELETE /api/cart
+  Future<void> clear() async {
+    if (_api == null) return;
+    try {
+      await _api!.delete(ApiConfig.cart);
+      _cart = Cart();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Apply a coupon: POST /api/cart/coupon
+  Future<String?> applyCoupon(String code) async {
+    if (_api == null) return 'Not authenticated';
+    try {
+      final data = await _api!.post(
+        ApiConfig.cartCoupon,
+        body: {'code': code},
+      );
+      if (data != null && data['cart'] != null) {
+        _cart = Cart.fromJson(data['cart']);
+      }
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// Remove coupon: DELETE /api/cart/coupon
+  Future<void> removeCoupon() async {
+    if (_api == null) return;
+    try {
+      final data = await _api!.delete(ApiConfig.cartCoupon);
+      if (data != null && data['cart'] != null) {
+        _cart = Cart.fromJson(data['cart']);
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Reset local cart state (e.g., on logout).
+  void reset() {
+    _cart = Cart();
+    notifyListeners();
   }
 }

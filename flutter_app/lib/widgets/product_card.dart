@@ -42,9 +42,9 @@ class ProductCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  product.imageUrl != null
+                  (product.primaryImage ?? '').isNotEmpty
                       ? CachedNetworkImage(
-                          imageUrl: product.imageUrl!,
+                          imageUrl: product.primaryImage!,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => Container(
                             color: AppTheme.surfaceVariant,
@@ -74,23 +74,14 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
 
-                  // Badges
-                  Positioned(
-                    top: 6,
-                    left: 6,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (product.isLowStock && product.isInStock)
-                          _badge('Low Stock', AppTheme.warning),
-                        if (product.sampleAvailable)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: _badge('Sample', AppTheme.info),
-                          ),
-                      ],
+                  // Discount badge
+                  if (product.hasDiscount)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: _badge(
+                          '-${product.discountPercent.toInt()}%', AppTheme.error),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -103,20 +94,6 @@ class ProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category
-                    Text(
-                      product.categoryName,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppTheme.primary.withAlpha(180),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-
                     // Name
                     Text(
                       product.name,
@@ -131,10 +108,10 @@ class ProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
 
-                    // Vendor
-                    if (product.vendorName.isNotEmpty)
+                    // Shop / Vendor name
+                    if ((product.shopName ?? product.vendorName ?? '').isNotEmpty)
                       Text(
-                        product.vendorName,
+                        product.shopName ?? product.vendorName ?? '',
                         style: const TextStyle(
                           fontSize: 10,
                           color: AppTheme.textHint,
@@ -143,33 +120,59 @@ class ProductCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
 
-                    const Spacer(),
-
-                    // MOQ
-                    if (product.moq > 1)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          'MOQ: ${product.moq} pcs',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w500,
+                    // Rating
+                    if (product.averageRating > 0) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.star_rounded,
+                              size: 12, color: Colors.amber.shade700),
+                          const SizedBox(width: 2),
+                          Text(
+                            product.averageRating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
+                          Text(
+                            ' (${product.totalReviews})',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppTheme.textHint,
+                            ),
+                          ),
+                        ],
                       ),
+                    ],
+
+                    const Spacer(),
 
                     // Price + cart button
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            '\$${product.sellingPrice.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primary,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '\$${product.price.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                              if (product.hasDiscount)
+                                Text(
+                                  '\$${product.originalPrice!.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textHint,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         if (product.isInStock)
@@ -178,7 +181,7 @@ class ProductCard extends StatelessWidget {
                               if (inCart) {
                                 cart.removeItem(product.id);
                               } else {
-                                cart.addItem(product);
+                                cart.addItem(product.id);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(

@@ -150,7 +150,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Order #${order.orderNumber}',
+                        'Order #${order.id.substring(order.id.length - 8)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -188,11 +188,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
             const SizedBox(height: 12),
 
             // Items preview
-            if (order.items.isNotEmpty) ...[
+            if (order.orderItems.isNotEmpty) ...[
               Text(
-                order.items
+                order.orderItems
                     .take(3)
-                    .map((i) => '${i.productName} ×${i.quantity}')
+                    .map((i) => '${i.name} ×${i.quantity}')
                     .join(', '),
                 style: const TextStyle(
                   fontSize: 12,
@@ -201,9 +201,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (order.items.length > 3)
+              if (order.orderItems.length > 3)
                 Text(
-                  '+${order.items.length - 3} more items',
+                  '+${order.orderItems.length - 3} more items',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppTheme.textHint,
@@ -217,14 +217,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${order.items.length} item${order.items.length == 1 ? '' : 's'}',
+                  '${order.orderItems.length} item${order.orderItems.length == 1 ? '' : 's'}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.textHint,
                   ),
                 ),
                 Text(
-                  '\$${order.totalAmount.toStringAsFixed(2)}',
+                  '\$${order.totalPrice.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

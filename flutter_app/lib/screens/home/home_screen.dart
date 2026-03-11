@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final pp = context.read<ProductProvider>();
       pp.fetchCategories();
-      pp.fetchFeaturedProducts();
+      pp.fetchTrendingProducts();
       pp.fetchBanners();
       pp.fetchProducts(refresh: true);
       context.read<VendorProvider>().fetchVendors();
@@ -224,7 +224,7 @@ class _HomeTabState extends State<_HomeTab> {
       child: RefreshIndicator(
         onRefresh: () async {
           await Future.wait([
-            pp.fetchFeaturedProducts(),
+            pp.fetchTrendingProducts(),
             pp.fetchCategories(),
             pp.fetchBanners(),
             vp.fetchVendors(),
@@ -557,10 +557,10 @@ class _HomeTabState extends State<_HomeTab> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
-            // ── Featured Products ──
+            // ── Trending Products ──
             SliverToBoxAdapter(
               child: SectionHeader(
-                title: 'Featured Products',
+                title: 'Trending Products',
                 actionText: 'View All',
                 onAction: () {
                   Navigator.push(
@@ -572,9 +572,9 @@ class _HomeTabState extends State<_HomeTab> {
             ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: pp.featuredLoading && pp.featuredProducts.isEmpty
+              sliver: pp.trendingLoading && pp.trendingProducts.isEmpty
                   ? const SliverToBoxAdapter(child: ShimmerGrid(itemCount: 4))
-                  : pp.featuredProducts.isEmpty
+                  : pp.trendingProducts.isEmpty
                       ? const SliverToBoxAdapter(
                           child: Center(
                             child: Padding(
@@ -595,9 +595,9 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (_, i) => ProductCard(
-                                product: pp.featuredProducts[i]),
+                                product: pp.trendingProducts[i]),
                             childCount:
-                                pp.featuredProducts.length.clamp(0, isWide ? 8 : 6),
+                                pp.trendingProducts.length.clamp(0, isWide ? 8 : 6),
                           ),
                         ),
             ),
@@ -793,8 +793,8 @@ class _HomeTabState extends State<_HomeTab> {
               child: Container(
                 width: double.infinity,
                 color: AppTheme.surfaceVariant,
-                child: product.imageUrl != null
-                    ? Image.network(product.imageUrl!, fit: BoxFit.cover,
+                child: product.primaryImage.isNotEmpty
+                    ? Image.network(product.primaryImage, fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => _arrivalPlaceholder())
                     : _arrivalPlaceholder(),
               ),
@@ -815,7 +815,7 @@ class _HomeTabState extends State<_HomeTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$${product.sellingPrice.toStringAsFixed(2)}',
+                    '\$${product.price.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,

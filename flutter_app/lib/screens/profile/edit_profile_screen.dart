@@ -12,8 +12,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _firstNameC;
-  late TextEditingController _lastNameC;
+  late TextEditingController _nameC;
   late TextEditingController _emailC;
   bool _saving = false;
 
@@ -21,15 +20,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     final user = context.read<AuthProvider>().user;
-    _firstNameC = TextEditingController(text: user?.firstName ?? '');
-    _lastNameC = TextEditingController(text: user?.lastName ?? '');
+    _nameC = TextEditingController(text: user?.name ?? '');
     _emailC = TextEditingController(text: user?.email ?? '');
   }
 
   @override
   void dispose() {
-    _firstNameC.dispose();
-    _lastNameC.dispose();
+    _nameC.dispose();
     _emailC.dispose();
     super.dispose();
   }
@@ -86,14 +83,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 12),
               _buildField(
-                controller: _firstNameC,
-                label: 'First Name',
-                icon: Icons.person_outlined,
-              ),
-              const SizedBox(height: 12),
-              _buildField(
-                controller: _lastNameC,
-                label: 'Last Name',
+                controller: _nameC,
+                label: 'Full Name',
                 icon: Icons.person_outlined,
               ),
               const SizedBox(height: 12),
@@ -179,8 +170,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _saving = true);
     final auth = context.read<AuthProvider>();
     final success = await auth.updateProfile({
-      'first_name': _firstNameC.text,
-      'last_name': _lastNameC.text,
+      'name': _nameC.text,
       'email': _emailC.text,
     });
     setState(() => _saving = false);

@@ -1,101 +1,117 @@
-class UserProfile {
-  final String companyName;
-  final String businessType;
-  final String taxId;
-  final String phone;
-  final String alternatePhone;
-  final String addressLine1;
-  final String addressLine2;
+class Address {
+  final String id;
+  final String label;
+  final String fullName;
+  final String streetAddress;
   final String city;
   final String state;
-  final String postalCode;
-  final String country;
+  final String zipCode;
+  final String phoneNumber;
+  final bool isDefault;
 
-  UserProfile({
-    this.companyName = '',
-    this.businessType = '',
-    this.taxId = '',
-    this.phone = '',
-    this.alternatePhone = '',
-    this.addressLine1 = '',
-    this.addressLine2 = '',
+  Address({
+    required this.id,
+    this.label = '',
+    this.fullName = '',
+    this.streetAddress = '',
     this.city = '',
     this.state = '',
-    this.postalCode = '',
-    this.country = '',
+    this.zipCode = '',
+    this.phoneNumber = '',
+    this.isDefault = false,
   });
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
-    return UserProfile(
-      companyName: json['company_name'] ?? '',
-      businessType: json['business_type'] ?? '',
-      taxId: json['tax_id'] ?? '',
-      phone: json['phone'] ?? '',
-      alternatePhone: json['alternate_phone'] ?? '',
-      addressLine1: json['address_line1'] ?? '',
-      addressLine2: json['address_line2'] ?? '',
+  factory Address.fromJson(Map<String, dynamic> json) {
+    return Address(
+      id: json['_id']?.toString() ?? '',
+      label: json['label'] ?? '',
+      fullName: json['fullName'] ?? '',
+      streetAddress: json['streetAddress'] ?? '',
       city: json['city'] ?? '',
       state: json['state'] ?? '',
-      postalCode: json['postal_code'] ?? '',
-      country: json['country'] ?? '',
+      zipCode: json['zipCode'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      isDefault: json['isDefault'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'company_name': companyName,
-        'business_type': businessType,
-        'tax_id': taxId,
-        'phone': phone,
-        'alternate_phone': alternatePhone,
-        'address_line1': addressLine1,
-        'address_line2': addressLine2,
+        'label': label,
+        'fullName': fullName,
+        'streetAddress': streetAddress,
         'city': city,
         'state': state,
-        'postal_code': postalCode,
-        'country': country,
+        'zipCode': zipCode,
+        'phoneNumber': phoneNumber,
+        'isDefault': isDefault,
       };
 }
 
 class User {
-  final int id;
-  final String username;
+  final String id;
   final String email;
-  final String firstName;
-  final String lastName;
-  final UserProfile? profile;
+  final String name;
+  final String? imageUrl;
+  final String clerkId;
+  final String role;
+  final List<Address> addresses;
+  final List<String> wishlist;
+  final bool isWishlistPublic;
+  final String? wishlistToken;
+  final String? stripeCustomerId;
+  final String? expoPushToken;
 
   User({
     required this.id,
-    required this.username,
-    this.email = '',
-    this.firstName = '',
-    this.lastName = '',
-    this.profile,
+    required this.email,
+    this.name = '',
+    this.imageUrl,
+    this.clerkId = '',
+    this.role = 'customer',
+    this.addresses = const [],
+    this.wishlist = const [],
+    this.isWishlistPublic = false,
+    this.wishlistToken,
+    this.stripeCustomerId,
+    this.expoPushToken,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? 0,
-      username: json['username'] ?? '',
+      id: json['_id']?.toString() ?? '',
       email: json['email'] ?? '',
-      firstName: json['first_name'] ?? '',
-      lastName: json['last_name'] ?? '',
-      profile: json['profile'] != null
-          ? UserProfile.fromJson(json['profile'])
-          : null,
+      name: json['name'] ?? '',
+      imageUrl: json['imageUrl'],
+      clerkId: json['clerkId'] ?? '',
+      role: json['role'] ?? 'customer',
+      addresses: (json['addresses'] as List?)
+              ?.map((e) => Address.fromJson(e))
+              .toList() ??
+          [],
+      wishlist: (json['wishlist'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      isWishlistPublic: json['isWishlistPublic'] ?? false,
+      wishlistToken: json['wishlistToken'],
+      stripeCustomerId: json['stripeCustomerId'],
+      expoPushToken: json['expoPushToken'],
     );
   }
 
-  String get displayName {
-    if (firstName.isNotEmpty || lastName.isNotEmpty) {
-      return '$firstName $lastName'.trim();
-    }
-    return username;
-  }
+  String get displayName => name.isNotEmpty ? name : email.split('@').first;
 
   String get initials {
-    if (firstName.isNotEmpty) return firstName[0].toUpperCase();
-    if (username.isNotEmpty) return username[0].toUpperCase();
-    return '?';
+    if (name.isNotEmpty) {
+      final parts = name.split(' ');
+      if (parts.length >= 2) {
+        return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+      }
+      return name[0].toUpperCase();
+    }
+    return email.isNotEmpty ? email[0].toUpperCase() : '?';
   }
+
+  bool get isAdmin => role == 'admin';
+  bool get isVendor => role == 'vendor';
 }

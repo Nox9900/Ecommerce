@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../config/api_config.dart';
 import '../../config/theme.dart';
 import '../../models/vendor.dart';
@@ -9,7 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/product_card.dart';
 
 class VendorDetailScreen extends StatefulWidget {
-  final int vendorId;
+  final String vendorId;
   const VendorDetailScreen({super.key, required this.vendorId});
 
   @override
@@ -35,21 +34,25 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
     });
     try {
       final api = context.read<AuthProvider>().api;
-      final data = await api.get('${ApiConfig.vendors}${widget.vendorId}/');
+      final data = await api.get(ApiConfig.vendor(widget.vendorId));
       setState(() {
         _vendor = Vendor.fromJson(data);
       });
 
       // fetch vendor products
       try {
-        final prodData = await api
-            .get('${ApiConfig.products}?vendor=${widget.vendorId}');
-        final List list = prodData is List
-            ? prodData
-            : (prodData['results'] ?? []);
+        final prodData = await api.get(
+          ApiConfig.products,
+          queryParams: {'vendor': widget.vendorId},
+        );
+        List list = [];
+        if (prodData is List) {
+          list = prodData;
+        } else if (prodData is Map) {
+          list = prodData['products'] ?? [];
+        }
         setState(() {
-          _products =
-              list.map<Product>((j) => Product.fromJson(j)).toList();
+          _products = list.map<Product>((j) => Product.fromJson(j)).toList();
         });
       } catch (_) {
         // products optional
@@ -69,7 +72,7 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
     return Scaffold(
       backgroundColor: AppTheme.white,
       appBar: AppBar(
-        title: Text(_vendor?.storeName ?? 'Supplier'),
+        title: Text(_vendor?.shopName ?? 'Shop'),
         backgroundColor: AppTheme.white,
         surfaceTintColor: Colors.transparent,
       ),
@@ -90,18 +93,6 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
                   ),
                 )
               : _buildContent(),
-      floatingActionButton: _vendor?.phone != null && _vendor!.phone!.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                final phone = _vendor!.phone!.replaceAll(RegExp(r'[^0-9+]'), '');
-                launchUrl(Uri.parse('https://wa.me/$phone'));
-              },
-              backgroundColor: const Color(0xFF25D366),
-              icon: const Icon(Icons.chat_rounded, color: Colors.white),
-              label: const Text('WhatsApp',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-            )
-          : null,
     );
   }
 
@@ -117,7 +108,7 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header Banner ──
+            // Header Banner
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -135,9 +126,9 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
                       shape: BoxShape.circle,
                       boxShadow: AppTheme.shadowMd,
                     ),
-                    child: v.logo != null
+                    child: v.logoUrl != null
                         ? ClipOval(
-                            child: Image.network(v.logo!,
+                            child: Image.network(v.logoUrl!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
                                     _logoPlaceholder(v)),
@@ -146,9 +137,9 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Store name
+                  // Shop name
                   Text(
-                    v.storeName,
+                    v.shopName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -156,85 +147,50 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
                     ),
                   ),
 
-                  // Location
-                  if (v.location.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
+                  // Status badge
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(25),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.radiusFull),
+                      border:
+                          Border.all(color: Colors.white.withAlpha(40)),
+                    ),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 14, color: Colors.white70),
+                        Icon(
+                          v.isApproved
+                              ? Icons.verified_rounded
+                              : Icons.schedule_rounded,
+                          size: 14,
+                          color: v.isApproved
+                              ? Colors.greenAccent.shade200
+                              : Colors.amber.shade300,
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          v.location,
+                          v.isApproved ? 'Verified Seller' : 'Pending Verification',
                           style: const TextStyle(
-                              color: Colors.white70, fontSize: 13),
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
-                  ],
-
-                  // Verification badge
-                  if (v.badgeLabel.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(25),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusFull),
-                        border:
-                            Border.all(color: Colors.white.withAlpha(40)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            v.verificationLevel == 'gold'
-                                ? Icons.workspace_premium_rounded
-                                : Icons.verified_rounded,
-                            size: 14,
-                            color: Colors.amber.shade300,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            v.badgeLabel,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ],
               ),
             ),
 
-            // ── Stats Row ──
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _stat('Rating', v.rating > 0 ? v.rating.toStringAsFixed(1) : 'N/A',
-                      Icons.star_rounded, Colors.amber),
-                  _stat('Reviews', '${v.totalReviews}',
-                      Icons.rate_review_outlined, AppTheme.info),
-                  _stat('Response', v.responseRate > 0 ? '${v.responseRate.toStringAsFixed(0)}%' : 'N/A',
-                      Icons.reply_rounded, AppTheme.success),
-                  _stat('On-Time', v.onTimeDeliveryRate > 0 ? '${v.onTimeDeliveryRate.toStringAsFixed(0)}%' : 'N/A',
-                      Icons.local_shipping_outlined, AppTheme.primary),
-                ],
-              ),
-            ),
-
-            // ── Description ──
+            // Description
             if (v.description.isNotEmpty) ...[
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Text(
                   'About',
                   style: TextStyle(
@@ -256,31 +212,21 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
               ),
             ],
 
-            // ── Info Cards ──
+            // Info
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              child: Column(
                 children: [
-                  if (v.isTradeAssurance)
-                    _infoChip(Icons.shield_outlined, 'Trade Assurance',
-                        AppTheme.success),
-                  if (v.responseTimeDisplay.isNotEmpty)
-                    _infoChip(Icons.access_time_rounded,
-                        'Response: ${v.responseTimeDisplay}', AppTheme.info),
-                  if (v.totalTransactions > 0)
-                    _infoChip(Icons.receipt_long_outlined,
-                        '${v.totalTransactions} Transactions', AppTheme.primary),
-                  if (v.followerCount > 0)
-                    _infoChip(Icons.people_outline_rounded,
-                        '${v.followerCount} Followers', AppTheme.accent),
+                  if (v.commissionRate > 0)
+                    _infoRow('Commission Rate', '${v.commissionRate}%'),
+                  _infoRow('Member Since',
+                      '${v.createdAt.month}/${v.createdAt.year}'),
                 ],
               ),
             ),
             const SizedBox(height: 20),
 
-            // ── Products ──
+            // Products
             if (_products.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -328,61 +274,18 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
     );
   }
 
-  Widget _stat(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withAlpha(12),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-            ),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 10,
-                color: AppTheme.textHint,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _infoChip(IconData icon, String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withAlpha(12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-        border: Border.all(color: color.withAlpha(30)),
-      ),
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: color,
-            ),
-          ),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 12, color: AppTheme.textSecondary)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -391,7 +294,7 @@ class _VendorDetailScreenState extends State<VendorDetailScreen> {
   Widget _logoPlaceholder(Vendor v) {
     return Center(
       child: Text(
-        v.storeName.isNotEmpty ? v.storeName[0].toUpperCase() : 'V',
+        v.shopName.isNotEmpty ? v.shopName[0].toUpperCase() : 'V',
         style: const TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w700,

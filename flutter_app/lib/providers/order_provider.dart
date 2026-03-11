@@ -10,6 +10,9 @@ class OrderProvider extends ChangeNotifier {
   Order? _selectedOrder;
   bool _loading = false;
   String? _error;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _hasMore = true;
 
   OrderProvider(this._api);
 
@@ -17,17 +20,42 @@ class OrderProvider extends ChangeNotifier {
   Order? get selectedOrder => _selectedOrder;
   bool get loading => _loading;
   String? get error => _error;
+  bool get hasMore => _hasMore;
 
-  Future<void> fetchOrders() async {
+  /// Fetch orders from GET /api/orders.
+  /// Backend returns: { orders: [], total, page, pages }
+  Future<void> fetchOrders({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 1;
+      _hasMore = true;
+      _orders = [];
+    }
+
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final data = await _api.get(ApiConfig.orders);
-      final results =
-          (data['results'] as List).map((e) => Order.fromJson(e)).toList();
-      _orders = results;
+      final data = await _api.get(ApiConfig.orders, queryParams: {
+        'page': '$_currentPage',
+        'limit': '${ApiConfig.pageSize}',
+      });
+
+      List<Order> results = [];
+      if (data is Map) {
+        final list = data['orders'] as List? ?? [];
+        results = list.map((e) => Order.fromJson(e)).toList();
+        _totalPages = data['pages'] ?? 1;
+        _hasMore = _currentPage < _totalPages;
+      }
+
+      if (refresh) {
+        _orders = results;
+      } else {
+        _orders.addAll(results);
+      }
+
+      if (_hasMore) _currentPage++;
       _loading = false;
       notifyListeners();
     } catch (e) {
@@ -37,21 +65,7 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchOrder(int id) async {
-    _loading = true;
-    notifyListeners();
-    try {
-      final data = await _api.get('${ApiConfig.orders}$id/');
-      _selectedOrder = Order.fromJson(data);
-      _loading = false;
-      notifyListeners();
-    } catch (e) {
-      _loading = false;
-      _error = e.toString();
-      notifyListeners();
-    }
-  }
-
+  /// Place a new order: POST /api/orders
   Future<Order?> placeOrder(Map<String, dynamic> orderData) async {
     _loading = true;
     _error = null;
@@ -59,7 +73,7 @@ class OrderProvider extends ChangeNotifier {
 
     try {
       final data = await _api.post(ApiConfig.orders, body: orderData);
-      final order = Order.fromJson(data);
+      final order = Order.fromJson(data['order'] ?? data);
       _orders.insert(0, order);
       _loading = false;
       notifyListeners();

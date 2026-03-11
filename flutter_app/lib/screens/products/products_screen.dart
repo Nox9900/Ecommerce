@@ -68,9 +68,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       try {
         final api = context.read<AuthProvider>().api;
-        final data = await api.get('${ApiConfig.searchSuggestions}?q=$query');
+        final data = await api.get('${ApiConfig.products}?q=$query&limit=5');
         if (!mounted) return;
-        final list = (data['suggestions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        final products = (data['products'] as List?) ?? [];
+        final list = products
+            .cast<Map<String, dynamic>>()
+            .map((p) => <String, dynamic>{
+                'type': 'product',
+                'id': p['_id'] ?? '',
+                'name': p['name'] ?? '',
+                'price': p['price'],
+              })
+            .toList();
         setState(() {
           _suggestions = list;
           _showSuggestions = list.isNotEmpty;
@@ -324,7 +333,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  Widget _categoryChip(String label, int? catId, int? selectedId) {
+  Widget _categoryChip(String label, String? catId, String? selectedId) {
     final active = catId == selectedId;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -362,19 +371,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: pp.ordering,
+          value: pp.sort,
           isDense: true,
           icon: const Icon(Icons.unfold_more_rounded, size: 16),
           style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
           items: const [
-            DropdownMenuItem(value: '-created_at', child: Text('Newest')),
-            DropdownMenuItem(value: 'selling_price', child: Text('Price: Low → High')),
-            DropdownMenuItem(value: '-selling_price', child: Text('Price: High → Low')),
+            DropdownMenuItem(value: '-createdAt', child: Text('Newest')),
+            DropdownMenuItem(value: 'price', child: Text('Price: Low → High')),
+            DropdownMenuItem(value: '-price', child: Text('Price: High → Low')),
             DropdownMenuItem(value: 'name', child: Text('Name: A → Z')),
             DropdownMenuItem(value: '-name', child: Text('Name: Z → A')),
           ],
           onChanged: (v) {
-            if (v != null) pp.setOrdering(v);
+            if (v != null) pp.setSort(v);
           },
         ),
       ),

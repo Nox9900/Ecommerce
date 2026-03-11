@@ -10,56 +10,46 @@ class ProductProvider extends ChangeNotifier {
   final ApiService _api;
 
   List<Product> _products = [];
-  List<Product> _featuredProducts = [];
+  List<Product> _trendingProducts = [];
   List<Category> _categories = [];
-  List<HeroBanner> _banners = [];
+  List<PromoBanner> _banners = [];
   Product? _selectedProduct;
   bool _loading = false;
-  bool _featuredLoading = false;
+  bool _trendingLoading = false;
   bool _hasMore = true;
   int _currentPage = 1;
+  int _totalPages = 1;
   String? _error;
-  int? _selectedCategoryId;
+  String? _selectedCategoryId;
+  String? _selectedSubcategory;
   String _searchQuery = '';
-  String _ordering = '-created_at';
+  String _sort = '-createdAt';
+  double? _minPrice;
+  double? _maxPrice;
+  double? _minRating;
   Timer? _debounce;
 
   ProductProvider(this._api);
 
   List<Product> get products => _products;
-  List<Product> get featuredProducts => _featuredProducts;
+  List<Product> get trendingProducts => _trendingProducts;
   List<Category> get categories => _categories;
-  List<HeroBanner> get banners => _banners;
+  List<PromoBanner> get banners => _banners;
   Product? get selectedProduct => _selectedProduct;
   bool get loading => _loading;
-  bool get featuredLoading => _featuredLoading;
+  bool get trendingLoading => _trendingLoading;
   bool get hasMore => _hasMore;
   String? get error => _error;
-  int? get selectedCategoryId => _selectedCategoryId;
+  String? get selectedCategoryId => _selectedCategoryId;
   String get searchQuery => _searchQuery;
-  String get ordering => _ordering;
+  String get sort => _sort;
 
+  /// Fetch active categories from GET /api/categories (returns array).
   Future<void> fetchCategories() async {
     try {
-      final data = await _api.get(ApiConfig.categories, queryParams: {'page_size': '100'});
-      final results = data['results'] as List;
-      _categories = results.map((e) => Category.fromJson(e)).toList();
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-    }
-  }
-
-  Future<void> fetchBanners() async {
-    try {
-      final data = await _api.get(ApiConfig.banners);
+      final data = await _api.get(ApiConfig.categories);
       if (data is List) {
-        _banners = data.map((e) => HeroBanner.fromJson(e)).toList();
-      } else if (data is Map && data['results'] != null) {
-        _banners = (data['results'] as List)
-            .map((e) => HeroBanner.fromJson(e))
-            .toList();
+        _categories = data.map((e) => Category.fromJson(e)).toList();
       }
       notifyListeners();
     } catch (e) {
@@ -68,6 +58,22 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetch promo banners from GET /api/promo-banners (returns array).
+  Future<void> fetchBanners() async {
+    try {
+      final data = await _api.get(ApiConfig.promoBanners);
+      if (data is List) {
+        _banners = data.map((e) => PromoBanner.fromJson(e)).toList();
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Fetch products from GET /api/products.
+  /// Backend returns: { products: [], total, page, pages }
   Future<void> fetchProducts({bool refresh = false}) async {
     if (_loading) return;
 
@@ -85,18 +91,37 @@ class ProductProvider extends ChangeNotifier {
     try {
       final params = <String, String>{
         'page': '$_currentPage',
-        'ordering': _ordering,
+        'limit': '${ApiConfig.pageSize}',
+        'sort': _sort,
       };
       if (_selectedCategoryId != null) {
-        params['category'] = '$_selectedCategoryId';
+        params['category'] = _selectedCategoryId!;
+      }
+      if (_selectedSubcategory != null) {
+        params['subcategory'] = _selectedSubcategory!;
       }
       if (_searchQuery.isNotEmpty) {
-        params['search'] = _searchQuery;
+        params['q'] = _searchQuery;
+      }
+      if (_minPrice != null) {
+        params['minPrice'] = '$_minPrice';
+      }
+      if (_maxPrice != null) {
+        params['maxPrice'] = '$_maxPrice';
+      }
+      if (_minRating != null) {
+        params['minRating'] = '$_minRating';
       }
 
       final data = await _api.get(ApiConfig.products, queryParams: params);
-      final results =
-          (data['results'] as List).map((e) => Product.fromJson(e)).toList();
+
+      List<Product> results = [];
+      if (data is Map) {
+        final list = data['products'] as List? ?? [];
+        results = list.map((e) => Product.fromJson(e)).toList();
+        _totalPages = data['pages'] ?? 1;
+        _hasMore = _currentPage < _totalPages;
+      }
 
       if (refresh) {
         _products = results;
@@ -104,7 +129,6 @@ class ProductProvider extends ChangeNotifier {
         _products.addAll(results);
       }
 
-      _hasMore = data['next'] != null;
       if (_hasMore) _currentPage++;
 
       _loading = false;
@@ -117,39 +141,31 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchFeaturedProducts() async {
-    _featuredLoading = true;
+  /// Fetch trending products from GET /api/recommendations/trending (returns array).
+  Future<void> fetchTrendingProducts() async {
+    _trendingLoading = true;
     notifyListeners();
     try {
-      final data = await _api.get(ApiConfig.featuredProducts);
+      final data = await _api.get(ApiConfig.trendingProducts);
       if (data is List) {
-        _featuredProducts = data.map((e) => Product.fromJson(e)).toList();
-      } else if (data is Map && data['results'] != null) {
-        _featuredProducts =
-            (data['results'] as List).map((e) => Product.fromJson(e)).toList();
+        _trendingProducts = data.map((e) => Product.fromJson(e)).toList();
       }
-      _featuredLoading = false;
+      _trendingLoading = false;
       notifyListeners();
     } catch (e) {
-      _featuredLoading = false;
-      // Fallback to regular products
-      try {
-        final data = await _api.get(ApiConfig.products);
-        final results =
-            (data['results'] as List).map((e) => Product.fromJson(e)).toList();
-        _featuredProducts = results.take(12).toList();
-      } catch (_) {}
+      _trendingLoading = false;
       _error = e.toString();
       notifyListeners();
     }
   }
 
-  Future<void> fetchProduct(int id) async {
+  /// Fetch a single product by ID from GET /api/products/:id.
+  Future<void> fetchProduct(String id) async {
     _loading = true;
     _selectedProduct = null;
     notifyListeners();
     try {
-      final data = await _api.get('${ApiConfig.products}$id/');
+      final data = await _api.get(ApiConfig.product(id));
       _selectedProduct = Product.fromJson(data);
       _loading = false;
       notifyListeners();
@@ -160,8 +176,14 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  void setCategory(int? categoryId) {
+  void setCategory(String? categoryId) {
     _selectedCategoryId = categoryId;
+    _selectedSubcategory = null;
+    fetchProducts(refresh: true);
+  }
+
+  void setSubcategory(String? subcategory) {
+    _selectedSubcategory = subcategory;
     fetchProducts(refresh: true);
   }
 
@@ -173,15 +195,30 @@ class ProductProvider extends ChangeNotifier {
     });
   }
 
-  void setOrdering(String ordering) {
-    _ordering = ordering;
+  void setSort(String sort) {
+    _sort = sort;
+    fetchProducts(refresh: true);
+  }
+
+  void setPriceRange({double? min, double? max}) {
+    _minPrice = min;
+    _maxPrice = max;
+    fetchProducts(refresh: true);
+  }
+
+  void setMinRating(double? rating) {
+    _minRating = rating;
     fetchProducts(refresh: true);
   }
 
   void clearFilters() {
     _selectedCategoryId = null;
+    _selectedSubcategory = null;
     _searchQuery = '';
-    _ordering = '-created_at';
+    _sort = '-createdAt';
+    _minPrice = null;
+    _maxPrice = null;
+    _minRating = null;
     fetchProducts(refresh: true);
   }
 

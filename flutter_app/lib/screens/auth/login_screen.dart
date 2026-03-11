@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
-import 'register_screen.dart';
+import '../../providers/cart_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,10 +13,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  final _formKey = GlobalKey<FormState>();
-  final _usernameC = TextEditingController();
-  final _passwordC = TextEditingController();
-  bool _obscure = true;
   bool _loading = false;
   late AnimationController _animC;
   late Animation<double> _fadeAnim;
@@ -32,8 +28,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
-    _usernameC.dispose();
-    _passwordC.dispose();
     _animC.dispose();
     super.dispose();
   }
@@ -67,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Welcome Back',
+                      'Welcome to Yaamaan',
                       style: Theme.of(context)
                           .textTheme
                           .headlineSmall
@@ -75,130 +69,59 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Sign in to your Yaamaan account',
+                      'Sign in to start shopping',
                       style: TextStyle(
                           color: AppTheme.textSecondary, fontSize: 14),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 40),
 
-                    // Form
-                    Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          _field(
-                            controller: _usernameC,
-                            label: 'Username or Email',
-                            icon: Icons.person_outline_rounded,
-                            validator: (v) => (v == null || v.isEmpty)
-                                ? 'Required'
-                                : null,
-                          ),
-                          const SizedBox(height: 14),
-                          _field(
-                            controller: _passwordC,
-                            label: 'Password',
-                            icon: Icons.lock_outline_rounded,
-                            obscure: _obscure,
-                            suffix: IconButton(
-                              icon: Icon(
-                                _obscure
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                size: 20,
-                                color: AppTheme.textHint,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _obscure = !_obscure),
-                            ),
-                            validator: (v) => (v == null || v.isEmpty)
-                                ? 'Required'
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Forgot password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Login button
+                    // Google Sign-In button
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primary,
-                          foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                AppTheme.radiusMd),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _loading
+                      child: OutlinedButton.icon(
+                        onPressed: _loading ? null : _signInWithGoogle,
+                        icon: _loading
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(
-                                      Colors.white),
                                 ),
                               )
-                            : const Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                ),
+                            : Image.network(
+                                'https://developers.google.com/identity/images/g-logo.png',
+                                width: 20,
+                                height: 20,
+                                errorBuilder: (_, __, ___) =>
+                                    const Icon(Icons.g_mobiledata, size: 24),
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Register link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Don't have an account? ",
-                          style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 13),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      const RegisterScreen()),
-                            );
-                          },
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: AppTheme.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
+                        label: Text(
+                          _loading ? 'Signing in...' : 'Continue with Google',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
-                      ],
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: const BorderSide(color: AppTheme.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMd),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Terms
+                    const Text(
+                      'By signing in, you agree to our Terms of Service and Privacy Policy',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.textHint,
+                        fontSize: 11,
+                      ),
                     ),
                     const SizedBox(height: 32),
                   ],
@@ -211,52 +134,15 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool obscure = false,
-    Widget? suffix,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: 20),
-        suffixIcon: suffix,
-        filled: true,
-        fillColor: AppTheme.surfaceVariant,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          borderSide:
-              const BorderSide(color: AppTheme.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          borderSide: const BorderSide(color: AppTheme.error, width: 1),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _login() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
+  Future<void> _signInWithGoogle() async {
     setState(() => _loading = true);
     try {
       final auth = context.read<AuthProvider>();
-      await auth.login(_usernameC.text.trim(), _passwordC.text);
+      final success = await auth.signInWithGoogle();
 
-      if (mounted && auth.isLoggedIn) {
+      if (mounted && success) {
+        // Fetch server-side cart after login
+        context.read<CartProvider>().fetchCart();
         Navigator.pop(context);
       } else if (mounted && auth.error != null) {
         _showError(auth.error!);
