@@ -60,7 +60,7 @@ app.use(
   })
 );
 
-const allowedOrigins = [ENV.CLIENT_URL, "http://localhost:50135"]
+const allowedOrigins = [ENV.CLIENT_URL]
   .filter(Boolean)
   .map((o) => o.replace(/\/+$/, ""));
 
