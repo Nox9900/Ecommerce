@@ -1,6 +1,6 @@
 /// API configuration for connecting to the Node.js/Express backend.
 class ApiConfig {
-  static const String _baseUrl = 'https://yaamaan.sevalla.app/';
+  static const String _baseUrl = 'https://yaamaan.sevalla.app';
 
   /// Clerk publishable key – used to derive the Frontend API URL.
   /// Replace with your actual key from the Clerk dashboard.
