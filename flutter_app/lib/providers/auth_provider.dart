@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,22 +40,119 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Sign in with Google using the backend's Clerk-based auth flow.
-  ///
-  /// Flow:
-  /// 1. Google Sign-In → get ID token
-  /// 2. POST /api/auth/google with the ID token → Clerk sign-in token
-  /// 3. Exchange sign-in token for Clerk session JWT via Clerk Frontend API
-  /// 4. Use the session JWT as Bearer token for all subsequent API calls
+  // ─── helpers ───────────────────────────────────────────────
+
+  /// Exchange a Clerk sign-in token for a session JWT, persist it,
+  /// and fetch the user profile.
+  Future<bool> _handleSignInToken(String signInToken) async {
+    final sessionJwt =
+        await _clerk.createSessionFromSignInToken(signInToken);
+    if (sessionJwt == null) {
+      _error = 'Failed to create session.';
+      return false;
+    }
+
+    _token = sessionJwt;
+    _api.setToken(_token);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', _token!);
+
+    await fetchProfile();
+    return true;
+  }
+
+  // ─── email / password ──────────────────────────────────────
+
+  /// Sign in with email and password.
+  Future<bool> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final data = await _api.post(ApiConfig.login, body: {
+        'email': email,
+        'password': password,
+      });
+
+      final signInToken = data['token'] as String?;
+      if (signInToken == null) {
+        _loading = false;
+        _error = 'Login succeeded but failed to get token.';
+        notifyListeners();
+        return false;
+      }
+
+      final ok = await _handleSignInToken(signInToken);
+      _loading = false;
+      notifyListeners();
+      return ok;
+    } catch (e) {
+      _error = e.toString();
+      _loading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Register a new account with email and password.
+  Future<bool> registerWithEmail({
+    required String email,
+    required String password,
+    String firstName = '',
+    String lastName = '',
+  }) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final data = await _api.post(ApiConfig.register, body: {
+        'email': email,
+        'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+      });
+
+      final signInToken = data['token'] as String?;
+      if (signInToken == null) {
+        _loading = false;
+        _error = 'Registration succeeded but failed to get token.';
+        notifyListeners();
+        return false;
+      }
+
+      final ok = await _handleSignInToken(signInToken);
+      _loading = false;
+      notifyListeners();
+      return ok;
+    } catch (e) {
+      _error = e.toString();
+      _loading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ─── google sign-in ────────────────────────────────────────
+
+  /// Sign in (or sign up) with Google.
   Future<bool> signInWithGoogle() async {
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Step 1: Google Sign-In
+      // On Web/iOS: pass clientId (Web client ID) so the plugin can identify the app.
+      // On Android: don't pass clientId (it uses google-services.json instead);
+      //             pass serverClientId (Web client ID) so Google returns an idToken.
       final googleSignIn = GoogleSignIn(
-        clientId: ApiConfig.googleClientId,
+        clientId: kIsWeb ? ApiConfig.googleWebClientId : null,
+        serverClientId: kIsWeb ? null : ApiConfig.googleWebClientId,
         scopes: ['email', 'profile'],
       );
       final account = await googleSignIn.signIn();
@@ -74,7 +172,6 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      // Step 2: Send to backend → get Clerk sign-in token
       final data = await _api.post(ApiConfig.googleSignIn, body: {
         'idToken': idToken,
         'email': account.email,
@@ -90,24 +187,28 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      // Step 3: Exchange for Clerk session JWT
-      final sessionJwt =
-          await _clerk.createSessionFromSignInToken(signInToken);
-      if (sessionJwt == null) {
-        _loading = false;
-        _error = 'Failed to create session. Check Clerk configuration.';
-        notifyListeners();
-        return false;
-      }
+      final ok = await _handleSignInToken(signInToken);
+      _loading = false;
+      notifyListeners();
+      return ok;
+    } catch (e) {
+      _error = e.toString();
+      _loading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 
-      // Step 4: Store and use the session JWT
-      _token = sessionJwt;
-      _api.setToken(_token);
+  // ─── forgot password ───────────────────────────────────────
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', _token!);
+  /// Request a password-reset email.
+  Future<bool> forgotPassword(String email) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
 
-      await fetchProfile();
+    try {
+      await _api.post(ApiConfig.forgotPassword, body: {'email': email});
       _loading = false;
       notifyListeners();
       return true;
@@ -119,37 +220,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetch the current user's profile from GET /api/users/me.
+  // ─── profile ───────────────────────────────────────────────
+
   Future<void> fetchProfile() async {
     final data = await _api.get(ApiConfig.me);
     _user = User.fromJson(data);
     notifyListeners();
   }
 
-  /// Sign out and clear all stored tokens.
-  Future<void> logout() async {
-    _token = null;
-    _user = null;
-    _api.setToken(null);
-    _clerk.clearSession();
-
-    // Disconnect Google Sign-In
-    try {
-      final googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
-    } catch (_) {}
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    notifyListeners();
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
-  }
-
-  /// Update the user's profile via PUT /api/users/me.
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     _loading = true;
     _error = null;
@@ -166,5 +244,28 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // ─── logout ────────────────────────────────────────────────
+
+  Future<void> logout() async {
+    _token = null;
+    _user = null;
+    _api.setToken(null);
+    _clerk.clearSession();
+
+    try {
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+    } catch (_) {}
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    notifyListeners();
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

@@ -1,31 +1,26 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 /// API configuration for connecting to the Node.js/Express backend.
-/// Change [_lanIp] to your PC's local network IP when testing on a phone.
 class ApiConfig {
-  static const String _lanIp = '192.168.100.187';
-  static const int _port = 4000;
+  static const String _baseUrl = 'https://yaamaan.sevalla.app/';
 
   /// Clerk publishable key – used to derive the Frontend API URL.
   /// Replace with your actual key from the Clerk dashboard.
   static const String clerkPublishableKey =
       'pk_test_c2hhcmluZy1jb2x0LTgwLmNsZXJrLmFjY291bnRzLmRldiQ';
 
-  /// Google Web Client ID for Google Sign-In.
-  static const String googleClientId =
-      '130497762386-iu878nhq21ubcosdbvr68ai7sa3fthr4.apps.googleusercontent.com ';
+  /// Google **Web** Client ID – used as `serverClientId` on Android
+  /// and `clientId` on iOS / Web.
+  static const String googleWebClientId =
+      '130497762386-l5la7fgk2bl9chc2ktn17u6211soj774.apps.googleusercontent.com';
 
-  static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://$_lanIp:$_port';
-    }
-    return 'http://$_lanIp:$_port';
-  }
+  static String get baseUrl => _baseUrl;
 
   static String get apiBase => '$baseUrl/api';
 
   // --------------- Auth ---------------
   static String get googleSignIn => '$apiBase/auth/google';
+  static String get register => '$apiBase/auth/register';
+  static String get login => '$apiBase/auth/login';
+  static String get forgotPassword => '$apiBase/auth/forgot-password';
 
   // --------------- Users ---------------
   static String get me => '$apiBase/users/me';
