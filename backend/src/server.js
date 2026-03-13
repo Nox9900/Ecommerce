@@ -45,6 +45,7 @@ app.use(
           "'unsafe-inline'",
           "https://*.clerk.accounts.dev",
           "https://challenges.cloudflare.com",
+          "blob:",
         ],
         connectSrc: [
           "'self'",
