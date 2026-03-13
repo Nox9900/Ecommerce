@@ -51,6 +51,7 @@ app.use(
           "'self'",
           "https://*.clerk.accounts.dev",
           "wss://*.clerk.accounts.dev",
+          "https://clerk-telemetry.com",
         ],
         imgSrc: ["'self'", "data:", "https:", "blob:"],
         styleSrc: ["'self'", "'unsafe-inline'"],
