@@ -151,19 +151,43 @@ const seedDatabase = async () => {
     await mongoose.connect(ENV.DB_URL);
     console.log("✅ Connected to MongoDB");
 
+    // Add superadmin user
+    const { User } = await import("../models/user.model.js");
+    const superadmin = {
+      email: ENV.ADMIN_EMAIL || "superadmin@example.com",
+      name: "Super Admin",
+      imageUrl: "",
+      clerkId: "superadmin-manual-1",
+      stripeCustomerId: "",
+      addresses: [],
+      role: "admin",
+      vendorProfile: undefined,
+      wishlist: [],
+      isWishlistPublic: false,
+      wishlistToken: undefined,
+      expoPushToken: "",
+    };
+    const existing = await User.findOne({ email: superadmin.email });
+    if (!existing) {
+      await User.create(superadmin);
+      console.log("✅ Superadmin user seeded");
+    } else {
+      console.log("ℹ️ Superadmin user already exists");
+    }
+
     // Clear existing products
-    await Product.deleteMany({});
-    console.log("🗑️  Cleared existing products");
+    // await Product.deleteMany({});
+    // console.log("🗑️  Cleared existing products");
 
     // Insert seed products
-    await Product.insertMany(products);
-    console.log(`✅ Successfully seeded ${products.length} products`);
+    // await Product.insertMany(products);
+    // console.log(`✅ Successfully seeded ${products.length} products`);
 
     // Display summary
-    const categories = [...new Set(products.map((p) => p.category))];
-    console.log("\n📊 Seeded Products Summary:");
-    console.log(`Total Products: ${products.length}`);
-    console.log(`Categories: ${categories.join(", ")}`);
+    // const categories = [...new Set(products.map((p) => p.category))];
+    // console.log("\n📊 Seeded Products Summary:");
+    // console.log(`Total Products: ${products.length}`);
+    // console.log(`Categories: ${categories.join(", ")}`);
 
     // Close connection
     await mongoose.connection.close();
