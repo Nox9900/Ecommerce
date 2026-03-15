@@ -23,7 +23,7 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderColor.withOpacity(0.5)),
+          border: Border.all(color: AppTheme.borderColor.withValues()),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,10 +37,17 @@ class ProductCard extends StatelessWidget {
                     aspectRatio: 1,
                     child: Hero(
                       tag: 'product_image_${product.id}',
-                      child: CachedNetworkImage(
-                        imageUrl: product.image ?? '',
-                        fit: BoxFit.cover,
-                      ),
+                      child: (product.image != null && product.image!.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: product.image!,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(color: Colors.grey[200]),
+                              errorWidget: (context, url, error) => const Icon(Icons.error),
+                            )
+                          : Container(
+                              color: Colors.grey[200],
+                              child: const Center(child: Icon(Icons.image_not_supported, size: 32, color: Colors.grey)),
+                            ),
                     ),
                   ),
                 ),
@@ -75,39 +82,41 @@ class ProductCard extends StatelessWidget {
                 ),
               ],
             ),
-            
             // Product Info
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '\$${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: AppTheme.primaryDefault,
-                      fontWeight: FontWeight.w600,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, size: 14, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        product.averageRating.toString(),
-                        style: const TextStyle(fontSize: 12),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${product.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: AppTheme.primaryDefault,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, size: 14, color: Colors.amber),
+                        const SizedBox(width: 4),
+                        Text(
+                          product.averageRating.toString(),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

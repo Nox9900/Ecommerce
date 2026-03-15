@@ -8,7 +8,7 @@ import 'package:flutter_mobile_app/providers/shop_provider.dart';
 import 'package:flutter_mobile_app/providers/auth_provider.dart';
 import 'package:flutter_mobile_app/screens/_category_header_delegate.dart';
 import 'package:flutter_mobile_app/screens/_subcategory_header_delegate.dart';
-// import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
+import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
 import 'package:flutter_mobile_app/screens/search_screen.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -95,89 +95,7 @@ class _ShopScreenState extends State<ShopScreen> {
             child: CustomScrollView(
               controller: _scrollController,
               slivers: [
-                // Random Shops Section
-                if (shopProvider.randomShops.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'Featured Shops',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 120,
-                            child: ListView.separated(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: shopProvider.randomShops.length,
-                              separatorBuilder: (_, _) => const SizedBox(width: 12),
-                              itemBuilder: (context, index) {
-                                final shop = shopProvider.randomShops[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    // TODO: Navigate to shop detail screen
-                                  },
-                                  child: Container(
-                                    width: 180,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 4,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                          child: shop.bannerUrl.isNotEmpty
-                                              ? Image.network(shop.bannerUrl, height: 60, width: 180, fit: BoxFit.cover)
-                                              : Container(height: 60, width: 180, color: Colors.grey[200]),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            children: [
-                                              CircleAvatar(
-                                                backgroundImage: shop.logoUrl.isNotEmpty
-                                                    ? NetworkImage(shop.logoUrl)
-                                                    : null,
-                                                backgroundColor: Colors.grey[300],
-                                                radius: 18,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  shop.name,
-                                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                // ...existing code...
                 // Promo Banners Section
                 if (shopProvider.promoBanners.isNotEmpty)
                   SliverToBoxAdapter(
@@ -264,7 +182,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 // All Products Section (infinite scroll)
                 SliverToBoxAdapter(
                   child: ProductSection(
-                    title: 'All',
+                    title: 'All Products',
                     products: shopProvider.products,
                     isGrid: true,
                   ),

@@ -14,7 +14,6 @@ import 'package:flutter_mobile_app/screens/chat_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
-
   const ProductDetailScreen({super.key, required this.product});
 
   @override
@@ -91,11 +90,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               background: Hero(
                 tag: 'product_image_${widget.product.id}',
                 child: PageView.builder(
-                  itemCount: widget.product.images.isNotEmpty ? widget.product.images.length : 1,
+                  itemCount: (widget.product.images != null && widget.product.images.isNotEmpty)
+                      ? widget.product.images.length
+                      : ((widget.product.image != null && widget.product.image!.isNotEmpty) ? 1 : 1),
                   itemBuilder: (context, index) {
-                    final imageUrl = widget.product.images.isNotEmpty 
-                        ? widget.product.images[index] 
-                        : (widget.product.image ?? '');
+                    String? imageUrl;
+                    if (widget.product.images != null && widget.product.images.isNotEmpty) {
+                      imageUrl = widget.product.images[index];
+                    } else if (widget.product.image != null && widget.product.image!.isNotEmpty) {
+                      imageUrl = widget.product.image;
+                    } else {
+                      imageUrl = null;
+                    }
+                    if (imageUrl == null || imageUrl.isEmpty) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Center(child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey)),
+                      );
+                    }
                     return CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,

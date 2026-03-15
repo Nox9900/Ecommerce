@@ -41,7 +41,7 @@ class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 ),
                 onPressed: onAllProducts,
-                child: const Text('All Products'),
+                child: const Text('All'),
               ),
             ),
             Expanded(

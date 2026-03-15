@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import 'product_card.dart';
+import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
 
 class ProductSection extends StatelessWidget {
   final String title;
@@ -20,7 +21,32 @@ class ProductSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (products.isEmpty) return const SizedBox.shrink();
+    if (products.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'No products found or an error occurred.',
+                style: TextStyle(color: Colors.redAccent, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -55,48 +81,55 @@ class ProductSection extends StatelessWidget {
           ),
         ),
         isGrid
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: products.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemBuilder: (context, index) {
-                      return ProductCard(
-                        product: products[index],
-                        onTap: () {
-                          // TODO: Navigate to detail
-                        },
-                      );
-                    },
+            ? SizedBox(
+                // Prevent RenderFlex overflow by constraining height
+                height: 340,
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: products.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.75,
                   ),
-                  const SizedBox(height: 32),
-                ],
+                  itemBuilder: (context, index) {
+                    return ProductCard(
+                      product: products[index],
+                      onTap: () {
+                        if (products[index] != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: products[index]),
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
               )
             : SizedBox(
-                height: 280,
+                height: 220,
                 child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: products.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 12),
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
-                    return SizedBox(
-                      width: 160,
-                      child: ProductCard(
-                        product: products[index],
-                        onTap: () {
-                          // TODO: Navigate to detail
-                        },
-                      ),
+                    return ProductCard(
+                      product: products[index],
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailScreen(product: products[index]),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

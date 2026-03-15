@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile_app/screens/shop_screen.dart';
+import 'package:flutter_mobile_app/screens/shop_list_screen.dart';
 import 'package:flutter_mobile_app/screens/profile_screen.dart';
 import 'package:flutter_mobile_app/screens/cart_screen.dart';
 import 'package:flutter_mobile_app/screens/chat_list_screen.dart';
@@ -17,8 +18,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _screens = [
     const ShopScreen(),
-    const ChatListScreen(),
+    const ShopListScreen(),
     const CartScreen(),
+    const ChatListScreen(),
     const ProfileScreen(),
   ];
 
@@ -42,17 +44,22 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.grid_view_outlined),
             activeIcon: Icon(Icons.grid_view),
-            label: 'Shop',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Chat',
+            icon: Icon(Icons.storefront_outlined),
+            activeIcon: Icon(Icons.storefront),
+            label: 'Shops',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart_outlined),
             activeIcon: Icon(Icons.shopping_cart),
             label: 'Cart',
+          ),
+           BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: Icon(Icons.chat_bubble),
+            label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
