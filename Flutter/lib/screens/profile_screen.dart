@@ -44,8 +44,8 @@ class ProfileScreen extends StatelessWidget {
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
-                            errorWidget: (_, __, ___) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                            placeholder: (_, _) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                            errorWidget: (_, _, _) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
                           ),
                         )
                       : const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),

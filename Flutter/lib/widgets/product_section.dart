@@ -7,6 +7,7 @@ class ProductSection extends StatelessWidget {
   final List<Product> products;
   final Widget? icon;
   final VoidCallback? onSeeAll;
+  final bool isGrid;
 
   const ProductSection({
     super.key,
@@ -14,6 +15,7 @@ class ProductSection extends StatelessWidget {
     required this.products,
     this.icon,
     this.onSeeAll,
+    this.isGrid = false,
   });
 
   @override
@@ -21,6 +23,7 @@ class ProductSection extends StatelessWidget {
     if (products.isEmpty) return const SizedBox.shrink();
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -51,26 +54,53 @@ class ProductSection extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
-          height: 280,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            itemCount: products.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              return SizedBox(
-                width: 160,
-                child: ProductCard(
-                  product: products[index],
-                  onTap: () {
-                    // TODO: Navigate to detail
+        isGrid
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: products.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemBuilder: (context, index) {
+                      return ProductCard(
+                        product: products[index],
+                        onTap: () {
+                          // TODO: Navigate to detail
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              )
+            : SizedBox(
+                height: 280,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: products.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    return SizedBox(
+                      width: 160,
+                      child: ProductCard(
+                        product: products[index],
+                        onTap: () {
+                          // TODO: Navigate to detail
+                        },
+                      ),
+                    );
                   },
                 ),
-              );
-            },
-          ),
-        ),
+              ),
       ],
     );
   }

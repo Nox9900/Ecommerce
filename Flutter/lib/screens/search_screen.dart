@@ -15,6 +15,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isSearching = false;
 
   @override
   void dispose() {
@@ -33,6 +34,17 @@ class _SearchScreenState extends State<SearchScreen> {
             hintText: 'Search products...',
             border: InputBorder.none,
           ),
+          onSubmitted: (value) async {
+            setState(() {
+              _isSearching = true;
+              _searchQuery = value;
+            });
+            await Provider.of<ShopProvider>(context, listen: false)
+                .fetchProducts(query: value);
+            setState(() {
+              _isSearching = false;
+            });
+          },
           onChanged: (value) {
             setState(() {
               _searchQuery = value;
@@ -46,17 +58,14 @@ class _SearchScreenState extends State<SearchScreen> {
               onPressed: () {
                 _searchController.clear();
                 setState(() => _searchQuery = '');
+                Provider.of<ShopProvider>(context, listen: false)
+                    .fetchProducts(query: '');
               },
             ),
         ],
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shop, child) {
-          final results = shop.products.where((p) => 
-            p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            p.description.toLowerCase().contains(_searchQuery.toLowerCase())
-          ).toList();
-
           if (_searchQuery.isEmpty) {
             return const Center(
               child: Column(
@@ -69,13 +78,18 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             );
           }
-
+          if (_isSearching) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final results = shop.products.where((p) =>
+            p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            p.description.toLowerCase().contains(_searchQuery.toLowerCase())
+          ).toList();
           if (results.isEmpty) {
             return const Center(
               child: Text('No results found'),
             );
           }
-
           return GridView.builder(
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

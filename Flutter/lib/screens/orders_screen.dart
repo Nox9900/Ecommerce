@@ -100,7 +100,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: _orders.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final order = _orders[index];
                           return _OrderCard(order: order, statusColor: _statusColor(order.status));
@@ -161,7 +161,7 @@ class _OrderCard extends StatelessWidget {
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(width: 48, height: 48, color: Colors.grey[200]),
+                        errorWidget: (_, _, _) => Container(width: 48, height: 48, color: Colors.grey[200]),
                       ),
                     ),
                     const SizedBox(width: 12),

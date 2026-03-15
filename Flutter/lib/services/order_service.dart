@@ -19,7 +19,7 @@ class OrderService {
         'orderItems': orderItems,
         'shippingAddress': shippingAddress.toJson(),
         'totalPrice': totalPrice,
-        if (couponCode != null) 'couponCode': couponCode,
+        'couponCode': ?couponCode,
       },
       fromJson: (data) => Order.fromJson(data),
     );

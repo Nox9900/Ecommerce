@@ -34,7 +34,7 @@ class ReviewService {
         'productId': productId,
         'orderId': orderId,
         'rating': rating,
-        if (comment != null) 'comment': comment,
+        'comment': ?comment,
       },
       fromJson: (data) => Review.fromJson(data),
     );

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_mobile_app/widgets/product_card.dart';
+// import 'package:flutter_mobile_app/widgets/product_card.dart';
 import 'package:flutter_mobile_app/widgets/promo_banners.dart';
 import 'package:flutter_mobile_app/widgets/product_section.dart';
-import 'package:flutter_mobile_app/core/theme.dart';
+// import 'package:flutter_mobile_app/core/theme.dart';
 import 'package:flutter_mobile_app/providers/shop_provider.dart';
 import 'package:flutter_mobile_app/providers/auth_provider.dart';
-import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
+import 'package:flutter_mobile_app/screens/_category_header_delegate.dart';
+import 'package:flutter_mobile_app/screens/_subcategory_header_delegate.dart';
+// import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
 import 'package:flutter_mobile_app/screens/search_screen.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   String _selectedCategoryId = 'all';
+  String? _selectedSubcategoryId;
 
   @override
   void initState() {
@@ -25,10 +28,10 @@ class _ShopScreenState extends State<ShopScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final shopProvider = context.read<ShopProvider>();
       final authProvider = context.read<AuthProvider>();
-      
       shopProvider.fetchCategories();
       shopProvider.fetchPromoBanners();
       shopProvider.fetchTrendingProducts();
+      shopProvider.fetchRandomShops();
       if (authProvider.isAuthenticated) {
         shopProvider.fetchPersonalizedProducts();
       }
@@ -39,6 +42,18 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final ScrollController _scrollController = ScrollController();
+    void _onScroll() {
+      final shopProvider = context.read<ShopProvider>();
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !shopProvider.isLoadingMore && shopProvider.hasMoreProducts) {
+        shopProvider.fetchMoreProducts(
+          categoryId: _selectedCategoryId,
+          query: _selectedSubcategoryId,
+        );
+      }
+    }
+    _scrollController.addListener(_onScroll);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('YAAMAAN', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
@@ -72,116 +87,208 @@ class _ShopScreenState extends State<ShopScreen> {
               if (authProvider.isAuthenticated) {
                 await shopProvider.fetchPersonalizedProducts();
               }
-              await shopProvider.fetchProducts(categoryId: _selectedCategoryId);
+              await shopProvider.fetchProducts(
+                categoryId: _selectedCategoryId,
+                query: _selectedSubcategoryId,
+              );
             },
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: Column(
-                children: [
-                  // Category Slider
-                  Container(
-                    height: 50,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: shopProvider.categories.length + 1,
-                      separatorBuilder: (_, _) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final isAll = index == 0;
-                        final categoryId = isAll ? 'all' : shopProvider.categories[index - 1].id;
-                        final categoryName = isAll ? 'All' : shopProvider.categories[index - 1].name;
-                        final isSelected = _selectedCategoryId == categoryId;
-
-                        return ChoiceChip(
-                          label: Text(categoryName),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            if (selected) {
-                              setState(() {
-                                _selectedCategoryId = categoryId;
-                              });
-                              shopProvider.fetchProducts(categoryId: categoryId);
-                            }
-                          },
-                          selectedColor: AppTheme.primaryDefault,
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : AppTheme.textPrimary,
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                // Random Shops Section
+                if (shopProvider.randomShops.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'Featured Shops',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        );
-                      },
+                          SizedBox(
+                            height: 120,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: shopProvider.randomShops.length,
+                              separatorBuilder: (_, _) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final shop = shopProvider.randomShops[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    // TODO: Navigate to shop detail screen
+                                  },
+                                  child: Container(
+                                    width: 180,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                          child: shop.bannerUrl.isNotEmpty
+                                              ? Image.network(shop.bannerUrl, height: 60, width: 180, fit: BoxFit.cover)
+                                              : Container(height: 60, width: 180, color: Colors.grey[200]),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                backgroundImage: shop.logoUrl.isNotEmpty
+                                                    ? NetworkImage(shop.logoUrl)
+                                                    : null,
+                                                backgroundColor: Colors.grey[300],
+                                                radius: 18,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  shop.name,
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                // Promo Banners Section
+                if (shopProvider.promoBanners.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: PromoBanners(banners: shopProvider.promoBanners),
+                  ),
 
-                  if (_selectedCategoryId == 'all') ...[
-                    // Discovery Features
-                    PromoBanners(banners: shopProvider.promoBanners),
-                    
-                    if (authProvider.isAuthenticated)
-                      ProductSection(
-                        title: 'For You',
-                        products: shopProvider.personalizedProducts,
-                        icon: const Icon(Icons.favorite, color: Colors.red),
-                      ),
-                    
-                    ProductSection(
-                      title: 'Trending Now',
+                // Trending Products Section
+                if (shopProvider.trendingProducts.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: ProductSection(
+                      title: 'Trending Products',
                       products: shopProvider.trendingProducts,
-                      icon: const Icon(Icons.flash_on, color: Colors.orange),
-                    ),
-                  ],
-
-                  // Products Grid Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      children: [
-                        const Text(
-                          'Our Products',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const Spacer(),
-                        if (shopProvider.isLoading)
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                      ],
+                      isGrid: false,
                     ),
                   ),
 
-                  // Products Grid
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.65,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: shopProvider.products.length,
-                      itemBuilder: (context, index) {
-                        final product = shopProvider.products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProductDetailScreen(product: product),
-                              ),
-                            );
-                          },
+                // Sticky Categories Horizontal List (after Trending)
+                if (shopProvider.categories.isNotEmpty)
+                  SliverPersistentHeader(
+                    pinned: true,
+                    floating: true,
+                    delegate: CategoryHeaderDelegate(
+                      context: context,
+                      selectedCategoryId: _selectedCategoryId,
+                      selectedSubcategoryId: _selectedSubcategoryId,
+                      categories: shopProvider.categories,
+                      onCategorySelected: (catId) {
+                        setState(() {
+                          _selectedCategoryId = catId;
+                          _selectedSubcategoryId = null;
+                        });
+                        if (catId == 'all') {
+                          shopProvider.fetchProducts();
+                        } else {
+                          shopProvider.fetchProducts(categoryId: catId);
+                        }
+                      },
+                      onAllProducts: () {
+                        setState(() {
+                          _selectedCategoryId = 'all';
+                          _selectedSubcategoryId = null;
+                        });
+                        shopProvider.fetchProducts();
+                      },
+                      onSubcategorySelected: (subcatId) {
+                        setState(() {
+                          _selectedSubcategoryId = subcatId;
+                        });
+                        shopProvider.fetchProducts(
+                          categoryId: _selectedCategoryId,
+                          query: _selectedSubcategoryId,
                         );
                       },
                     ),
                   ),
-                ],
-              ),
+
+                // Sticky Subcategories Horizontal List
+                if (_selectedCategoryId != 'all')
+                  ...shopProvider.categories
+                      .where((cat) => cat.id == _selectedCategoryId)
+                      .expand((cat) => cat.subcategories.isNotEmpty
+                          ? [
+                              SliverPersistentHeader(
+                                pinned: true,
+                                floating: true,
+                                delegate: SubcategoryHeaderDelegate(
+                                  context: context,
+                                  selectedSubcategoryId: _selectedSubcategoryId,
+                                  subcategories: cat.subcategories,
+                                  onSubcategorySelected: (subcatId) {
+                                    setState(() {
+                                      _selectedSubcategoryId = subcatId;
+                                    });
+                                    shopProvider.fetchProducts(
+                                      categoryId: _selectedCategoryId,
+                                      query: _selectedSubcategoryId,
+                                    );
+                                  },
+                                ),
+                              )
+                            ]
+                          : []),
+
+                // All Products Section (infinite scroll)
+                SliverToBoxAdapter(
+                  child: ProductSection(
+                    title: 'All',
+                    products: shopProvider.products,
+                    isGrid: true,
+                  ),
+                ),
+
+                // Loading indicator for infinite scroll
+                if (shopProvider.isLoadingMore)
+                  SliverToBoxAdapter(
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+
+                // Personalized Products Section
+                if (authProvider.isAuthenticated && shopProvider.personalizedProducts.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: ProductSection(
+                      title: 'Recommended for You',
+                      products: shopProvider.personalizedProducts,
+                      isGrid: true,
+                    ),
+                  ),
+              ],
             ),
           );
         },

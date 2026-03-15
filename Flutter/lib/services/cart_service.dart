@@ -79,8 +79,8 @@ class CartService {
       data: {
         'productId': productId,
         'quantity': quantity,
-        if (variantId != null) 'variantId': variantId,
-        if (selectedOptions != null) 'selectedOptions': selectedOptions,
+        'variantId': ?variantId,
+        'selectedOptions': ?selectedOptions,
       },
       fromJson: (data) => BackendCart.fromJson(data),
     );
@@ -95,7 +95,7 @@ class CartService {
       '/cart/$productId',
       data: {
         'quantity': quantity,
-        if (variantId != null) 'variantId': variantId,
+        'variantId': ?variantId,
       },
       fromJson: (data) => BackendCart.fromJson(data),
     );
