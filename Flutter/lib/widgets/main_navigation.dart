@@ -36,7 +36,9 @@ class _MainNavigationState extends State<MainNavigation> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryDefault,
+        selectedItemColor: Theme.of(context).brightness == Brightness.dark
+            ? AppTheme.primaryDarkDefault
+            : AppTheme.primaryDefault,
         unselectedItemColor: AppTheme.textMuted,
         showSelectedLabels: true,
         showUnselectedLabels: true,

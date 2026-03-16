@@ -7,6 +7,7 @@ import 'package:flutter_mobile_app/core/theme.dart';
 import 'package:flutter_mobile_app/screens/wishlist_screen.dart';
 import 'package:flutter_mobile_app/screens/orders_screen.dart';
 import 'package:flutter_mobile_app/screens/addresses_screen.dart';
+import 'package:flutter_mobile_app/screens/settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -23,7 +24,12 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -44,8 +50,8 @@ class ProfileScreen extends StatelessWidget {
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
-                            placeholder: (_, _) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
-                            errorWidget: (_, _, _) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                            placeholder: (context, url) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
+                            errorWidget: (context, url, error) => const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),
                           ),
                         )
                       : const Icon(Icons.person, size: 50, color: AppTheme.primaryDefault),

@@ -81,47 +81,22 @@ class ProductSection extends StatelessWidget {
           ),
         ),
         isGrid
-            ? SizedBox(
-                // Prevent RenderFlex overflow by constraining height
-                height: 340,
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: products.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.75,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.68,
                   ),
                   itemBuilder: (context, index) {
                     return ProductCard(
                       product: products[index],
-                      onTap: () {
-                        if (products[index] != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: products[index]),
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-              )
-            : SizedBox(
-                height: 220,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: products.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    return ProductCard(
-                      product: products[index],
+                      cardHeight: 240,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -130,6 +105,32 @@ class ProductSection extends StatelessWidget {
                           ),
                         );
                       },
+                    );
+                  },
+                ),
+              )
+            : SizedBox(
+                height: 260,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      width: 200,
+                      margin: const EdgeInsets.only(right: 16),
+                      child: ProductCard(
+                        product: products[index],
+                        cardHeight: 260,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: products[index]),
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),

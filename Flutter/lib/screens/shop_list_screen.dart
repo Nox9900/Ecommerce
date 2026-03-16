@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile_app/providers/shop_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_mobile_app/screens/shop_detail_screen.dart';
 
 class ShopListScreen extends StatelessWidget {
   const ShopListScreen({super.key});
@@ -39,14 +40,19 @@ class ShopListScreen extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 0.85,
+              childAspectRatio: 0.65,
             ),
             itemCount: shopProvider.randomShops.length,
             itemBuilder: (context, index) {
               final shop = shopProvider.randomShops[index];
               return GestureDetector(
                 onTap: () {
-                  // TODO: Navigate to shop detail screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ShopDetailScreen(shop: shop),
+                    ),
+                  );
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -101,16 +107,19 @@ class ShopListScreen extends StatelessWidget {
                       const Spacer(),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // TODO: Implement follow functionality
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            minimumSize: const Size.fromHeight(36),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // TODO: Implement follow functionality
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
+                              minimumSize: const Size.fromHeight(36),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text('Follow', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
-                          child: const Text('Follow', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],

@@ -8,7 +8,7 @@ import 'package:flutter_mobile_app/providers/shop_provider.dart';
 import 'package:flutter_mobile_app/providers/auth_provider.dart';
 import 'package:flutter_mobile_app/screens/_category_header_delegate.dart';
 import 'package:flutter_mobile_app/screens/_subcategory_header_delegate.dart';
-import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
+// import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
 import 'package:flutter_mobile_app/screens/search_screen.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -56,7 +56,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('YAAMAAN', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
+        title: const Text('Yaamaan\nshop better', style: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 1.5, fontSize: 20)),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -105,10 +105,16 @@ class _ShopScreenState extends State<ShopScreen> {
                 // Trending Products Section
                 if (shopProvider.trendingProducts.isNotEmpty)
                   SliverToBoxAdapter(
-                    child: ProductSection(
-                      title: 'Trending Products',
-                      products: shopProvider.trendingProducts,
-                      isGrid: false,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 32), // Increased gap
+                        ProductSection(
+                          title: 'Trending Products',
+                          products: shopProvider.trendingProducts,
+                          isGrid: false,
+                        ),
+                        const SizedBox(height: 16), // Extra space below
+                      ],
                     ),
                   ),
 
@@ -194,6 +200,20 @@ class _ShopScreenState extends State<ShopScreen> {
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+
+                // End of list indicator
+                if (!shopProvider.hasMoreProducts && shopProvider.products.isNotEmpty && !shopProvider.isLoadingMore)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: Text(
+                          'No more products',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                        ),
+                      ),
                     ),
                   ),
 
