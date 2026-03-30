@@ -24,7 +24,36 @@ class AppTheme {
   static const Color accentError = Color(0xFFB91C1C);
   static const Color accentInfo = Color(0xFF1D4ED8);
 
-  static const Color borderColor = Color(0xFFD1D5DB);
+  static const Color borderColor = Color(0xFFE5E7EB);
+  static const Color accentIndigo = Color(0xFF6366F1);
+  static const Color accentViolet = Color(0xFF8B5CF6);
+  static const Color accentRose = Color(0xFFF43F5E);
+  static const Color accentAmber = Color(0xFFF59E0B);
+
+  // Modern Shadows
+  static List<BoxShadow> softShadow = [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.05),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  static List<BoxShadow> deepShadow = [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.12),
+      blurRadius: 20,
+      offset: const Offset(0, 8),
+    ),
+  ];
+
+  static List<BoxShadow> highlightShadow = [
+    BoxShadow(
+      color: accentIndigo.withOpacity(0.25),
+      blurRadius: 15,
+      offset: const Offset(0, 6),
+    ),
+  ];
 
   // Dark Theme Colors
   static const Color primaryDarkDefault = Color(0xFFF5F5F5);
@@ -50,19 +79,34 @@ class AppTheme {
       onSurface: textPrimary,
       error: accentError,
     ),
-    textTheme: GoogleFonts.interTextTheme().copyWith(
-      displayLarge: GoogleFonts.inter(
+    textTheme: GoogleFonts.outfitTextTheme().copyWith(
+      displayLarge: GoogleFonts.outfit(
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: textPrimary,
       ),
-      bodyLarge: GoogleFonts.inter(
+      displayMedium: GoogleFonts.outfit(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: textPrimary,
+      ),
+      titleLarge: GoogleFonts.outfit(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: textPrimary,
+      ),
+      bodyLarge: GoogleFonts.outfit(
         fontSize: 16,
         color: textPrimary,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.outfit(
         fontSize: 14,
         color: textSecondary,
+      ),
+      labelLarge: GoogleFonts.outfit(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: textPrimary,
       ),
     ),
     dividerTheme: const DividerThemeData(
@@ -85,19 +129,34 @@ class AppTheme {
       onSurface: textDarkPrimary,
       error: Color(0xFFF87171),
     ),
-    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-      displayLarge: GoogleFonts.inter(
+    textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).copyWith(
+      displayLarge: GoogleFonts.outfit(
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: textDarkPrimary,
       ),
-      bodyLarge: GoogleFonts.inter(
+      displayMedium: GoogleFonts.outfit(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: textDarkPrimary,
+      ),
+      titleLarge: GoogleFonts.outfit(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: textDarkPrimary,
+      ),
+      bodyLarge: GoogleFonts.outfit(
         fontSize: 16,
         color: textDarkPrimary,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.outfit(
         fontSize: 14,
         color: textDarkSecondary,
+      ),
+      labelLarge: GoogleFonts.outfit(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: textDarkPrimary,
       ),
     ),
     dividerTheme: const DividerThemeData(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import 'product_card.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
 import 'package:flutter_mobile_app/screens/product_detail_screen.dart';
 
 class ProductSection extends StatelessWidget {
@@ -48,80 +49,67 @@ class ProductSection extends StatelessWidget {
       );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  if (icon != null) ...[
-                    icon!,
-                    const SizedBox(width: 8),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (icon != null) ...[
+                      icon!,
+                      const SizedBox(height: 4),
+                    ],
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        fontSize: 22,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
                   ],
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                ),
+                if (onSeeAll != null)
+                  GestureDetector(
+                    onTap: onSeeAll,
+                    child: Text(
+                      'See All',
+                      style: TextStyle(
+                        color: AppTheme.accentIndigo,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
-                ],
-              ),
-              if (onSeeAll != null)
-                TextButton(
-                  onPressed: onSeeAll,
-                  child: const Text('See All'),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
-        isGrid
-            ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: products.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.68,
-                  ),
-                  itemBuilder: (context, index) {
-                    return ProductCard(
-                      product: products[index],
-                      cardHeight: 240,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailScreen(product: products[index]),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              )
-            : SizedBox(
-                height: 260,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      width: 200,
-                      margin: const EdgeInsets.only(right: 16),
-                      child: ProductCard(
+          const SizedBox(height: 12),
+          isGrid
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: products.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 0.72,
+                    ),
+                    itemBuilder: (context, index) {
+                      return ProductCard(
                         product: products[index],
-                        cardHeight: 260,
+                        cardHeight: 240,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -130,12 +118,38 @@ class ProductSection extends StatelessWidget {
                             ),
                           );
                         },
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
+                )
+              : SizedBox(
+                  height: 280,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: 200,
+                        margin: const EdgeInsets.only(right: 16),
+                        child: ProductCard(
+                          product: products[index],
+                          cardHeight: 280,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailScreen(product: products[index]),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-      ],
+        ],
+      ),
     );
   }
 }

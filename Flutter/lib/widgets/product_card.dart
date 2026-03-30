@@ -24,171 +24,226 @@ class ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.transparent
-                : AppTheme.borderColor.withValues(),
-          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppTheme.softShadow,
         ),
-        child: (cardHeight ?? 0) > 150
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Horizontal card for trending section
-                  Container(
-                    height: (cardHeight ?? 220) * 0.55,
-                    width: double.infinity,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Hero(
-                        tag: 'product_image_${product.id}',
-                        child: (product.image != null && product.image!.isNotEmpty)
-                            ? CachedNetworkImage(
-                                imageUrl: product.image!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                                placeholder: (context, url) => Container(color: Colors.grey[200]),
-                                errorWidget: (context, url, error) => const Icon(Icons.error),
-                              )
-                            : Container(
-                                color: Colors.grey[200],
-                                child: const Center(child: Icon(Icons.image_not_supported, size: 32, color: Colors.grey)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: (cardHeight ?? 0) > 150
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Larger Image for horizontal/trending
+                    Expanded(
+                      flex: 6,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: Hero(
+                              tag: 'product_image_${product.id}',
+                              child: (product.image != null && product.image!.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: product.image!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(color: Colors.grey[100]),
+                                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                                    )
+                                  : Container(color: Colors.grey[100], child: const Icon(Icons.image_not_supported, color: Colors.grey)),
+                            ),
+                          ),
+                          // Premium badge if rating is high
+                          if (product.averageRating >= 4.5)
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'Top Rated',
+                                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
                               ),
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '\$${product.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: AppTheme.primaryDefault,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
+                    Expanded(
+                      flex: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(Icons.star, size: 14, color: Colors.amber),
-                            const SizedBox(width: 4),
-                            Text(
-                              product.averageRating.toString(),
-                              style: const TextStyle(fontSize: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  product.category,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.textMuted),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '\$${product.price.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.star, size: 12, color: Colors.amber),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        product.averageRating.toString(),
+                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Compact card for grid/vertical section
-                  SizedBox(
-                    height: cardHeight ?? 120,
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                          child: Hero(
-                            tag: 'product_image_${product.id}',
-                            child: (product.image != null && product.image!.isNotEmpty)
-                                ? CachedNetworkImage(
-                                    imageUrl: product.image!,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(color: Colors.grey[200]),
-                                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                                  )
-                                : Container(
-                                    color: Colors.grey[200],
-                                    child: const Center(child: Icon(Icons.image_not_supported, size: 32, color: Colors.grey)),
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 8,
-                          bottom: 8,
-                          child: GestureDetector(
-                            onTap: () {
-                              context.read<CartProvider>().addItem(product);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('Added to cart!'),
-                                  duration: const Duration(seconds: 1),
-                                  action: SnackBarAction(
-                                    label: 'View',
-                                    onPressed: () {
-                                      // Logic to navigate to cart tab could be added here
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: AppTheme.primaryDefault,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.add_shopping_cart, size: 20, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Grid item card
+                    Expanded(
+                      flex: 7,
+                      child: Stack(
                         children: [
-                          Text(
-                            product.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '\$${product.price.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              color: AppTheme.primaryDefault,
-                              fontWeight: FontWeight.w600,
+                          Positioned.fill(
+                            child: Hero(
+                              tag: 'product_image_${product.id}_grid',
+                              child: (product.image != null && product.image!.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: product.image!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(color: Colors.grey[100]),
+                                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                                    )
+                                  : Container(color: Colors.grey[100], child: const Icon(Icons.image_not_supported, color: Colors.grey)),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.star, size: 14, color: Colors.amber),
-                              const SizedBox(width: 4),
-                              Text(
-                                product.averageRating.toString(),
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
+                          Positioned(
+                            right: 8,
+                            bottom: -15, // Partially overlap content
+                            child: _AddToCartButton(product: product),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    Expanded(
+                      flex: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              product.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '\$${product.price.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star, size: 12, color: Colors.amber),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      product.averageRating.toString(),
+                                      style: const TextStyle(fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddToCartButton extends StatelessWidget {
+  final Product product;
+  const _AddToCartButton({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        context.read<CartProvider>().addItem(product);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.accentIndigo,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            content: Text('${product.name} added to cart!'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark 
+            ? AppTheme.primaryDarkDefault 
+            : AppTheme.primaryDefault,
+          shape: BoxShape.circle,
+          boxShadow: AppTheme.deepShadow,
+        ),
+        child: Icon(
+          Icons.add_shopping_cart_rounded,
+          size: 20,
+          color: Theme.of(context).brightness == Brightness.dark 
+            ? AppTheme.primaryDefault 
+            : Colors.white,
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile_app/models/category.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
 
 typedef SubcategoryCallback = void Function(String subcategoryId);
 
@@ -17,43 +18,64 @@ class SubcategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: SizedBox(
-        height: 40,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: subcategories.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (context, idx) {
-            final subcat = subcategories[idx];
-            final isSelected = subcat.id == selectedSubcategoryId;
-            return ChoiceChip(
-              label: Text(subcat.name),
-              selected: isSelected,
-              onSelected: (selected) => onSubcategorySelected(subcat.id),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              backgroundColor: Colors.grey[200],
-              selectedColor: Theme.of(context).colorScheme.primary,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.black,
-              ),
-              side: BorderSide.none,
-            );
-          },
+      child: Center(
+        child: SizedBox(
+          height: 32,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: subcategories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, idx) {
+              final subcat = subcategories[idx];
+              final isSelected = subcat.id == selectedSubcategoryId;
+              
+              return GestureDetector(
+                onTap: () => onSubcategorySelected(subcat.id),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                      ? AppTheme.accentIndigo.withOpacity(0.15)
+                      : Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? AppTheme.accentIndigo : AppTheme.borderColor.withOpacity(0.5),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    subcat.name,
+                    style: TextStyle(
+                      color: isSelected ? AppTheme.accentIndigo : AppTheme.textMuted,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
   @override
-  double get maxExtent => 40;
+  double get maxExtent => 44;
 
   @override
-  double get minExtent => 40;
+  double get minExtent => 44;
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      true;
 }

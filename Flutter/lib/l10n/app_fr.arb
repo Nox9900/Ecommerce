@@ -1,0 +1,17 @@
+{
+  "@@locale": "fr",
+  "appTitle": "YAAMAAN",
+  "profile": "Profil",
+  "myOrders": "Mes Commandes",
+  "wishlist": "Liste de Souhaits",
+  "addresses": "Adresses",
+  "paymentMethods": "Modes de Paiement",
+  "darkMode": "Mode Sombre",
+  "language": "Langue",
+  "vendorPortal": "Portail Vendeur",
+  "logout": "Déconnexion",
+  "selectLanguage": "Choisir la Langue",
+  "english": "Anglais",
+  "french": "Français",
+  "arabic": "Arabe"
+}

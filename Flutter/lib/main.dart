@@ -1,6 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_mobile_app/core/theme.dart';
 import 'package:flutter_mobile_app/core/api_client.dart';
 import 'package:flutter_mobile_app/providers/shop_provider.dart';
@@ -9,9 +10,9 @@ import 'package:flutter_mobile_app/providers/cart_provider.dart';
 import 'package:flutter_mobile_app/providers/chat_provider.dart';
 import 'package:flutter_mobile_app/providers/theme_provider.dart';
 import 'package:flutter_mobile_app/providers/wishlist_provider.dart';
+import 'package:flutter_mobile_app/providers/locale_provider.dart';
 import 'package:flutter_mobile_app/widgets/main_navigation.dart';
 import 'package:flutter_mobile_app/screens/welcome_screen.dart';
-// import 'package:flutter_mobile_app/screens/shop_screen.dart';
 
 // DEVELOPMENT: Set to true to allow direct access to ShopScreen
 const bool kDevAccessShopScreen = true;
@@ -43,6 +44,9 @@ void main() {
         ),
         ChangeNotifierProvider<WishlistProvider>(
           create: (_) => WishlistProvider(),
+        ),
+        ChangeNotifierProvider<LocaleProvider>(
+          create: (_) => LocaleProvider(),
         ),
       ],
       child: const MainApp(),
@@ -84,12 +88,22 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final localeProvider = context.watch<LocaleProvider>();
+
       return MaterialApp(
         title: 'YAAMAAN',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: themeProvider.themeMode,
         debugShowCheckedModeBanner: false,
+        locale: localeProvider.locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Consumer<AuthProvider>(
           builder: (context, auth, _) {
             if (auth.isLoading) {

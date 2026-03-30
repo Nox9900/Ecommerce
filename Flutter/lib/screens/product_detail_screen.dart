@@ -12,10 +12,9 @@ import 'package:flutter_mobile_app/providers/auth_provider.dart';
 import 'package:flutter_mobile_app/services/review_service.dart';
 import 'package:flutter_mobile_app/screens/chat_screen.dart';
 
-class ProductDetailScreen extends StatefulWidget {
+class ProductDetailScreen extends StatefulWidget { 
   final Product product;
   const ProductDetailScreen({super.key, required this.product});
-
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
@@ -347,7 +346,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     minimumSize: const Size.fromHeight(56),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text('Add to Cart', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text('Cart', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(width: 12),

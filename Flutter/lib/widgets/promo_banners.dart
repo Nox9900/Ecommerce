@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
 import '../models/promo_banner.dart';
 
 class PromoBanners extends StatefulWidget {
@@ -28,7 +29,7 @@ class _PromoBannersState extends State<PromoBanners> {
     return Column(
       children: [
         SizedBox(
-          height: 180,
+          height: 200,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -39,112 +40,117 @@ class _PromoBannersState extends State<PromoBanners> {
             itemCount: widget.banners.length,
             itemBuilder: (context, index) {
               final banner = widget.banners[index];
-              return AnimatedBuilder(
-                animation: _pageController,
-                builder: (context, child) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: AppTheme.softShadow,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: banner.imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[100],
+                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
                         ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: banner.imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[200],
-                            child: const Center(child: CircularProgressIndicator()),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.error),
-                          ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
                         ),
-                        // Overlay with Text
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Colors.black.withOpacity(0.7),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                banner.label.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                banner.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (banner.price.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  banner.price,
-                                  style: const TextStyle(
-                                    color: Colors.amber,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                      ),
+                      // Animated Gradient Overlay
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomRight,
+                            end: Alignment.topLeft,
+                            colors: [
+                              Colors.black.withOpacity(0.8),
+                              Colors.black.withOpacity(0.2),
+                              Colors.transparent,
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentIndigo,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                banner.label.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              banner.title,
+                              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                color: Colors.white,
+                                fontSize: 24,
+                                height: 1.1,
+                              ),
+                            ),
+                            if (banner.price.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                banner.price,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w300,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           ),
         ),
         // Indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: widget.banners.asMap().entries.map((entry) {
-            return Container(
-              width: 8.0,
-              height: 8.0,
-              margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentPage == entry.key
-                    ? Theme.of(context).primaryColor
-                    : Colors.grey.withOpacity(0.4),
-              ),
-            );
-          }).toList(),
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: widget.banners.asMap().entries.map((entry) {
+              final isCurrent = _currentPage == entry.key;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: isCurrent ? 24.0 : 8.0,
+                height: 4.0,
+                margin: const EdgeInsets.symmetric(horizontal: 3.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: isCurrent
+                      ? AppTheme.accentIndigo
+                      : Colors.grey.withOpacity(0.3),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );

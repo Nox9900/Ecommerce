@@ -8,19 +8,85 @@ import 'package:flutter_mobile_app/screens/wishlist_screen.dart';
 import 'package:flutter_mobile_app/screens/orders_screen.dart';
 import 'package:flutter_mobile_app/screens/addresses_screen.dart';
 import 'package:flutter_mobile_app/screens/settings_screen.dart';
+import 'package:flutter_mobile_app/l10n/app_localizations.dart';
+import 'package:flutter_mobile_app/providers/locale_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  void _showLanguagePicker(BuildContext context) {
+    final localeProvider = context.read<LocaleProvider>();
+    final l10n = AppLocalizations.of(context)!;
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.selectLanguage,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _buildLanguageOption(
+                context, 
+                label: l10n.english, 
+                isSelected: localeProvider.locale?.languageCode == 'en' || localeProvider.locale == null, 
+                onTap: () {
+                  localeProvider.setLocale(const Locale('en'));
+                  Navigator.pop(context);
+                },
+              ),
+              _buildLanguageOption(
+                context, 
+                label: l10n.french, 
+                isSelected: localeProvider.locale?.languageCode == 'fr', 
+                onTap: () {
+                  localeProvider.setLocale(const Locale('fr'));
+                  Navigator.pop(context);
+                },
+              ),
+              _buildLanguageOption(
+                context, 
+                label: l10n.arabic, 
+                isSelected: localeProvider.locale?.languageCode == 'ar', 
+                onTap: () {
+                  localeProvider.setLocale(const Locale('ar'));
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption(BuildContext context, {required String label, required bool isSelected, required VoidCallback onTap}) {
+    return ListTile(
+      title: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+      trailing: isSelected ? const Icon(Icons.check_circle, color: AppTheme.primaryDefault) : null,
+      onTap: onTap,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
     final themeProvider = context.watch<ThemeProvider>();
+    final localeProvider = context.watch<LocaleProvider>();
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(l10n.profile, style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -83,7 +149,7 @@ class ProfileScreen extends StatelessWidget {
             _buildOption(
               context,
               icon: Icons.shopping_bag_outlined,
-              label: 'My Orders',
+              label: l10n.myOrders,
               onTap: () {
                 Navigator.push(
                   context,
@@ -94,7 +160,7 @@ class ProfileScreen extends StatelessWidget {
             _buildOption(
               context, 
               icon: Icons.favorite_border, 
-              label: 'Wishlist',
+              label: l10n.wishlist,
               onTap: () {
                 Navigator.push(
                   context,
@@ -105,7 +171,7 @@ class ProfileScreen extends StatelessWidget {
             _buildOption(
               context,
               icon: Icons.location_on_outlined,
-              label: 'Addresses',
+              label: l10n.addresses,
               onTap: () {
                 Navigator.push(
                   context,
@@ -113,7 +179,7 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
             ),
-            _buildOption(context, icon: Icons.payment_outlined, label: 'Payment Methods'),
+            _buildOption(context, icon: Icons.payment_outlined, label: l10n.paymentMethods),
             
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -124,7 +190,7 @@ class ProfileScreen extends StatelessWidget {
             _buildOption(
               context, 
               icon: Icons.dark_mode_outlined, 
-              label: 'Dark Mode',
+              label: l10n.darkMode,
               trailing: Switch(
                 value: themeProvider.themeMode == ThemeMode.dark,
                 onChanged: (value) => themeProvider.toggleTheme(value),
@@ -134,15 +200,23 @@ class ProfileScreen extends StatelessWidget {
             _buildOption(
               context, 
               icon: Icons.language_outlined, 
-              label: 'Language',
-              trailing: const Text('English', style: TextStyle(color: AppTheme.textMuted)),
+              label: l10n.language,
+              trailing: Text(
+                localeProvider.locale?.languageCode == 'fr' 
+                    ? l10n.french 
+                    : localeProvider.locale?.languageCode == 'ar' 
+                        ? l10n.arabic 
+                        : l10n.english, 
+                style: const TextStyle(color: AppTheme.textMuted),
+              ),
+              onTap: () => _showLanguagePicker(context),
             ),
             
             if (user?.isVendor == true)
               _buildOption(
                 context, 
                 icon: Icons.store_outlined, 
-                label: 'Vendor Portal',
+                label: l10n.vendorPortal,
                 onTap: () {
                   // TODO: Navigate to Vendor dashboard
                 },
@@ -153,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
             _buildOption(
               context, 
               icon: Icons.logout, 
-              label: 'Logout', 
+              label: l10n.logout, 
               color: Colors.red,
               onTap: () {
                 context.read<AuthProvider>().logout();

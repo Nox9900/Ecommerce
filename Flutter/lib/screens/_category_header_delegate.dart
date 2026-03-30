@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile_app/models/category.dart';
+import 'package:flutter_mobile_app/core/theme.dart';
 
 typedef CategoryCallback = void Function(String categoryId);
 typedef SubcategoryCallback = void Function(String subcategoryId);
@@ -24,62 +25,73 @@ class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: SizedBox(
-        height: 48,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 8),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: selectedCategoryId == 'all' ? Theme.of(context).colorScheme.primary : Colors.grey[200],
-                  foregroundColor: selectedCategoryId == 'all' ? Colors.white : Colors.black,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                ),
-                onPressed: onAllProducts,
-                child: const Text('All'),
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.zero,
-                itemCount: categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  final isSelected = category.id == selectedCategoryId;
-                  return ChoiceChip(
-                    label: Text(category.name),
-                    selected: isSelected,
-                    onSelected: (selected) => onCategorySelected(category.id),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    backgroundColor: Colors.grey[200],
-                    selectedColor: Theme.of(context).colorScheme.primary,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(
+           bottom: BorderSide(
+             color: overlapsContent ? AppTheme.borderColor.withOpacity(0.5) : Colors.transparent,
+             width: 1,
+           ),
+        ),
+      ),
+      child: Center(
+        child: SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: categories.length + 1,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final isAll = index == 0;
+              final category = !isAll ? categories[index - 1] : null;
+              final isSelected = isAll ? selectedCategoryId == 'all' : category?.id == selectedCategoryId;
+              
+              return GestureDetector(
+                onTap: isAll ? onAllProducts : () => onCategorySelected(category!.id),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                      ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.primaryDefault)
+                      : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.grey[200]),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: isSelected ? AppTheme.softShadow : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    isAll ? 'All' : category!.name,
+                    style: TextStyle(
+                      color: isSelected 
+                        ? (Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white)
+                        : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 13,
                     ),
-                    side: BorderSide.none,
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
   @override
-  double get maxExtent => 48;
+  double get maxExtent => 60;
 
   @override
-  double get minExtent => 48;
+  double get minExtent => 60;
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      true;
 }
