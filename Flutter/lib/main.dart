@@ -15,7 +15,7 @@ import 'package:flutter_mobile_app/widgets/main_navigation.dart';
 import 'package:flutter_mobile_app/screens/welcome_screen.dart';
 
 // DEVELOPMENT: Set to true to allow direct access to ShopScreen
-const bool kDevAccessShopScreen = true;
+const bool kDevAccessShopScreen = false;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

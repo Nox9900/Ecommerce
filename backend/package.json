@@ -14,6 +14,7 @@
   "type": "module",
   "dependencies": {
     "@clerk/express": "^1.7.52",
+    "apple-signin-auth": "^2.0.0",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -22,6 +23,7 @@
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "inngest": "^3.46.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.19.3",
     "multer": "^2.0.2",
     "socket.io": "^4.8.3",

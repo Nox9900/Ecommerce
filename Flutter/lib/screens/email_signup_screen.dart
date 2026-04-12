@@ -82,19 +82,21 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Join YAAMAAN',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                Text(
+                  "Create Account",
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    fontSize: 32,
+                    letterSpacing: -1,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Sign up to start shopping and get personalized recommendations.',
-                  style: TextStyle(color: AppTheme.textMuted),
+                Text(
+                  "Join us to start shopping and get \npersonalized recommendations.",
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 
                 Row(
                   children: [
@@ -155,25 +157,47 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                 ),
                 const SizedBox(height: 32),
                 
-                ElevatedButton(
-                  onPressed: authProvider.isLoading ? null : _handleSignUp,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: authProvider.isLoading ? null : _handleSignUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryDefault,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: authProvider.isLoading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Create Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
-                  child: authProvider.isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Create Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account?"),
+                    Text(
+                      "Already have an account? ",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        "Sign In",
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: AppTheme.primaryDefault,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),

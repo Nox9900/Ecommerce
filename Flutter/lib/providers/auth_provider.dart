@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_mobile_app/core/api_client.dart';
 import 'package:flutter_mobile_app/core/env.dart';
 import 'package:flutter_mobile_app/models/user.dart';
@@ -231,6 +232,61 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _error = 'Google sign in failed. Please try again.';
       ApiClient.debugPrint('Google SignIn error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Sign in with Apple.
+  Future<void> signInWithApple() async {
+    _error = null;
+    notifyListeners();
+
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      // Show loading after Apple dialog completes
+      _isLoading = true;
+      notifyListeners();
+
+      final identityToken = credential.identityToken;
+      if (identityToken == null) {
+        throw Exception('Failed to get Apple identity token');
+      }
+
+      // Exchange Apple token for Clerk sign-in token via backend
+      final response = await _apiClient.dio.post('/auth/apple', data: {
+        'identityToken': identityToken,
+        'email': credential.email,
+        'firstName': credential.givenName,
+        'lastName': credential.familyName,
+      });
+
+      final signInToken = response.data['token'] as String;
+
+      // Use ticket strategy with Clerk
+      final result = await _clerkAuth.signInWithTicket(signInToken);
+
+      if (result.sessionId != null) {
+        _sessionId = result.sessionId;
+        await _storage.write(key: 'clerk_session_id', value: _sessionId);
+
+        final jwt = await _clerkAuth.getSessionToken(result.sessionId!);
+        if (jwt != null) {
+          _token = jwt;
+          await _storage.write(key: 'auth_token', value: jwt);
+          await _fetchUserProfile();
+        }
+      }
+    } catch (e) {
+      _error = 'Apple sign in failed. Please try again.';
+      ApiClient.debugPrint('Apple SignIn error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

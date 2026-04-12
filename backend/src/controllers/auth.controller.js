@@ -1,3 +1,4 @@
+import appleSignin from "apple-signin-auth";
 import { createClerkClient } from "@clerk/express";
 import { ENV } from "../config/env.js";
 
@@ -59,6 +60,57 @@ export const googleSignIn = async (req, res) => {
   } catch (error) {
     console.error("Google sign-in error:", error);
     res.status(500).json({ message: "Google sign-in failed" });
+  }
+};
+
+export const appleSignIn = async (req, res) => {
+  try {
+    const { identityToken, firstName, lastName } = req.body;
+    let { email } = req.body;
+
+    if (!identityToken) {
+      return res.status(400).json({ message: "Missing identity token" });
+    }
+
+    // Verify Apple ID token
+    const applePayload = await appleSignin.verifyIdToken(identityToken, {
+      audience: ENV.APPLE_CLIENT_ID,
+      ignoreExpiration: false,
+    });
+
+    email = email || applePayload.email;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email required but not found in token or request" });
+    }
+
+    // Find existing Clerk user by email
+    let clerkUser;
+    const existingUsers = await clerkClient.users.getUserList({
+      emailAddress: [email],
+    });
+
+    if (existingUsers.data.length > 0) {
+      clerkUser = existingUsers.data[0];
+    } else {
+      // Create new Clerk user
+      clerkUser = await clerkClient.users.createUser({
+        emailAddress: [email],
+        firstName: firstName || applePayload.given_name || "",
+        lastName: lastName || applePayload.family_name || "",
+        skipPasswordRequirement: true,
+      });
+    }
+
+    // Create a sign-in token for this user
+    const signInToken = await clerkClient.signInTokens.createSignInToken({
+      userId: clerkUser.id,
+    });
+
+    res.json({ token: signInToken.token });
+  } catch (error) {
+    console.error("Apple sign-in error:", error);
+    res.status(500).json({ message: "Apple sign-in failed" });
   }
 };
 

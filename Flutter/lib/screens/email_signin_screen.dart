@@ -34,17 +34,22 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              const Text(
-                "Welcome Back",
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              const SizedBox(height: 60),
+              Text(
+                "Sign In",
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  fontSize: 32,
+                  letterSpacing: -1,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                "Sign in to continue shopping",
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+              Text(
+                "Enter your details to continue shopping.",
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
 
               // Email Input
               TextField(
@@ -129,20 +134,36 @@ class _EmailSignInScreenState extends State<EmailSignInScreen> {
               const SizedBox(height: 32),
 
               // Sign Up Row
+              const SizedBox(height: 32),
+
+              // Sign Up Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Don't have an account? ", style: TextStyle(color: AppTheme.textSecondary)),
-                  GestureDetector(
-                    onTap: () {
+                   Text(
+                    "Don't have an account? ",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const EmailSignUpScreen()),
                       );
                     },
-                    child: const Text(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
                       "Sign Up",
-                      style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppTheme.primaryDefault,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
