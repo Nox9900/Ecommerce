@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "662802816538",
+    "project_id": "dfs-project-ed574",
+    "storage_bucket": "dfs-project-ed574.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:662802816538:android:cede644c7891045bc83ba3",
+        "android_client_info": {
+          "package_name": "com.yaamaan.ecommerce"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeCJZSuigdQuFc1g0hffim-pz1ImyWaTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

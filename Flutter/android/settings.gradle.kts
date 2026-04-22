@@ -1,4 +1,4 @@
-rootProject.name = "flutter_mobile_app_android"
+rootProject.name = "Yaamaan"
 
 pluginManagement {
     val flutterSdkPath =
